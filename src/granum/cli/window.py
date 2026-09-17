@@ -19,11 +19,45 @@ APP_USER_MODEL_ID = "Granum.Granum"
 
 def available() -> bool:
     import importlib.util
+    import os
 
+    if os.environ.get("GRANUM_NO_WINDOW"):
+        return False  # for testing the browser fallback
     try:
-        return importlib.util.find_spec("PySide6.QtWebEngineWidgets") is not None
+        if importlib.util.find_spec("PySide6.QtWebEngineWidgets") is None:
+            return False
     except ModuleNotFoundError:
         return False
+    return loads() if os.name == "nt" else True
+
+
+def loads() -> bool:
+    """Whether Qt WebEngine can actually load here.
+
+    On Windows its Chromium core needs system libraries a given edition may not have, and the
+    loader shows a modal "code execution cannot proceed" box before Python ever sees the error.
+    The import is tried once with those boxes turned off, so a failure becomes a quiet False
+    and Granum can open the dashboard in the browser instead.
+    """
+    import ctypes
+
+    kernel32 = ctypes.windll.kernel32
+    # SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX | SEM_NOOPENFILEERRORBOX
+    previous = kernel32.SetErrorMode(0x0001 | 0x0002 | 0x8000)
+    try:
+        import PySide6.QtWebEngineWidgets  # noqa: F401
+
+        return True
+    except Exception as exc:  # noqa: BLE001 - any loader failure means: use the browser
+        global load_error
+        load_error = str(exc)
+        return False
+    finally:
+        kernel32.SetErrorMode(previous)
+
+
+#: Why the window could not load, when it could not.
+load_error: str | None = None
 
 
 def run(url: str, storage: Path, state: Path) -> int:

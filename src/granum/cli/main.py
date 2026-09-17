@@ -426,6 +426,21 @@ def open_dashboard(
         typer.echo(f"granum: opening the window with the installed app ({runner[0]})", err=True)
         os.environ["GRANUM_HANDED_OVER"] = "1"
         os.execv(runner[0], [*runner, "open"])
+    elif not browser and os.name == "nt":
+        from granum.cli import window as qt_window
+
+        typer.echo(f"granum: the Granum window cannot run on this system ({qt_window.load_error}); "
+                   "opening the browser instead", err=True)
+        webbrowser.open(address)
+        detail = f"\n\nTechnical detail: {qt_window.load_error}" if qt_window.load_error else ""
+        # After the browser, since the dialog waits for the person to close it.
+        desktop.show_error(
+            "Granum runs in your web browser on this PC.\n\n"
+            "Its own window needs Windows components this edition of Windows does not have, so "
+            "Granum opens in your default browser instead. Everything works the same there." + detail,
+            icon="info", once="window-unavailable.txt",
+        )
+        return
     elif not browser:
         typer.echo(
             "granum: no window toolkit or display was found (the window needs pywebview and WebKitGTK, "

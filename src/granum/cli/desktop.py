@@ -431,14 +431,29 @@ def open_window(port: int) -> None:
     webview.start(private_mode=False, storage_path=str(storage), icon=str(icon))
 
 
-def show_error(message: str) -> None:
-    """Tell the user in a dialog when there is no terminal to print to (the Windows launcher)."""
+def show_error(message: str, *, icon: str = "error", once: str | None = None) -> None:
+    """Tell the user in a dialog when there is no terminal to print to (the Windows launcher).
+
+    ``once`` names a marker file in the state folder: the dialog is then shown only the first
+    time, so a permanent condition does not nag on every launch.
+    """
     if os.name != "nt" or sys.stderr is not None:
         return
+    if once is not None:
+        marker = AppPaths.for_user().state / once
+        if marker.exists():
+            return
+        try:
+            marker.parent.mkdir(parents=True, exist_ok=True)
+            marker.write_text("shown\n")
+        except OSError:
+            pass
     import ctypes
 
     try:
-        ctypes.windll.user32.MessageBoxW(None, message, "Granum", 0x10)  # MB_ICONERROR
+        flag = 0x10 if icon == "error" else 0x40  # MB_ICONERROR / MB_ICONINFORMATION
+        flag |= 0x00040000 | 0x00010000  # MB_TOPMOST | MB_SETFOREGROUND: in front of the browser
+        ctypes.windll.user32.MessageBoxW(None, message, "Granum", flag)
     except (AttributeError, OSError):
         pass
 

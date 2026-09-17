@@ -186,7 +186,8 @@ your data is kept.
 
 ### Download and run (Windows)
 
-1. Download **`Granum-0.1.0-Setup.exe`** from the releases page (Windows 10 1809 or later, 64-bit).
+1. Download **`Granum-0.1.0-Setup.exe`** from the releases page (Windows 11, 64-bit; it also installs
+   on Windows 10, where the dashboard opens in your web browser instead of its own window).
 2. Run it. It installs for your user only, without administrator rights, and adds **Granum** to the
    Start menu (and optionally the desktop). The installer is not code-signed yet, so Windows SmartScreen
    may warn first: choose *More info* → *Run anyway*.
