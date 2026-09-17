@@ -55,9 +55,21 @@ def place_image(source: str, target: Path, strategy: str) -> None:
     if strategy == "copy":
         shutil.copyfile(resolved, target)
     elif strategy == "symlink":
-        os.symlink(os.path.abspath(resolved), target)
+        try:
+            os.symlink(os.path.abspath(resolved), target)
+        except OSError:
+            # Windows allows symlinks only with Developer Mode or admin rights.
+            _link_or_copy(resolved, target)
     else:
+        _link_or_copy(resolved, target)
+
+
+def _link_or_copy(resolved: str, target: Path) -> None:
+    try:
         os.link(resolved, target)
+    except OSError:
+        # Hard links need the same drive (and a filesystem that has them).
+        shutil.copyfile(resolved, target)
 
 
 def root_producer(table: Table, op: str) -> dict[str, Any]:

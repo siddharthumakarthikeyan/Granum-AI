@@ -6,6 +6,7 @@ import granum
 from granum import MetricsTableWriter, Table
 from granum.core.objects.run import RunError, set_active_run
 from granum.core.schemas import CategoricalLabelSchema, ImageSchema
+from granum.core.url import Url
 
 
 @pytest.fixture(autouse=True)
@@ -68,7 +69,7 @@ def test_join_resolves_metric_to_sample():
     worst = sorted(joined, key=lambda r: -r["loss"])[0]
     assert worst["loss"] == pytest.approx(2.4)
     assert worst["example_id"] == 1
-    assert worst["image"] == "/data/1.jpg"   # the metric resolved to its image
+    assert worst["image"] == str(Url("/data/1.jpg"))   # the metric resolved to its image
     assert worst["label"] == 1
 
 
@@ -93,7 +94,7 @@ def test_metrics_table_reopens_with_its_link():
     )
     reopened = MetricsTable.from_url(written.url)
     assert reopened.foreign_table_url == table.url
-    assert reopened.join_input()[0]["image"] == "/data/0.jpg"
+    assert reopened.join_input()[0]["image"] == str(Url("/data/0.jpg"))
 
 
 def test_metrics_are_stored_as_float32():
@@ -143,7 +144,7 @@ def test_writer_streams_batches():
         writer.add_batch({"example_id": [2, 3], "loss": [0.7, 0.8]})
     assert writer.table is not None
     assert len(writer.table) == 4
-    assert run.metrics_tables()[0].join_input()[3]["image"] == "/data/3.jpg"
+    assert run.metrics_tables()[0].join_input()[3]["image"] == str(Url("/data/3.jpg"))
 
 
 def test_writer_requires_example_id():

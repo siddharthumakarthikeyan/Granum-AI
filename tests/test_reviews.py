@@ -8,6 +8,7 @@ from granum import Table
 from granum.core.index import Index
 from granum.core.reviews import ReviewError, ReviewLog
 from granum.core.schemas import CategoricalLabelSchema, ImageSchema
+from granum.core.url import Url
 from granum.service.app import create_app
 
 
@@ -42,14 +43,14 @@ def test_invalid_status_and_torn_lines(isolated_project):
 
 def test_decisions_survive_a_revision_that_removes_rows(isolated_project, tmp_path):
     table = Table.from_dict_data(
-        {"image": ["/x/0.png", "/x/1.png", "/x/2.png"], "label": [0, 1, 0]},
+        {"image": [str(Url("/x/0.png")), str(Url("/x/1.png")), str(Url("/x/2.png"))], "label": [0, 1, 0]},
         schema={"image": ImageSchema(sample_type="url"), "label": CategoricalLabelSchema(classes=["cat", "dog"])},
         project_name="demo", dataset_name="train",
     )
-    ReviewLog("demo", "train").record(["/x/2.png"], "excluded", table_url=str(table.url))
+    ReviewLog("demo", "train").record([str(Url("/x/2.png"))], "excluded", table_url=str(table.url))
     smaller = table.delete_rows([0])
     by_image = {row["image"]: ReviewLog("demo", "train").current().get(row["image"]) for row in smaller}
-    assert by_image["/x/2.png"]["status"] == "excluded" and by_image["/x/1.png"] is None
+    assert by_image[str(Url("/x/2.png"))]["status"] == "excluded" and by_image[str(Url("/x/1.png"))] is None
 
 
 def test_review_endpoints(isolated_project):

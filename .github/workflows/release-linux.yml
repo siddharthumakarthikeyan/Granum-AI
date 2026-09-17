@@ -5,6 +5,11 @@ on:
     tags: ["v*"]
   workflow_dispatch:
 
+# Creating the GitHub release and uploading the AppImage to it needs write access to the
+# repository contents; workflows get read-only access unless they ask for more.
+permissions:
+  contents: write
+
 jobs:
   appimage:
     # The oldest supported Ubuntu, so the app runs on it and everything newer.

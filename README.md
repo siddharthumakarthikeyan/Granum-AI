@@ -184,6 +184,29 @@ Everything you do is kept across restarts, reboots and upgrades:
 To upgrade, open a newer AppImage once. To uninstall, run `~/.local/share/granum/Granum.AppImage app uninstall`;
 your data is kept.
 
+### Download and run (Windows)
+
+1. Download **`Granum-0.1.0-Setup.exe`** from the releases page (Windows 10 1809 or later, 64-bit).
+2. Run it. It installs for your user only, without administrator rights, and adds **Granum** to the
+   Start menu (and optionally the desktop). The installer is not code-signed yet, so Windows SmartScreen
+   may warn first: choose *More info* → *Run anyway*.
+
+No internet connection, Python or other packages are needed. Opening Granum starts its background
+service; closing the window stops it again unless an import, training or add-on install is still running.
+Training downloads PyTorch with CUDA and Ultralytics on first use, as on Linux (needs a recent NVIDIA
+driver for GPU training).
+
+| What | Where |
+|---|---|
+| Projects, dataset versions, reviews, comments, shipments, runs | `%USERPROFILE%\granum` |
+| Trained and downloaded model weights | `%USERPROFILE%\granum-training` |
+| Settings (project location, port) | `%APPDATA%\Granum\config.granum.yaml` |
+| The app | `%LOCALAPPDATA%\Programs\Granum` |
+| The training add-on, window storage and logs | `%LOCALAPPDATA%\Granum` |
+
+To upgrade, run a newer Setup.exe. To uninstall, use *Settings → Apps → Granum*; your data is kept.
+Datasets can be imported from your user folder and any local or removable drive.
+
 ### From source
 
 **Requirements:** Linux with Python 3.10+ and Node.js 20+.
@@ -290,6 +313,7 @@ granum/
 │       └── store/          State, filtering, editing, selection
 ├── .github/workflows/      CI: lint, backend tests (3.10 to 3.12), dashboard tests and build
 ├── packaging/linux/        Builds the self-contained AppImage (Python, Qt WebEngine window, dashboard)
+├── packaging/windows/      Builds the Windows installer (same bundle, packed by Inno Setup)
 ├── install.sh              One-command install, upgrade and uninstall as a desktop app
 ├── hatch_build.py          Builds the dashboard into the package during pip install
 ├── pyproject.toml

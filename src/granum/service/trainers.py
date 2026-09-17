@@ -28,6 +28,7 @@ from pathlib import Path
 from typing import Any
 
 from granum.errors import GranumError
+from granum.processes import no_window, popen_detached, windows_process_alive
 
 TRAINER_MODULE = "granum.training.train"
 #: Frameworks the dashboard trains; runs with one of these were started by a trainer here.
@@ -36,8 +37,9 @@ _ANSI = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
 
 
 def state_dir() -> Path:
-    base = os.environ.get("XDG_STATE_HOME") or os.path.join(os.path.expanduser("~"), ".local", "state")
-    return Path(base) / "granum" / "training"
+    from granum.core import appdirs
+
+    return appdirs.state_dir() / "training"
 
 
 @dataclass
@@ -73,13 +75,22 @@ class TrainerRecord:
                 record = cls(**json.loads(path.read_text()))
             except (OSError, ValueError, TypeError):
                 continue
-            if record.project_root == project_root:
+            if _same_root(record.project_root, project_root):
                 found.append(record)
         return found
 
 
+def _same_root(a: str, b: str) -> bool:
+    if os.name == "nt":  # one folder, however it is spelled
+        return a.replace("\\", "/").rstrip("/").casefold() == b.replace("\\", "/").rstrip("/").casefold()
+    return a == b
+
+
 def is_trainer_alive(pid: int) -> bool:
     """The process exists and is still a Granum trainer (process ids get reused)."""
+    if os.name == "nt":
+        # Never os.kill(pid, 0) here: on Windows it terminates the process.
+        return windows_process_alive(pid)
     try:
         cmdline = Path(f"/proc/{pid}/cmdline").read_bytes()
     except OSError:
@@ -99,9 +110,9 @@ def launch(command: list[str], *, cwd: Path | None, project_root: str, project: 
     log = state_dir() / f"{re.sub(r'[^A-Za-z0-9]+', '_', project_root).strip('_')[-60:]}-{run_name}.log"
     log.parent.mkdir(parents=True, exist_ok=True)
     with log.open("ab") as handle:
-        process = subprocess.Popen(
+        process = popen_detached(
             command, stdout=handle, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, cwd=cwd,
-            env={**os.environ, "PYTHONUNBUFFERED": "1"}, start_new_session=True,
+            env={**os.environ, "PYTHONUNBUFFERED": "1"},
         )
     record = TrainerRecord(pid=process.pid, project=project, run_name=run_name, rounds=rounds, log=str(log),
                            project_root=project_root, started=time.time())
@@ -111,6 +122,9 @@ def launch(command: list[str], *, cwd: Path | None, project_root: str, project: 
 
 def terminate(pid: int, wait: float = 15.0) -> None:
     """Stop a trainer and everything it started (data loader workers)."""
+    if os.name == "nt":
+        _terminate_windows(pid, wait)
+        return
     for sig in (signal.SIGTERM, signal.SIGKILL):
         try:
             os.killpg(pid, sig)
@@ -124,6 +138,21 @@ def terminate(pid: int, wait: float = 15.0) -> None:
         deadline = time.monotonic() + (wait if sig == signal.SIGTERM else 5)
         while time.monotonic() < deadline:
             if not is_trainer_alive(pid):
+                return
+            time.sleep(0.3)
+
+
+def _terminate_windows(pid: int, wait: float) -> None:
+    """Ask the process tree to close, then force it: Windows has no SIGTERM for console-less
+    processes, so the first attempt is taskkill without /F and the second with it."""
+    for force in (False, True):
+        if not windows_process_alive(pid):
+            return
+        subprocess.run(["taskkill", "/PID", str(pid), "/T", *(["/F"] if force else [])],
+                       capture_output=True, **no_window())
+        deadline = time.monotonic() + (min(wait, 5.0) if not force else 5.0)
+        while time.monotonic() < deadline:
+            if not windows_process_alive(pid):
                 return
             time.sleep(0.3)
 

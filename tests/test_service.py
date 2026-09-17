@@ -11,6 +11,7 @@ from granum import Table
 from granum.core.index import Index
 from granum.core.objects.run import set_active_run
 from granum.core.schemas import CategoricalLabelSchema, ImageSchema
+from granum.core.url import Url
 from granum.service.app import create_app
 from granum.service.cache import ByteCache
 
@@ -34,7 +35,7 @@ def client(isolated_project, tmp_path):
             "89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c4"
             "890000000a49444154789c6360000002000100fdff03fa0000000049454e44ae426082"
         ))
-        paths.append(str(target))
+        paths.append(str(Url(target)))  # as the table stores it
 
     table = Table.from_dict_data(
         {"image": paths, "label": [0, 1, 0]},
@@ -434,7 +435,7 @@ def test_import_flow_browse_preflight_commit(client, tmp_path):
     folder = _dataset(tmp_path)
 
     browsed = api.get("/api/import/browse", params={"path": str(folder.parent)}).json()
-    assert browsed["detected"] == [{"split": "train", "annotations": str(folder / "_annotations.coco.json"), "images": str(folder)}]
+    assert browsed["detected"] == [{"split": "train", "annotations": str(Url(folder / "_annotations.coco.json")), "images": str(Url(folder))}]
 
     # Opening one split folder still finds every split of the dataset beside it.
     valid = folder.parent / "valid"

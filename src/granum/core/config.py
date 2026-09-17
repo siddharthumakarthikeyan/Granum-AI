@@ -63,6 +63,28 @@ def _parse_float(text: str) -> float:
         raise ConfigError(f"expected a number, got {text!r}") from exc
 
 
+def _default_data_roots() -> str:
+    """The home folder; on Windows also every local and removable drive, where datasets
+    usually live (``D:\\datasets``) rather than under the user's profile."""
+    home = os.path.expanduser("~")
+    if os.name != "nt":
+        return home
+    import ctypes
+    import string
+
+    roots = [home]
+    try:
+        mask = ctypes.windll.kernel32.GetLogicalDrives()
+        for index, letter in enumerate(string.ascii_uppercase):
+            drive = f"{letter}:\\"
+            # 2 removable, 3 fixed; skip network shares and optical drives, which can hang.
+            if mask >> index & 1 and ctypes.windll.kernel32.GetDriveTypeW(drive) in (2, 3):
+                roots.append(drive)
+    except (AttributeError, OSError):
+        pass
+    return os.pathsep.join(roots)
+
+
 def _default_project_root() -> str:
     return os.path.join(os.path.expanduser("~"), "granum")
 
@@ -79,7 +101,7 @@ OPTIONS: dict[str, Option] = {
         Option("log-level", "WARNING", "Log level for the Granum logger.", "GRANUM_LOG_LEVEL"),
         Option(
             "service.data-roots",
-            os.path.expanduser("~"),
+            _default_data_roots(),
             "Folders the service may read datasets from when importing, separated by os.pathsep.",
             "GRANUM_SERVICE_DATA_ROOTS",
         ),
@@ -137,12 +159,15 @@ class Resolved:
 
 
 def system_config_url() -> Url:
+    if os.name == "nt":
+        return Url(os.path.join(os.environ.get("PROGRAMDATA") or "C:\\ProgramData", "Granum", CONFIG_FILENAME))
     return Url(os.path.join("/etc", "granum", CONFIG_FILENAME))
 
 
 def user_config_url() -> Url:
-    base = os.environ.get("XDG_CONFIG_HOME") or os.path.join(os.path.expanduser("~"), ".config")
-    return Url(os.path.join(base, "granum", CONFIG_FILENAME))
+    from granum.core.appdirs import config_dir
+
+    return Url(config_dir() / CONFIG_FILENAME)
 
 
 def project_config_url() -> Url:

@@ -402,8 +402,12 @@ def open_dashboard(
                 typer.echo(step)
         except RuntimeError as exc:
             typer.echo(f"granum: could not install the background service ({exc}); starting it for this session", err=True)
-    if not desktop.ensure_running(port, root):
-        typer.echo(f"error: Granum did not start; see {desktop.AppPaths.for_user().state / 'service.log'}", err=True)
+    # The first start after installing on Windows can take half a minute while the virus
+    # scanner reads every new file.
+    if not desktop.ensure_running(port, root, wait=90.0 if os.name == "nt" else 20.0):
+        message = f"Granum did not start; see {desktop.AppPaths.for_user().state / 'service.log'}"
+        typer.echo(f"error: {message}", err=True)
+        desktop.show_error(message)
         raise typer.Exit(1)
     address = desktop.url_for(port)
     typer.echo(f"granum: dashboard on {address}")
@@ -413,6 +417,8 @@ def open_dashboard(
     if not browser and desktop.window_available():
         try:
             desktop.open_window(port)
+            if os.name == "nt":
+                desktop.stop_if_idle(port)
             return
         except Exception as exc:  # noqa: BLE001 - any window failure falls back to the browser
             typer.echo(f"granum: the Granum window could not open ({exc}); opening the browser instead", err=True)

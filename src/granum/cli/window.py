@@ -13,6 +13,9 @@ import sys
 from importlib import resources
 from pathlib import Path
 
+#: Windows taskbar identity; the installer gives the Start menu shortcut the same id.
+APP_USER_MODEL_ID = "Granum.Granum"
+
 
 def available() -> bool:
     import importlib.util
@@ -25,8 +28,17 @@ def available() -> bool:
 
 def run(url: str, storage: Path, state: Path) -> int:
     """Show ``url`` in a window and block until it is closed. Returns the exit code."""
-    # Chromium's sandbox needs privileges an unprivileged, relocatable bundle does not have.
-    os.environ.setdefault("QTWEBENGINE_DISABLE_SANDBOX", "1")
+    if os.name == "nt":
+        # The taskbar groups windows by app id; without one it shows Python's icon and name.
+        import ctypes
+
+        try:
+            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(APP_USER_MODEL_ID)
+        except (AttributeError, OSError):
+            pass
+    else:
+        # Chromium's sandbox needs privileges an unprivileged, relocatable bundle does not have.
+        os.environ.setdefault("QTWEBENGINE_DISABLE_SANDBOX", "1")
     os.environ.setdefault("QTWEBENGINE_CHROMIUM_FLAGS", "--enable-gpu-rasterization --ignore-gpu-blocklist")
 
     from PySide6.QtCore import QSize, QUrl

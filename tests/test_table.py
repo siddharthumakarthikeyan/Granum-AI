@@ -3,6 +3,7 @@ import pytest
 from granum import Table
 from granum.core.layout import OBJECT_FILENAME, ROW_CACHE_FILENAME
 from granum.core.schemas import CategoricalLabelSchema, ImageSchema, StringSchema
+from granum.core.url import Url
 from granum.errors import ImmutableError, SchemaError, TableError
 
 
@@ -25,7 +26,7 @@ def test_from_dict_data_basics():
     assert len(table) == 3
     assert table.columns == ["image", "label", "weight"]
     assert table.project_name == "demo"
-    assert table[0] == {"image": "/data/a.jpg", "label": 0, "weight": 1.0}
+    assert table[0] == {"image": str(Url("/data/a.jpg")), "label": 0, "weight": 1.0}
 
 
 def test_weight_column_added_by_default():
@@ -36,7 +37,7 @@ def test_weight_column_added_by_default():
 
 def test_negative_and_out_of_range_indexing():
     table = make_table()
-    assert table[-1]["image"] == "/data/c.jpg"
+    assert table[-1]["image"] == str(Url("/data/c.jpg"))
     with pytest.raises(IndexError):
         table[3]
 
@@ -125,7 +126,7 @@ def test_cannot_delete_every_column():
 def test_delete_rows():
     table = make_table().delete_rows([1])
     assert len(table) == 2
-    assert [row["image"] for row in table] == ["/data/a.jpg", "/data/c.jpg"]
+    assert [row["image"] for row in table] == [str(Url("/data/a.jpg")), str(Url("/data/c.jpg"))]
 
 
 def test_delete_rows_validates_indices():

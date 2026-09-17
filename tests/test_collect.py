@@ -5,6 +5,7 @@ import granum
 from granum import Table
 from granum.core.objects.run import set_active_run
 from granum.core.schemas import CategoricalLabelSchema, ImageSchema
+from granum.core.url import Url
 from granum.metrics import (
     ClassificationMetricsCollector,
     CollectionError,
@@ -90,7 +91,7 @@ def test_collect_metrics_end_to_end():
         "example_id", "loss", "predicted", "confidence", "accuracy", "epoch", "split"
     }
     joined = metrics.join_input()
-    assert joined[0]["image"] == "/data/0.jpg"
+    assert joined[0]["image"] == str(Url("/data/0.jpg"))
     # every sample whose true label is 0 is correct; the rest are not
     assert [round(r["accuracy"]) for r in joined] == [1, 0, 0, 1, 0, 0]
 

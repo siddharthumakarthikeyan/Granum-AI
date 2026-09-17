@@ -10,6 +10,7 @@ from granum.core.schemas import (
     Int64Schema,
     StringSchema,
 )
+from granum.core.url import Url
 from granum.errors import TableError
 
 # -- inference --------------------------------------------------------------
@@ -51,7 +52,7 @@ def test_from_image_folder_ignores_non_images(image_folder):
 
 def test_from_image_folder_stores_paths_not_pixels(image_folder):
     table = Table.from_image_folder(image_folder, project_name="demo")
-    assert str(image_folder) in table[0]["image"]
+    assert str(Url(image_folder)) in table[0]["image"]
 
 
 def test_from_image_folder_errors(tmp_path):
@@ -97,7 +98,7 @@ def test_from_csv(tmp_path):
     path.write_text("image,label\n/a.jpg,0\n/b.jpg,1\n")
     table = Table.from_csv(path, project_name="demo", dataset_name="train")
     assert len(table) == 2
-    assert table[0]["image"] == "/a.jpg"
+    assert table[0]["image"] == str(Url("/a.jpg"))
 
 
 def test_from_csv_empty_rejected(tmp_path):

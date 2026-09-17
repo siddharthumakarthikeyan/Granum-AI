@@ -7,8 +7,11 @@ from pathlib import Path
 import pytest
 
 from granum.cli import desktop
+from granum.core.url import Url
 
 SRC = str(Path(__file__).resolve().parents[1] / "src")
+#: systemd units, freedesktop launchers and AppImages exist only on Linux.
+linux_only = pytest.mark.skipif(sys.platform == "win32", reason="Linux app integration")
 
 
 @pytest.fixture
@@ -22,6 +25,7 @@ def home(tmp_path, monkeypatch):
     return tmp_path
 
 
+@linux_only
 def test_unit_runs_this_python_on_a_fixed_root_and_port(tmp_path):
     root = tmp_path / "granum"
     text = desktop.unit_text(8123, root, tmp_path / "service.log")
@@ -69,11 +73,12 @@ def test_app_install_pins_the_project_root(home):
     assert f"project-root-url: {root}" in config
     # Without any flag, later commands now use the pinned root.
     shown = subprocess.run([sys.executable, "-m", "granum", "config", "project-root"], capture_output=True, text=True, env=env)
-    assert shown.stdout.strip() == str(root)
+    assert shown.stdout.strip() == str(Url(root))
     status = subprocess.run([sys.executable, "-m", "granum", "app", "status"], capture_output=True, text=True, env=env)
     assert status.returncode == 0 and "not installed" in status.stdout and str(root) in status.stdout
 
 
+@linux_only
 def test_appimage_installs_a_copy_that_the_service_and_launcher_use(home, monkeypatch):
     monkeypatch.setattr(desktop.sys, "platform", "linux")
     download = home / "Downloads" / "Granum-0.1.0-x86_64.AppImage"

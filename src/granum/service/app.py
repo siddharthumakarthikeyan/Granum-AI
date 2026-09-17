@@ -41,8 +41,9 @@ from granum.core.layout import ProjectLayout
 from granum.core.objects.run import MetricsTable, Run
 from granum.core.objects.table import ROW_PRESERVING_OPS, Table
 from granum.core.schemas import CategoricalLabelSchema, Geometry2DSchema, ImageSchema, Schema
-from granum.core.url import Url
+from granum.core.url import Url, real_local_path
 from granum.errors import GranumError
+from granum.processes import console_python, no_window
 from granum.service import thumbnails as thumbs
 from granum.service.cache import ByteCache
 from granum.service.jobs import JobRegistry
@@ -288,9 +289,9 @@ def create_app(
         return list(index.roots)
 
     def _within(url: Url, roots: list[Url]) -> bool:
-        resolved = os.path.realpath(url.resolved) if url.scheme in ("", "file") else url.resolved
+        resolved = real_local_path(url.resolved) if url.scheme in ("", "file") else url.resolved
         for root in roots:
-            root_text = os.path.realpath(root.resolved) if root.scheme in ("", "file") else root.resolved
+            root_text = real_local_path(root.resolved) if root.scheme in ("", "file") else root.resolved
             root_text = root_text.rstrip("/")
             if resolved == root_text or resolved.startswith(root_text + "/"):
                 return True
@@ -464,6 +465,27 @@ def create_app(
         return result
 
     # -- meta ---------------------------------------------------------------
+
+    @app.post("/api/service/quit")
+    def service_quit() -> dict[str, Any]:
+        """Stop the service when nothing is running in it; the app's window calls this on close
+        where no service manager would otherwise ever stop it (Windows)."""
+        busy = [job.kind for job in jobs.all() if job.status == "running"]
+        if busy:
+            return {"stopping": False, "busy": busy}
+
+        import signal
+        import threading
+        import time
+
+        def stop() -> None:
+            time.sleep(0.3)  # let this response reach the caller
+            signal.raise_signal(signal.SIGINT)  # uvicorn's own graceful shutdown
+            time.sleep(15)
+            os._exit(0)
+
+        threading.Thread(target=stop, daemon=True).start()
+        return {"stopping": True, "busy": []}
 
     @app.get("/api/health")
     def health() -> dict[str, Any]:
@@ -1437,11 +1459,15 @@ def create_app(
             "    out['gpu'] = torch.cuda.get_device_name(0) if torch.cuda.is_available() else None\n"
             "print(json.dumps(out))\n"
         )
+        done = None
         try:
-            done = subprocess.run([sys.executable, "-c", probe], capture_output=True, text=True, timeout=120)
+            done = subprocess.run([console_python(sys.executable), "-c", probe], capture_output=True, text=True, timeout=120,
+                                  **no_window())
             found = json.loads(done.stdout.strip().splitlines()[-1])
         except Exception as exc:  # noqa: BLE001 - reported to the user
-            found = {"ultralytics": False, "torch": False, "error": str(exc)}
+            # Most often PyTorch is installed but cannot load (a missing system library): say why.
+            lines = [line for line in (done.stderr if done is not None else "").splitlines() if line.strip()]
+            found = {"ultralytics": False, "torch": False, "error": lines[-1].strip()[:300] if lines else str(exc)}
         from granum.training.models import FAMILIES
 
         families = [
@@ -1454,7 +1480,9 @@ def create_app(
             "available": bool(available),
             "gpu": found.get("gpu"),
             "families": families,
-            "reason": None if available else "Training needs PyTorch and a detector package, for example: pip install ultralytics",
+            "reason": None if available else (
+                f"PyTorch is installed but could not load: {found['error']}" if found.get("error")
+                else "Training needs PyTorch and a detector package, for example: pip install ultralytics"),
         })
         return training_check
 
@@ -1630,7 +1658,7 @@ def create_app(
 
         # Inside the self-contained app the trainer runs from the installed app, so it keeps
         # working if this service (and the app mount it runs from) restarts.
-        executable = [*app_executable(), "--python"] if running_appimage() else [sys.executable]
+        executable = [*app_executable(), "--python"] if running_appimage() else [console_python(sys.executable)]
         command = [
             *trainers.trainer_prefix(executable),
             "--project-root", str(config.project_root), "--project", request.project,

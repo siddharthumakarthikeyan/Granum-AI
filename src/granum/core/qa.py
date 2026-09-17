@@ -26,7 +26,7 @@ from typing import Any
 
 from granum.core.config import Config, get_config
 from granum.core.layout import ProjectLayout, sanitize
-from granum.core.url import Url
+from granum.core.url import Url, sample_key
 from granum.errors import GranumError
 
 STATUSES = ("unreviewed", "reviewed", "rework")
@@ -114,7 +114,7 @@ class QaLog:
         comment = self._comment(comment)
         if status == "rework" and not comment:
             raise QaError("say what needs rework")
-        keys = [str(s) for s in dict.fromkeys(samples) if s is not None and str(s)]
+        keys = list(dict.fromkeys(sample_key(s) for s in samples if s is not None and str(s)))
         if not keys:
             return 0
         who, now = _author(author), _now()
@@ -130,14 +130,14 @@ class QaLog:
             raise QaError("a comment cannot be empty")
         if not sample:
             raise QaError("choose an image to comment on")
-        event = {"sample": sample, "status": None, "comment": comment, "author": _author(author), "time": _now(), "table": table_url}
+        event = {"sample": sample_key(sample), "status": None, "comment": comment, "author": _author(author), "time": _now(), "table": table_url}
         _append(self.url, [event])
         return event
 
     def add_comment_many(self, samples: Iterable[str], comment: str, *, author: str | None = None, table_url: str | None = None) -> int:
         """The same note on several images, e.g. why they were isolated."""
         comment = self._comment(comment)
-        keys = [str(s) for s in dict.fromkeys(samples) if s]
+        keys = list(dict.fromkeys(sample_key(s) for s in samples if s))
         if not comment or not keys:
             return 0
         who, now = _author(author), _now()

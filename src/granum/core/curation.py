@@ -26,6 +26,7 @@ from granum.core.objects.base import write_object_payload
 from granum.core.objects.table import Table, _unique_url
 from granum.core.reviews import ReviewLog
 from granum.core.schemas import StringSchema, TableSchema
+from granum.core.url import sample_key
 from granum.errors import TableError
 
 REMOVED_SET = "removed"
@@ -125,7 +126,7 @@ def remove_images(
         raise CurationError(f"images can only be moved to {list(HOLDING_SETS)}")
     if source.base_name in HOLDING_SETS:
         raise CurationError(f"images in the {source.base_name} set are put back, not moved again")
-    wanted = list(dict.fromkeys(str(s) for s in samples if s))
+    wanted = list(dict.fromkeys(sample_key(s) for s in samples if s))
     if not wanted:
         raise CurationError("choose at least one image to remove")
     column = image_column(source)
@@ -151,7 +152,8 @@ def remove_images(
     )
 
     taken = source.to_arrow().take(pa.array(rows, type=pa.int64()))
-    why = [(reasons or {}).get(images[r]) or reason for r in rows]
+    reasons = {sample_key(k): v for k, v in (reasons or {}).items()}
+    why = [reasons.get(images[r]) or reason for r in rows]
     schema = _removed_schema(source)
     extra = {
         "removed_from": [set_name] * len(rows),
@@ -209,7 +211,7 @@ def restore_images(
     holding = removed_set.base_name
     if holding not in HOLDING_SETS:
         raise CurationError(f"{removed_set.name} is not a set of removed or isolated images")
-    wanted = set(str(s) for s in samples if s)
+    wanted = set(sample_key(s) for s in samples if s)
     column = image_column(removed_set)
     arrow = removed_set.to_arrow()
     images = arrow.column(column).to_pylist()

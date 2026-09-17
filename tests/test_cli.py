@@ -2,6 +2,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+from granum.core.url import Url
+
 SRC = str(Path(__file__).resolve().parents[1] / "src")
 
 
@@ -66,4 +68,4 @@ def test_config_validate_fails_on_bad_level():
 
 def test_project_root_override(tmp_path):
     result = run("--project-root-url", str(tmp_path), "config", "project-root")
-    assert str(tmp_path) in result.stdout
+    assert str(Url(tmp_path)) in result.stdout

@@ -1,7 +1,7 @@
 import pytest
 
 from granum.core.config import Config, Tier
-from granum.core.url import get_registered_url_aliases
+from granum.core.url import Url, get_registered_url_aliases
 from granum.errors import ConfigError
 
 
@@ -35,7 +35,7 @@ def test_file_beats_default_and_reports_path(tmp_path):
     config = Config.load(config_file=str(path), use_env=False)
     assert config.get("log-level") == "INFO"
     assert config.get("indexing.scan-interval") == 42
-    assert str(path) in config.provenance("log-level").source
+    assert str(Url(path)) in config.provenance("log-level").source
 
 
 def test_typed_env_parsing(monkeypatch):

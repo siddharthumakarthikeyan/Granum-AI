@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import hashlib
 import io
+import os
 from collections.abc import Iterable, Sequence
 
 from granum._logging import get_logger
@@ -33,8 +34,14 @@ class ThumbnailError(GranumError):
 
 
 def thumbnail_key(image_url: Url | str) -> str:
-    """A stable filename for an image, independent of its path length or characters."""
-    return hashlib.sha256(str(image_url).encode("utf-8")).hexdigest()[:32]
+    """A stable filename for an image, independent of its path length or characters.
+
+    On Windows ``C:\\a.png`` and ``C:/a.png`` are one file, so they share one key.
+    """
+    text = str(image_url)
+    if os.name == "nt":
+        text = text.replace("\\", "/")
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()[:32]
 
 
 def thumbnail_url(cache_dir: Url, image_url: Url | str, size: int) -> Url:

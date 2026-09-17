@@ -23,6 +23,45 @@ import fsspec
 from granum.errors import AliasConflictError
 
 _ALIAS_RE = re.compile(r"<([A-Z0-9_]+)>")
+_WINDOWS = os.name == "nt"
+_DRIVE_ROOT = re.compile(r"^[A-Za-z]:/?$")
+
+
+def _local_path(text: str) -> str:
+    """An absolute local path in Granum's one spelling: forward slashes on every system.
+
+    Windows accepts ``C:/Users/me`` everywhere it accepts ``C:\\Users\\me``, and a single
+    separator keeps equality, prefix checks, joins and the dashboard's path handling
+    identical to Linux.
+    """
+    text = os.path.abspath(os.path.expanduser(text))
+    return text.replace("\\", "/") if _WINDOWS else text
+
+
+def _strip_trailing(text: str) -> str:
+    """Drop trailing slashes, except the one a root needs (``/``, ``C:/``)."""
+    stripped = text.rstrip("/")
+    if _WINDOWS and _DRIVE_ROOT.match(stripped):
+        return stripped[:2] + "/"
+    return stripped or "/"
+
+
+def sample_key(value: object) -> str:
+    """An image reference in the spelling tables store it in, for looking it up.
+
+    Tables store local paths in Url spelling; on Windows a caller may still pass
+    ``C:\\data\\a.png`` for the stored ``C:/data/a.png``. Everything else is unchanged.
+    """
+    text = str(value)
+    if _WINDOWS and re.match(r"^[A-Za-z]:[\\/]", text):
+        return text.replace("\\", "/")
+    return text
+
+
+def real_local_path(text: str) -> str:
+    """``os.path.realpath`` in the same spelling, compared case-insensitively on Windows."""
+    real = os.path.realpath(text)
+    return real.replace("\\", "/").casefold() if _WINDOWS else real
 _ALIAS_ENV_PREFIX = "GRANUM_ALIAS_"
 
 # token -> (path, origin)
@@ -114,7 +153,7 @@ def contract_aliases(value: str) -> str:
     best_token: str | None = None
     best_path = ""
     for token, (path, _) in _ALIASES.items():
-        normalized = path.rstrip("/")
+        normalized = (path.replace("\\", "/") if _WINDOWS else path).rstrip("/")
         if normalized and value.startswith(normalized) and len(normalized) > len(best_path):
             best_token, best_path = token, normalized
     if best_token is None:
@@ -142,8 +181,10 @@ class Url:
             raise ValueError("Url cannot be empty")
         if "://" not in text and not text.startswith("<"):
             # A bare filesystem path. Make it absolute so equality and joins behave.
-            text = os.path.abspath(os.path.expanduser(text))
-        object.__setattr__(self, "raw", text.rstrip("/") or "/")
+            text = _local_path(text)
+        elif _WINDOWS and text.startswith("<"):
+            text = text.replace("\\", "/")
+        object.__setattr__(self, "raw", _strip_trailing(text))
 
     # -- string forms -------------------------------------------------------
 
@@ -174,7 +215,10 @@ class Url:
         """Append path segments."""
         text = self.raw
         for part in parts:
-            part = str(part).strip("/")
+            part = str(part)
+            if _WINDOWS:
+                part = part.replace("\\", "/")
+            part = part.strip("/")
             if part:
                 text = f"{text.rstrip('/')}/{part}"
         return Url(text)
@@ -209,9 +253,12 @@ class Url:
             if "/" not in rest:
                 return self
             return Url(f"{scheme}://{rest.rsplit('/', 1)[0]}")
+        if _WINDOWS and _DRIVE_ROOT.match(text + "/"):
+            return self  # C:/ is its own parent, as / is
         if "/" not in text.lstrip("/") or text == "/":
             return Url("/")
-        return Url(text.rsplit("/", 1)[0] or "/")
+        head = text.rsplit("/", 1)[0] or "/"
+        return Url(head + "/" if _WINDOWS and _DRIVE_ROOT.match(head) else head)
 
     # -- filesystem ---------------------------------------------------------
 

@@ -2,6 +2,7 @@ import pytest
 
 from granum import TableWriter
 from granum.core.schemas import CategoricalLabelSchema, ImageSchema
+from granum.core.url import Url
 from granum.errors import SchemaError, TableError
 
 
@@ -22,7 +23,7 @@ def test_add_row_then_finalize():
     table = w.finalize()
     assert len(table) == 2
     assert table.columns == ["image", "label", "weight"]
-    assert table[1] == {"image": "/b.jpg", "label": 1, "weight": 1.0}
+    assert table[1] == {"image": str(Url("/b.jpg")), "label": 1, "weight": 1.0}
 
 
 def test_add_batch():

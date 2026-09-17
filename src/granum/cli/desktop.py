@@ -6,7 +6,9 @@ rewrites the service and launcher files and leaves projects, reviews, shipments,
 model weights exactly as they were; uninstalling removes only the service and launcher.
 
 Linux uses a systemd user service and a freedesktop launcher. Elsewhere the files are not
-written and ``granum open`` starts the service in the background on demand instead.
+written and ``granum open`` starts the service in the background on demand instead; on
+Windows the installer adds the Start menu shortcut, and closing the window stops an idle
+service (``granum open`` starts it again).
 
 The self-contained app (an AppImage) copies itself to ``~/.local/share/granum/Granum.AppImage``
 on first launch, and the service and launcher run that copy, so the downloaded file can be
@@ -25,6 +27,9 @@ import urllib.request
 from dataclasses import dataclass
 from importlib import resources
 from pathlib import Path
+
+from granum.core import appdirs
+from granum.processes import console_python, popen_detached
 
 UNIT_NAME = "granum.service"
 DESKTOP_NAME = "granum.desktop"
@@ -49,7 +54,7 @@ class AppPaths:
     def for_user(cls) -> AppPaths:
         config = _xdg("XDG_CONFIG_HOME", ".config")
         data = _xdg("XDG_DATA_HOME", ".local/share")
-        state = _xdg("XDG_STATE_HOME", ".local/state") / "granum"
+        state = appdirs.state_dir()
         return cls(
             unit=config / "systemd" / "user" / UNIT_NAME,
             desktop=data / "applications" / DESKTOP_NAME,
@@ -60,7 +65,7 @@ class AppPaths:
 
 
 def installed_appimage() -> Path:
-    return _xdg("XDG_DATA_HOME", ".local/share") / "granum" / "Granum.AppImage"
+    return appdirs.data_dir() / "Granum.AppImage"
 
 
 def running_appimage() -> Path | None:
@@ -73,6 +78,9 @@ def app_executable() -> list[str]:
     """How to run Granum: the installed AppImage when bundled, else this Python."""
     if running_appimage() is not None:
         return [str(installed_appimage())]
+    if os.name == "nt":
+        # UTF-8 mode, so text files read and write the same bytes as on Linux (not cp1252).
+        return [console_python(sys.executable), "-X", "utf8", "-m", "granum"]
     return [sys.executable, "-m", "granum"]
 
 
@@ -307,7 +315,7 @@ def installed_runner() -> list[str] | None:
     appimage = installed_appimage()
     if appimage.is_file() and os.access(appimage, os.X_OK):
         return [str(appimage)]
-    venv_root = _xdg("XDG_DATA_HOME", ".local/share") / "granum" / "venv"
+    venv_root = appdirs.data_dir() / "venv"
     venv = venv_root / "bin" / "python"
     # Compare environments, not interpreters: a venv's python is a symlink to the system one.
     if venv.exists() and Path(sys.prefix).resolve() != venv_root.resolve():
@@ -318,7 +326,7 @@ def installed_runner() -> list[str] | None:
 
 
 def log_launch_environment() -> None:
-    """Record why a launch chose the window or the browser, in ~/.local/state/granum/launch.log."""
+    """Record why a launch chose the window or the browser, in the state folder's launch.log."""
     import importlib.util
     import traceback
     from datetime import datetime
@@ -389,13 +397,13 @@ def open_window(port: int) -> None:
 
     paths = AppPaths.for_user()
     if qt_window.available():
-        qt_window.run(url_for(port), _xdg("XDG_DATA_HOME", ".local/share") / "granum" / "window-qt", paths.state)
+        qt_window.run(url_for(port), appdirs.data_dir() / "window-qt", paths.state)
         return
 
     import webview
 
     paths.state.mkdir(parents=True, exist_ok=True)
-    storage = _xdg("XDG_DATA_HOME", ".local/share") / "granum" / "window"
+    storage = appdirs.data_dir() / "window"
     storage.mkdir(parents=True, exist_ok=True)
     if sys.platform.startswith("linux"):
         try:
@@ -423,6 +431,32 @@ def open_window(port: int) -> None:
     webview.start(private_mode=False, storage_path=str(storage), icon=str(icon))
 
 
+def show_error(message: str) -> None:
+    """Tell the user in a dialog when there is no terminal to print to (the Windows launcher)."""
+    if os.name != "nt" or sys.stderr is not None:
+        return
+    import ctypes
+
+    try:
+        ctypes.windll.user32.MessageBoxW(None, message, "Granum", 0x10)  # MB_ICONERROR
+    except (AttributeError, OSError):
+        pass
+
+
+def stop_if_idle(port: int) -> bool:
+    """Ask the service to exit unless it is busy (an import, a training it follows, an add-on
+    install). Used on Windows, where nothing else would ever stop it. Returns whether it stops."""
+    import json
+
+    request = urllib.request.Request(f"{url_for(port)}/api/service/quit", data=b"{}", method="POST",
+                                     headers={"Content-Type": "application/json"})
+    try:
+        with urllib.request.urlopen(request, timeout=5) as response:
+            return bool(json.loads(response.read()).get("stopping"))
+    except (OSError, ValueError):
+        return False
+
+
 def ensure_running(port: int, project_root: Path, wait: float = 20.0) -> bool:
     """Start the service if it is not answering: through systemd when installed, else detached."""
     if is_up(port):
@@ -439,9 +473,9 @@ def ensure_running(port: int, project_root: Path, wait: float = 20.0) -> bool:
         folder = training_dir(project_root)
         folder.mkdir(parents=True, exist_ok=True)
         log = open(paths.state / "service.log", "ab")  # noqa: SIM115 - handed to the child process
-        subprocess.Popen(
+        popen_detached(
             service_command(port), cwd=folder, stdout=log, stderr=log, stdin=subprocess.DEVNULL,
-            env={**os.environ, "GRANUM_PROJECT_ROOT_URL": str(project_root)}, start_new_session=True,
+            env={**os.environ, "GRANUM_PROJECT_ROOT_URL": str(project_root), "PYTHONUTF8": "1"},
         )
     return _wait_up(port, wait)
 

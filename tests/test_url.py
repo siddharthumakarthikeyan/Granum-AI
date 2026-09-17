@@ -1,3 +1,5 @@
+import sys
+
 import pytest
 
 from granum import Url
@@ -10,11 +12,15 @@ from granum.core.url import (
 )
 from granum.errors import AliasConflictError
 
+posix_paths = pytest.mark.skipif(sys.platform == "win32", reason="POSIX path literals")
 
+
+@posix_paths
 def test_bare_paths_become_absolute():
     assert str(Url("relative/path")).startswith("/")
 
 
+@posix_paths
 def test_join_and_parts():
     url = Url("/data") / "project" / "train.parquet"
     assert str(url) == "/data/project/train.parquet"
@@ -91,3 +97,16 @@ def test_aliased_url_resolves_for_io(tmp_path):
     url.write_text("via alias")
     assert (tmp_path / "note.txt").read_text() == "via alias"
     assert url.resolved == f"{tmp_path}/note.txt"
+
+
+@pytest.mark.skipif(sys.platform != "win32", reason="Windows paths")
+def test_windows_paths_use_forward_slashes_and_keep_drive_roots(tmp_path):
+    url = Url("C:\\data\\project") / "train\\a.jpg"
+    assert str(url) == "C:/data/project/train/a.jpg"
+    assert str(url.parent) == "C:/data/project/train" and url.name == "a.jpg"
+    assert str(Url("C:\\")) == "C:/" and str(Url("C:/data").parent) == "C:/" and str(Url("C:/").parent) == "C:/"
+    assert str(Url("relative")).startswith(str(Url(".")))
+    (tmp_path / "x").mkdir()
+    (tmp_path / "x" / "f.txt").write_text("hi")
+    assert [u.name for u in Url(tmp_path / "x").ls()] == ["f.txt"]
+    assert Url(str(tmp_path).replace("\\", "/")) == Url(tmp_path)

@@ -31,7 +31,7 @@ from typing import Any
 
 from granum.core.config import Config, get_config
 from granum.core.layout import ProjectLayout, sanitize
-from granum.core.url import Url
+from granum.core.url import Url, sample_key
 from granum.errors import GranumError
 
 STATUSES = ("correct", "corrected", "ambiguous", "deferred", "excluded", "unreviewed")
@@ -81,7 +81,7 @@ class ReviewLog:
         reason = (reason or "").strip()
         if len(reason) > MAX_REASON:
             raise ReviewError(f"reason is longer than {MAX_REASON} characters")
-        keys = [str(s) for s in dict.fromkeys(samples) if s is not None and str(s)]
+        keys = list(dict.fromkeys(sample_key(s) for s in samples if s is not None and str(s)))
         if not keys:
             return 0
         now = datetime.now(timezone.utc).isoformat(timespec="seconds")

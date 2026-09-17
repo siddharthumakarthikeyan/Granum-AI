@@ -109,7 +109,8 @@ def rename_project(project_root: Url | str, old: str, new: str) -> dict[str, obj
     if target.exists() or (target.parent.is_dir() and any(p.name.lower() == new.lower() for p in target.parent.iterdir())):
         raise ProjectError(f"a project named {new!r} already exists")
 
-    old_prefix, new_prefix = str(source), str(target)
+    # Links are stored in Url spelling (forward slashes on every system), so match that.
+    old_prefix, new_prefix = str(layout.project(old)), str(layout.project(new))
     changes: list[_Change] = []
     for path in sorted(source.rglob("*")):
         if not path.is_file() or path.name.endswith(".renaming"):
