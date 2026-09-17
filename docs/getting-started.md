@@ -4,37 +4,89 @@ This guide takes a COCO detection dataset from a folder on disk to a trained mod
 
 ## 1. Install
 
-Requirements: Python 3.10 or newer, Node.js 20 or newer, and for training an NVIDIA GPU with PyTorch.
+### The app (recommended)
+
+Download `Granum-<version>-x86_64.AppImage`, then:
+
+```bash
+chmod +x Granum-*-x86_64.AppImage
+./Granum-*-x86_64.AppImage
+```
+
+This one file contains everything Granum needs: Python, all libraries, the dashboard and a Chromium-based
+window. It works without an internet connection and without installing anything on the system.
+
+On first launch Granum:
+
+- copies itself to `~/.local/share/granum/Granum.AppImage` (the download can then be deleted);
+- adds **Granum** to the application menu;
+- sets up a background service that starts at login;
+- opens its window.
+
+Requirements: 64-bit Linux from about 2020 onwards (Ubuntu 22.04, Debian 12, Fedora 36 or newer) with a
+desktop. If the file does not start with a FUSE error, run it once with
+`./Granum-*-x86_64.AppImage --appimage-extract-and-run`, or install `fuse3`.
+
+### Training support
+
+Importing, reviewing, editing and shipping work offline from the first launch. Training needs PyTorch,
+which is large (about 3 GB with CUDA), so it is not in the download. The first time you open
+**Train model**, Granum offers **Install training support**: it downloads PyTorch and Ultralytics into
+`~/.local/share/granum/addons`, never into the system. This is the only step that needs the internet.
+GPU training needs the NVIDIA driver installed on the machine.
+
+### From source
+
+For development, or on machines where you prefer a Python install:
 
 ```bash
 git clone <your-remote>/granum.git
 cd granum
-
-cd web && npm ci && npm run build && cd ..        # build the dashboard into the package
-python -m venv .venv && source .venv/bin/activate
-pip install -e ".[service,images,pandas]"
-
-pip install ultralytics      # optional: YOLO and RT-DETR training
-pip install rfdetr           # optional: RF-DETR training
+./install.sh --training       # omit --training if you will not train from the dashboard
 ```
 
-Check the install:
+The installer builds the dashboard and installs Granum into `~/.local/share/granum/venv` with the same
+menu entry and background service.
+
+Check either install with:
 
 ```bash
-granum version
-granum config show           # where projects are stored and which folders may be imported
+granum app status             # or: ~/.local/share/granum/Granum.AppImage app status
 ```
 
-By default projects live in `~/granum` and datasets may be imported from anywhere under your home
-folder. Change either with flags, environment variables or a config file. See [Service and CLI](service.md).
+### Your work is kept
 
-## 2. Start the dashboard
+Everything you do is written to disk as you do it, not held in the browser. Closing the browser,
+logging out, rebooting, reinstalling or upgrading keeps all of it:
 
-```bash
-granum service --open        # http://127.0.0.1:8000
-```
+| What | Where |
+|---|---|
+| Projects, dataset versions, box edits, reviews, comments, shipments, training runs | `~/granum` |
+| Model weights, trained and downloaded | `~/granum-training` |
+| Settings | `~/.config/granum/config.granum.yaml` |
+| Service log | `~/.local/state/granum/service.log` |
 
-The service runs on your machine only. Your images are never uploaded.
+The reviewer name you type in the Review tab is remembered by the browser.
+
+To keep projects elsewhere, run `granum config project-root /path/to/granum` before installing.
+To back up, copy `~/granum` and `~/granum-training`.
+
+### Upgrade and uninstall
+
+- **App**: open the newer AppImage once; it replaces the installed copy and restarts the service.
+  Uninstall with `~/.local/share/granum/Granum.AppImage app uninstall`. Data is kept.
+- **From source**: `git pull && ./install.sh` to upgrade, `./install.sh --uninstall` to remove. Data is kept.
+
+## 2. Open the dashboard
+
+Open **Granum** from the application menu, or run `granum open`. Granum opens in its own window, a
+standalone app with no browser tabs or address bar, and starts the service first if it is not running.
+Closing the window leaves the service running, so the next launch is instant.
+
+The dashboard is also available in any browser at http://127.0.0.1:8000 (`granum open --browser`).
+The window needs WebKitGTK, which Ubuntu desktops include; if it is missing, install it with
+`sudo apt install python3-gi gir1.2-webkit2-4.1`, and until then Granum opens in the browser. The service runs on your machine only, and your images
+are never uploaded.
 
 ## 3. Import a dataset
 

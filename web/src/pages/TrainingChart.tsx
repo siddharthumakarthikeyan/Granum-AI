@@ -47,7 +47,16 @@ export function TrainingChart({ runs, compact = false, metricKey: fixedMetric }:
     }))
     .filter((s) => s.points.length > 0);
 
-  if (!metric || series.length === 0) return null;
+  if (!metric || series.length === 0) {
+    const training = runs.some((r) => r.status === "running");
+    if (!training) return null;
+    return (
+      <div className={compact ? "lab-card" : "chart-waiting"}>
+        {compact && <div className="lab-card-head"><h3>mAP50</h3></div>}
+        <p className="faint small">Training is in its first round. Scores are plotted when each round finishes.</p>
+      </div>
+    );
+  }
 
   const maxEpoch = Math.max(...series.flatMap((s) => s.points.map((p) => p.epoch)), ...runs.filter((r) => r.status === "running").map((r) => Number(r.parameters?.epochs) || 0));
   const values = series.flatMap((s) => s.points.map((p) => p.value));

@@ -3,10 +3,20 @@
 ## Setup
 
 ```bash
+./install.sh --dev          # editable install in ~/.local/share/granum/venv, plus the app service
+```
+
+Or manage your own environment:
+
+```bash
 python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev,service,images,pandas]"
 cd web && npm ci && cd ..
 ```
+
+With an editable install, restart the background service to load Python changes:
+`systemctl --user restart granum`. Rebuild the dashboard with `cd web && npm run build`
+(no restart needed; the service serves the files directly).
 
 Optional, for training features: `pip install ultralytics rfdetr` and a CUDA build of PyTorch.
 
@@ -41,9 +51,41 @@ cd web && npm ci && npm run build && cd ..     # writes src/granum/service/stati
 pip install build && python -m build            # wheel includes the dashboard
 ```
 
-A wheel built after the dashboard build contains it, so `pip install granum-*.whl` followed by
-`granum service` is the whole setup on another machine. Without a dashboard build the package still
-builds and the service serves the API only.
+The `desktop` extra (`pywebview`) provides the standalone window; `granum open --browser` works without it.
+
+`hatch_build.py` builds the dashboard automatically when a wheel is built without it, so
+`pip install .` and `pip install git+https://...` produce a complete app when Node.js is available.
+Without npm the package still builds and the service serves the API only.
+
+## Building the Linux app
+
+```bash
+packaging/linux/build-appimage.sh      # -> dist/Granum-<version>-x86_64.AppImage
+```
+
+The script downloads a relocatable CPython ([python-build-standalone](https://github.com/astral-sh/python-build-standalone)),
+builds the dashboard and the wheel, installs Granum with its dependencies and PySide6 (Qt WebEngine, LGPL)
+into that Python, trims unused Qt modules (`prune_qt.py`), checks that everything imports, bundles the xcb
+libraries Qt needs, precompiles, and packs the result with appimagetool. Downloads are cached in `build/cache`.
+Build on the oldest distribution you support (CI uses Ubuntu 22.04).
+
+Inside the app, `AppRun` sets `GRANUM_BUNDLED=1` and ignores the user's Python packages, then runs
+`python -m granum open` (or `python -m granum <args>`). `granum open` installs the app on first launch
+(`granum.cli.desktop`), starts the service from the installed copy and shows the Qt window (`granum.cli.window`).
+
+Test a build offline in an empty home, without touching your own service:
+
+```bash
+env GRANUM_NO_SYSTEMD=1 GRANUM_SERVICE_PORT=8031 XDG_CONFIG_HOME=/tmp/g/config XDG_DATA_HOME=/tmp/g/share \
+    XDG_STATE_HOME=/tmp/g/state GRANUM_PROJECT_ROOT_URL=/tmp/g/granum APPIMAGE_EXTRACT_AND_RUN=1 \
+    unshare -rn sh -c 'ip link set lo up && ./dist/Granum-*.AppImage'
+```
+
+`unshare -rn` removes network access for the app (loopback stays available once `lo` is up). This is how
+the release was verified: service, dashboard, a full COCO import with image checks, thumbnails and review
+all work with no network.
+
+`GRANUM_NO_SYSTEMD=1` keeps the test away from your real `granum.service`.
 
 ## Continuous integration
 
@@ -51,6 +93,9 @@ builds and the service serves the API only.
 
 - **test**: `ruff check src tests` and `pytest` on Python 3.10, 3.11 and 3.12
 - **web**: `npm ci`, `npm run test` and `npm run build` on Node 20
+
+`.github/workflows/release-linux.yml` builds the AppImage on every `v*` tag (and on demand) and attaches it
+to the GitHub release.
 
 ## Project conventions
 

@@ -89,6 +89,13 @@ OPTIONS: dict[str, Option] = {
             "Extra browser origins allowed to call the service, comma separated. Same-origin always works.",
             "GRANUM_SERVICE_ALLOWED_ORIGINS",
         ),
+        Option(
+            "service.port",
+            8000,
+            "Port the service and dashboard listen on; also used by `granum open` and `granum app`.",
+            "GRANUM_SERVICE_PORT",
+            _parse_int,
+        ),
         Option("log-file", "", "Log file path for the Granum logger.", "GRANUM_LOG_FILE"),
         Option(
             "display-progress",

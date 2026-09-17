@@ -114,6 +114,10 @@ export function ReviewPage({ project, dataset }: { project: string; dataset?: st
     if (open !== null && open >= items.length) setOpen(items.length ? items.length - 1 : null);
   }, [open, items.length]);
 
+  const visibleCount = Math.min(shown, items.length);
+  const allVisibleSelected = items.slice(0, shown).every((i) => selected.has(i.image));
+  const allSelected = items.length > 0 && items.every((i) => selected.has(i.image));
+
   const flash = (message: string) => {
     setToast(message);
     window.setTimeout(() => setToast(null), 4000);
@@ -208,9 +212,17 @@ export function ReviewPage({ project, dataset }: { project: string; dataset?: st
     { unreviewed: 0, reviewed: 0, rework: 0 } as Record<QaStatus, number>,
   );
   const total = totals.unreviewed + totals.reviewed + totals.rework;
-  const ready = total > 0 && totals.reviewed === total;
   const latest = data?.shipments[0];
-  const upToDate = Boolean(latest) && sets.every((s) => latest!.sets[s.set]?.url === s.url) && Object.keys(latest!.sets).length === sets.length;
+  // Shipping works per set: a set can ship once its (newest) version is fully reviewed.
+  const setState = sets.map((s) => {
+    const c = countStatuses(s, statuses);
+    return { set: s, ready: s.images.length > 0 && c.reviewed === s.images.length, shipped: Boolean(s.shipped) };
+  });
+  const shippedSets = setState.filter((s) => s.shipped).length;
+  const upToDate = sets.length > 0 && shippedSets === sets.length;
+  // Something can ship: a set's newest version (counted live here) or any earlier fully reviewed version.
+  const shippable = setState.some((s) => s.ready && !s.shipped)
+    || sets.some((s) => (s.versions ?? []).slice(1).some((v) => v.ready && !v.shipped));
 
   return (
     <div className="page review-page">
@@ -233,9 +245,15 @@ export function ReviewPage({ project, dataset }: { project: string; dataset?: st
             </label>
             <button
               className="button primary"
-              onClick={() => setShipping(true)}
-              disabled={!data || !ready || upToDate}
-              title={!ready ? "Every image must be reviewed before shipping" : upToDate ? "These versions are already shipped" : "Ship this dataset for training"}
+              onClick={() => {
+                // Version counts are computed by the service; refresh them so the dialog matches
+                // the decisions just made on this page.
+                void load().then(() => setShipping(true));
+              }}
+              disabled={!data || !shippable}
+              title={upToDate ? "The newest version of every set is already shipped"
+                : shippable ? "Ship reviewed sets for training"
+                  : "A set can ship once every image in it is reviewed"}
             >
               <Icon name="ship" />Ship
             </button>
@@ -248,19 +266,18 @@ export function ReviewPage({ project, dataset }: { project: string; dataset?: st
         <>
           <div className="qa-summary">
             <div className="qa-ship-state">
-              {latest ? (
-                upToDate ? (
-                  <span className="qa-pill shipped"><Icon name="check" size={13} />Shipped</span>
-                ) : (
-                  <span className="qa-pill changed"><Icon name="warn" size={13} />Changed since shipped</span>
-                )
+              {upToDate ? (
+                <span className="qa-pill shipped"><Icon name="check" size={13} />Shipped</span>
+              ) : shippedSets > 0 ? (
+                <span className="qa-pill changed"><Icon name="ship" size={13} />Partly shipped</span>
+              ) : latest ? (
+                <span className="qa-pill changed"><Icon name="warn" size={13} />Changed since shipped</span>
               ) : (
                 <span className="qa-pill draft">Not shipped</span>
               )}
               <span className="muted small">
-                {latest
-                  ? `Last shipped ${formatWhen(latest.time)}${latest.author ? ` by ${latest.author}` : ""}`
-                  : ready ? "Every image is reviewed; ready to ship" : `${formatNumber(totals.unreviewed + totals.rework)} images left to review before shipping`}
+                {setState.map((s) => `${s.set.set} ${s.shipped ? "shipped" : s.ready ? "ready" : "in review"}`).join(" · ")}
+                {latest ? ` · last shipped ${formatWhen(latest.time)}${latest.author ? ` by ${latest.author}` : ""}` : ""}
                 {isolated && isolated.images.length > 0 && ` · ${formatNumber(isolated.images.length)} isolated, not shipped`}
               </span>
             </div>
@@ -290,6 +307,7 @@ export function ReviewPage({ project, dataset }: { project: string; dataset?: st
                 return (
                   <button key={s.set} role="tab" aria-selected={s === current} className={s === current ? "on" : ""} onClick={() => setSetName(s.set)}>
                     {s.set}
+                    {s.shipped && <Icon name="check" size={12} className="tab-shipped" />}
                     <span className="split-toggle-count">{formatNumber(c.reviewed)}/{formatNumber(s.images.length)}</span>
                   </button>
                 );
@@ -317,13 +335,27 @@ export function ReviewPage({ project, dataset }: { project: string; dataset?: st
                 );
               })}
             </div>
-            <button
-              className="button subtle"
-              onClick={() => setSelected(selected.size > 0 ? new Set() : new Set(items.slice(0, shown).map((i) => i.image)))}
-              disabled={items.length === 0}
-            >
-              {selected.size > 0 ? "Select none" : "Select shown"}
-            </button>
+            <div className="qa-select" role="group" aria-label="Selection">
+              <button
+                className="button subtle"
+                onClick={() => setSelected(new Set(items.slice(0, shown).map((i) => i.image)))}
+                disabled={items.length === 0 || (selected.size === visibleCount && allVisibleSelected)}
+                title="Select the images loaded on this page"
+              >
+                Select shown <span className="split-toggle-count">{formatNumber(visibleCount)}</span>
+              </button>
+              <button
+                className="button subtle"
+                onClick={() => setSelected(new Set(items.map((i) => i.image)))}
+                disabled={items.length === 0 || (selected.size === items.length && allSelected)}
+                title="Select every image matching the current set and filter, including those not loaded yet"
+              >
+                Select all <span className="split-toggle-count">{formatNumber(items.length)}</span>
+              </button>
+              {selected.size > 0 && (
+                <button className="button subtle" onClick={() => setSelected(new Set())}>Select none</button>
+              )}
+            </div>
           </div>
 
           {items.length === 0 ? (
@@ -388,6 +420,11 @@ export function ReviewPage({ project, dataset }: { project: string; dataset?: st
       {selected.size > 0 && (
         <div className="decision-tray" role="region" aria-label="Selected images">
           <span className="strong">{plural(selected.size, "image")} selected</span>
+          {trayMode === null && !allSelected && items.length > selected.size && (
+            <button className="button subtle qa-select-all-link" onClick={() => setSelected(new Set(items.map((i) => i.image)))}>
+              Select all {formatNumber(items.length)}
+            </button>
+          )}
           {trayMode !== null ? (
             <>
               <input
@@ -464,7 +501,6 @@ export function ReviewPage({ project, dataset }: { project: string; dataset?: st
           sets={sets}
           statuses={statuses}
           author={author}
-          upToDate={upToDate}
           onClose={() => setShipping(false)}
           onShipped={(message) => {
             setShipping(false);

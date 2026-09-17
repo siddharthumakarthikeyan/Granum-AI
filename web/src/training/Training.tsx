@@ -150,7 +150,17 @@ export function TrainDialog({ project, preset, onClose, onStarted }: {
         </>
       }
     >
-      {status && !status.available && <p className="form-error">{status.reason}</p>}
+      {status && !status.available && (
+        status.installable ? (
+          <TrainingAddon
+            size={status.install_size ?? "a few GB"}
+            running={status.install_job ?? null}
+            onInstalled={() => api.trainingStatus(project).then(setStatus).catch((e: Error) => setError(e.message))}
+          />
+        ) : (
+          <p className="form-error">{status.reason}</p>
+        )
+      )}
       {status && (status.running_job || status.busy_elsewhere) && <p className="form-error">Another training job is running on this machine.</p>}
 
       <div className="form-section">
@@ -248,6 +258,82 @@ export function TrainDialog({ project, preset, onClose, onStarted }: {
   );
 }
 
+/** Training packages are not installed: offer to install them into Granum's own folder. */
+function TrainingAddon({ size, running, onInstalled }: {
+  size: string;
+  running: Job<{ installed: string }> | null;
+  onInstalled: () => void;
+}) {
+  const [job, setJob] = useState(running);
+  const [error, setError] = useState<string | null>(null);
+  const [showLog, setShowLog] = useState(false);
+
+  useEffect(() => {
+    if (!job || job.status !== "running") return;
+    const timer = window.setInterval(() => {
+      api.job<{ installed: string }>(job.id)
+        .then((next) => {
+          setJob(next);
+          if (next.status === "done") onInstalled();
+        })
+        .catch(() => undefined);
+    }, 1500);
+    return () => window.clearInterval(timer);
+  }, [job, onInstalled]);
+
+  const start = async () => {
+    setError(null);
+    try {
+      setJob(await api.installTraining());
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    }
+  };
+
+  const busy = job?.status === "running";
+  return (
+    <div className="addon-card">
+      <div className="addon-head">
+        <Icon name="runs" />
+        <div>
+          <span className="strong">Training support is not installed</span>
+          <span className="muted small block">
+            Granum installs PyTorch and Ultralytics into its own folder ({size} download). Nothing is added to your system.
+          </span>
+        </div>
+        <span className="spacer" />
+        {!busy && job?.status !== "done" && (
+          <button className="button primary" onClick={() => void start()}>
+            {job?.status === "failed" ? "Retry" : "Install training support"}
+          </button>
+        )}
+      </div>
+      {busy && (
+        <>
+          <p className="small addon-phase"><span className="spinner" /> {job!.phase}</p>
+          <Progress done={0} total={0} />
+          <p className="faint small">This can take several minutes. You can keep using Granum; installation continues in the background.</p>
+        </>
+      )}
+      {job?.status === "failed" && <p className="form-error">{job.error}</p>}
+      {job?.status === "done" && <p className="small addon-done"><Icon name="check" size={13} /> Installed</p>}
+      {error && <p className="form-error">{error}</p>}
+      {job && (
+        <>
+          <button className="button subtle small" onClick={() => setShowLog(!showLog)}>{showLog ? "Hide details" : "Details"}</button>
+          {showLog && <pre className="code-block training-log">{(job.log ?? []).slice(-30).join("\n") || "Starting"}</pre>}
+        </>
+      )}
+    </div>
+  );
+}
+
+function formatDuration(seconds: number): string {
+  if (seconds < 90) return `${Math.max(1, Math.round(seconds))} s`;
+  if (seconds < 5400) return `${Math.round(seconds / 60)} min`;
+  return `${Math.floor(seconds / 3600)} h ${Math.round((seconds % 3600) / 60)} min`;
+}
+
 /** Follows the training job for a project, whoever started it, including after a reload. */
 export function useTrainingJob(project: string) {
   const [job, setJob] = useState<Job<TrainingResult> | null>(null);
@@ -308,6 +394,12 @@ export function TrainingProgressCard({ project, job, onCancel, onDismiss }: {
         {runName && <span className="cell-mono muted">{runName}</span>}
         <span className="faint small tabular">{minutes > 0 ? `${minutes}m ` : ""}{seconds}s</span>
         {running && job.total > 0 && <span className="faint small tabular">{job.done}/{job.total} epochs</span>}
+        {running && (job.steps ?? 0) > 0 && (
+          <span className="faint small tabular">
+            step {formatNumber(job.step ?? 0)}/{formatNumber(job.steps!)}
+            {job.round_eta ? ` · ~${formatDuration(job.round_eta)} left in this round` : ""}
+          </span>
+        )}
         <span className="spacer" />
         {!running && job.status === "done" && run && !job.result?.cancelled && (
           <>
@@ -329,7 +421,14 @@ export function TrainingProgressCard({ project, job, onCancel, onDismiss }: {
           <button className="icon-button" onClick={onDismiss} aria-label="Dismiss"><Icon name="close" size={14} /></button>
         )}
       </div>
-      {running && <Progress done={job.done} total={job.total} />}
+      {running && (
+        (job.steps ?? 0) > 0
+          ? <Progress done={job.done * job.steps! + (job.step ?? 0)} total={job.total * job.steps!} />
+          : <Progress done={job.done} total={job.total} />
+      )}
+      {running && job.done === 0 && (
+        <p className="faint small training-note">Charts and per-image dynamics update at the end of each round.</p>
+      )}
       {job.error && <p className="form-error">{job.error}</p>}
       {showLog && <pre className="code-block training-log">{(job.log ?? []).slice(-40).join("\n") || "No output yet"}</pre>}
     </section>

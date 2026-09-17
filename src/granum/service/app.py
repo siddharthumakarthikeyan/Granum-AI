@@ -138,11 +138,23 @@ class QaMoveRequest(BaseModel):
     author: str = ""
 
 
+class RenameProjectRequest(BaseModel):
+    new_name: str = Field(max_length=200)
+
+
+class DeleteProjectRequest(BaseModel):
+    """The project name typed again, so a project is never deleted by a stray click or request."""
+
+    confirm: str
+
+
 class ShipRequest(BaseModel):
     project: str
     dataset: str
     author: str = ""
     note: str = ""
+    #: Set name -> the version to ship. Omitted: the newest version of every set.
+    sets: dict[str, str] | None = None
 
 
 class TrainingRequest(BaseModel):
@@ -505,6 +517,73 @@ def create_app(
                 counts["class_count"] = len(table.schema[column].value_map or {})
             box_counts[key] = counts
         return box_counts[key]
+
+    @app.post("/api/projects/{project_name}/rename")
+    def rename_project_endpoint(project_name: str, request: RenameProjectRequest = Body(...)) -> dict[str, Any]:
+        """Rename a project, rewriting every path and name recorded inside it."""
+        from granum.core.projects import ProjectError, rename_project
+
+        busy = [j for j in jobs.all() if j.status == "running" and j.payload == project_name]
+        if busy:
+            raise _error(409, f"{project_name} is busy ({busy[0].kind}); wait for it to finish or cancel it")
+        try:
+            done = rename_project(config.project_root, project_name, request.new_name)
+        except ProjectError as exc:
+            status = 404 if "no project named" in str(exc) else 409 if "already exists" in str(exc) else 400
+            raise _error(status, str(exc)) from exc
+        index.refresh(force=True)
+        return {"name": done["new"], "files_updated": done["files_updated"]}
+
+    @app.post("/api/projects/{project_name}/delete")
+    def delete_project(project_name: str, request: DeleteProjectRequest = Body(...)) -> dict[str, Any]:
+        """Delete a project for good: its datasets, versions, runs, reviews, shipments and import
+        reports, and the model weights its runs wrote. Original image files are not touched."""
+        import shutil
+
+        from granum.core.layout import sanitize
+
+        if request.confirm != project_name:
+            raise _error(400, "type the project name exactly to confirm")
+        summary = next((p for p in index.projects() if p["name"] == project_name), None)
+        layout = ProjectLayout(config.project_root)
+        folder = layout.project(project_name)
+        if summary is None and not folder.exists():
+            raise _error(404, f"no project named {project_name!r}")
+        if sanitize(project_name) != project_name or folder.parent.path.rstrip("/") != layout.projects_dir.path.rstrip("/"):
+            raise _error(400, "this project cannot be deleted from here")
+        outside = [e for e in index.entries() if e.project_name == project_name and not str(e.url).startswith(str(folder))]
+        if outside:
+            raise _error(400, f"{project_name} has data outside {folder}; delete it there instead")
+        busy = [j for j in jobs.all() if j.status == "running" and j.payload == project_name]
+        if busy:
+            raise _error(409, f"{project_name} is busy ({busy[0].kind}); wait for it to finish or cancel it")
+
+        # Training output that belongs to this project's runs: only folders its runs recorded.
+        removed_training: list[str] = []
+        if config.project_root.scheme == "file":
+            from granum.cli.desktop import training_dir
+
+            work = training_dir(Path(config.project_root.path)).resolve()
+            for entry in index.runs(project_name):
+                try:
+                    weights = Run.from_url(entry.url).parameters.get("weights")
+                except GranumError:
+                    continue
+                for kind in ("runs", "exports"):
+                    candidate = (work / kind / entry.name).resolve()
+                    recorded = weights and str(Path(str(weights)).resolve()).startswith(str(work / "runs" / entry.name))
+                    if recorded and candidate.is_relative_to(work) and candidate.is_dir():
+                        shutil.rmtree(candidate, ignore_errors=True)
+                        removed_training.append(str(candidate))
+
+        tables = summary["tables"] if summary else 0
+        runs = summary["runs"] if summary else 0
+        try:
+            folder.fs.rm(folder.path, recursive=True)
+        except FileNotFoundError:
+            pass
+        index.refresh(force=True)
+        return {"deleted": project_name, "tables": tables, "runs": runs, "training_output": removed_training}
 
     @app.get("/api/projects/{project_name}/tables")
     def project_tables(project_name: str) -> dict[str, Any]:
@@ -984,6 +1063,45 @@ def create_app(
             if image
         ]
 
+    version_images: dict[str, list[str]] = {}
+
+    def _version_images(table: Table) -> list[str]:
+        """The image references of a version. Versions never change, so this is cached."""
+        key = str(table.url)
+        if key not in version_images:
+            from granum.core.curation import CurationError, image_column
+
+            try:
+                column = image_column(table)
+                version_images[key] = [v for v in table.to_arrow().column(column).to_pylist() if v]
+            except CurationError:
+                version_images[key] = []
+            if len(version_images) > 512:
+                version_images.pop(next(iter(version_images)))
+        return version_images[key]
+
+    def _set_versions(project: str, dataset: str) -> dict[str, list[dict[str, Any]]]:
+        """Every version of every reviewable set, newest first."""
+        from granum.core.curation import HOLDING_SETS
+
+        by_set: dict[str, list[dict[str, Any]]] = {}
+        for entry in index.tables(project):
+            if entry.dataset_name != dataset:
+                continue
+            try:
+                table = Table.from_url(entry.url)
+            except GranumError:
+                continue
+            if table.base_name in HOLDING_SETS:
+                continue
+            by_set.setdefault(table.base_name, []).append({
+                "url": str(table.url), "name": table.name, "row_count": len(table), "created": table.created,
+                "change": table.producer.get("op"), "description": table.description, "table": table,
+            })
+        for versions in by_set.values():
+            versions.sort(key=lambda v: v["created"], reverse=True)
+        return by_set
+
     def _shipped_urls(project: str) -> set[str]:
         from granum.core.qa import QaLog
 
@@ -1020,17 +1138,43 @@ def create_app(
         order = ["train", "valid", "val", "validation", "test"]
         sets.sort(key=lambda s: (order.index(s["set"]) if s["set"] in order else len(order), s["set"]))
         shipments = log.shipments()
-        newest = {s["set"]: s["url"] for s in sets}
-        latest = shipments[0] if shipments else None
+        shipped = log.shipped_urls()
+        versions = _set_versions(project, dataset)
+        for item in sets:
+            item["ready"] = item["counts"]["reviewed"] == len(item["images"]) and len(item["images"]) > 0
+            item["shipped"] = item["url"] in shipped
+            item["versions"] = []
+            for v in versions.get(item["set"], []):
+                images = _version_images(v["table"])
+                reviewed = sum(1 for image in images if current.get(image, {}).get("status") == "reviewed")
+                item["versions"].append({**{k: val for k, val in v.items() if k != "table"},
+                                         "shipped": v["url"] in shipped, "images": len(images), "reviewed": reviewed,
+                                         "ready": bool(images) and reviewed == len(images)})
         return {
             "sets": sets,
             "isolated": isolated,
             "statuses": current,
             "shipments": shipments,
-            "ready": bool(sets) and all(s["counts"]["reviewed"] == len(s["images"]) for s in sets),
-            # Shipped, and nothing has changed since: the newest versions are what shipped.
-            "up_to_date": latest is not None and {k: v["url"] for k, v in latest["sets"].items()} == newest,
+            "ready": bool(sets) and all(s["ready"] for s in sets),
+            # Every set's newest version has been shipped: nothing new to ship.
+            "up_to_date": bool(sets) and all(s["shipped"] for s in sets),
         }
+
+    @app.get("/api/qa/version")
+    def qa_version(project: str = Query(...), dataset: str = Query(...), table: str = Query(...)) -> dict[str, Any]:
+        """Review counts for one version of a set, to decide whether it can ship."""
+        log = _qa_log(project, dataset)
+        version = _table_at(table)
+        if isinstance(version, MetricsTable) or version.project_name != project or version.dataset_name != dataset:
+            raise _error(400, "choose a version of this dataset")
+        current = log.current()
+        images = _set_images(version)
+        counts = {status: 0 for status in ("unreviewed", "reviewed", "rework")}
+        for item in images:
+            counts[current.get(item["image"], {}).get("status", "unreviewed")] += 1
+        return {**_version_payload(version), "images": len(images), "counts": counts,
+                "ready": counts["reviewed"] == len(images) and len(images) > 0,
+                "shipped": str(version.url) in log.shipped_urls()}
 
     @app.post("/api/qa/status")
     def qa_status(request: QaStatusRequest = Body(...)) -> dict[str, Any]:
@@ -1155,9 +1299,26 @@ def create_app(
 
         log = _qa_log(request.project, request.dataset)
         statuses = {k: v["status"] for k, v in log.current().items()}
+        if request.sets is None:
+            chosen = _review_sets(request.project, request.dataset)
+        else:
+            if not request.sets:
+                raise _error(400, "choose at least one set to ship")
+            known = _set_versions(request.project, request.dataset)
+            chosen = {}
+            for name, url in request.sets.items():
+                if name not in known:
+                    raise _error(400, f"{request.dataset} has no set named {name!r}")
+                if url not in {v["url"] for v in known[name]}:
+                    raise _error(400, f"that is not a version of {name}")
+                chosen[name] = Table.from_url(url)
+        already = log.shipped_urls()
+        repeats = [name for name, table in chosen.items() if str(table.url) in already]
+        if repeats:
+            raise _error(409, f"already shipped: {', '.join(f'{n} ({chosen[n].name})' for n in repeats)}")
         versions = {
             name: {"url": str(table.url), "name": table.name, "images": [i["image"] for i in _set_images(table)]}
-            for name, table in _review_sets(request.project, request.dataset).items()
+            for name, table in chosen.items()
         }
         try:
             shipment = log.ship(versions, statuses, author=request.author, note=request.note)
@@ -1297,11 +1458,123 @@ def create_app(
         })
         return training_check
 
+    def _running_addon_install() -> Any:
+        return next((j for j in jobs.all() if j.kind == "training-install" and j.status == "running"), None)
+
+    @app.post("/api/training/install")
+    def install_training_support() -> dict[str, Any]:
+        """Install PyTorch and Ultralytics into Granum's own add-on folder (not the system Python)."""
+        from granum import addons
+
+        running = _running_addon_install()
+        if running is not None:
+            return running.to_dict()
+        if _training_environment()["available"]:
+            raise _error(409, "training support is already installed")
+
+        def work(job: Any) -> Any:
+            job.progress(f"Downloading PyTorch and Ultralytics ({addons.TRAINING_DOWNLOAD})", 0, 0)
+
+            def on_line(line: str) -> None:
+                if line.startswith(("Collecting", "Downloading", "Installing")):
+                    job.phase = line[:120]
+                job.log.append(line)
+
+            target = addons.install_training(on_line, cancelled=job.cancel.is_set)
+            training_check.clear()
+            job.phase = "Checking the GPU"
+            _training_environment()
+            return {"installed": str(target)}
+
+        return jobs.start("training-install", work).to_dict()
+
     def _running_training() -> Any:
         return next((j for j in jobs.all() if j.kind == "training" and j.status == "running"), None)
 
+    def _rfdetr_steps(record: Any) -> Any:
+        """In-round progress for RF-DETR trainers started before they reported steps: its own
+        metrics.csv logs the optimizer step, and a round is rows / (batch 4 x accumulation 4) steps."""
+        import csv
+        import math
+
+        if config.project_root.scheme != "file":
+            return None
+        from granum.cli.desktop import training_dir
+
+        try:
+            run = Run.from_url(ProjectLayout(config.project_root).run(record.project, record.run_name))
+        except GranumError:
+            return None
+        if run.parameters.get("framework") != "rfdetr":
+            return None
+        dataset, _, version = str(run.parameters.get("train_version", "")).partition("/")
+        entry = next((e for e in index.tables(record.project) if e.dataset_name == dataset and e.name == version), None)
+        if entry is None:
+            return None
+        rows = Table.from_url(entry.url).row_count
+        steps = max(1, math.ceil(rows / 16))
+        metrics = training_dir(Path(config.project_root.path)) / "runs" / record.run_name / "metrics.csv"
+
+        def read() -> tuple[int, int] | None:
+            try:
+                with metrics.open() as handle:
+                    last = None
+                    for row in csv.DictReader(handle):
+                        if row.get("step", "").isdigit() and row.get("epoch", "").isdigit():
+                            last = row
+            except OSError:
+                return None
+            if last is None:
+                return None
+            within = int(last["step"]) + 1 - int(last["epoch"]) * steps
+            return (min(max(within, 0), steps), steps)
+
+        return read
+
+    def _finish_training(record: Any, cancelled: bool, code: int | None) -> Any:
+        from granum.service import trainers
+
+        status = trainers.finish_run(ProjectLayout(config.project_root).run(record.project, record.run_name), cancelled, code)
+        index.refresh(force=True)
+        if cancelled:
+            return {"run_name": record.run_name, "cancelled": True}
+        if status in ("failed", "interrupted") or (code is not None and code != 0):
+            raise GranumError(f"training stopped with an error (exit code {code}); see the technical log"
+                              if code is not None else "training stopped while Granum was not watching it")
+        return {"run_name": record.run_name, "exit_code": code}
+
+    def _resume_trainers() -> None:
+        """Reattach to trainers that survived a restart; mark abandoned dashboard runs interrupted."""
+        from granum.service import trainers
+
+        live: set[tuple[str, str]] = set()
+        for record in trainers.TrainerRecord.load_all(str(config.project_root)):
+            if trainers.is_trainer_alive(record.pid):
+                live.add((record.project, record.run_name))
+                job = jobs.start("training", lambda job, record=record: trainers.follow(
+                    job, record, None, _finish_training, fallback_step=_rfdetr_steps(record)))
+                job.payload = record.project
+                job.started = record.started  # elapsed time counts from when training began
+            else:
+                trainers.finish_run(ProjectLayout(config.project_root).run(record.project, record.run_name), False, None)
+                record.remove()
+        for entry in index.runs():
+            if (entry.project_name, entry.name) in live:
+                continue
+            try:
+                run = Run.from_url(entry.url)
+            except GranumError:
+                continue
+            if run.status == "running" and run.parameters.get("framework") in trainers.DASHBOARD_FRAMEWORKS:
+                run.set_status("interrupted")
+        index.refresh(force=True)
+
+    _resume_trainers()
+
     @app.get("/api/training/status")
     def training_status(project: str = Query(...)) -> dict[str, Any]:
+        from granum.addons import TRAINING_DOWNLOAD
+
         environment = _training_environment()
         running = _running_training()
         return {
@@ -1309,14 +1582,15 @@ def create_app(
             "running_job": running.to_dict() if running is not None and running.payload == project else None,
             "busy_elsewhere": running is not None and running.payload != project,
             "shipped": sorted(_shipped_urls(project)),
+            "installable": not environment["available"],
+            "install_size": TRAINING_DOWNLOAD,
+            "install_job": _running_addon_install().to_dict() if _running_addon_install() is not None else None,
         }
 
     @app.post("/api/training")
     def start_training(request: TrainingRequest = Body(...)) -> dict[str, Any]:
         import re
-        import subprocess
         import sys
-        import threading
         import time as _time
 
         environment = _training_environment()
@@ -1351,8 +1625,14 @@ def create_app(
             if url not in shipped:
                 raise _error(409, f"{tables[url].name} has not been shipped; review every image and ship the dataset first")
 
+        from granum.cli.desktop import app_executable, running_appimage
+        from granum.service import trainers
+
+        # Inside the self-contained app the trainer runs from the installed app, so it keeps
+        # working if this service (and the app mount it runs from) restarts.
+        executable = [*app_executable(), "--python"] if running_appimage() else [sys.executable]
         command = [
-            sys.executable, "-u", "-m", "granum.training.train",
+            *trainers.trainer_prefix(executable),
             "--project-root", str(config.project_root), "--project", request.project,
             "--train-table", request.train_table, "--valid-table", request.valid_table,
             "--run-name", name, "--epochs", str(request.rounds), "--imgsz", str(request.image_size),
@@ -1363,56 +1643,18 @@ def create_app(
 
         def work(job: Any) -> Any:
             job.progress("Starting", 0, request.rounds)
-            process = subprocess.Popen(
-                command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1,
-                env={**os.environ, "PYTHONUNBUFFERED": "1"},
-            )
+            # Run in the training folder beside the project root, so pretrained weights the
+            # trainer downloads land there, not wherever the service happened to be started.
+            workdir = None
+            if config.project_root.scheme == "file":
+                from granum.cli.desktop import training_dir
 
-            finished = threading.Event()
-
-            def watch_cancel() -> None:
-                while not finished.wait(0.5):
-                    if job.cancel.is_set():
-                        break
-                else:
-                    return
-                if process.poll() is None:
-                    process.terminate()
-                    try:
-                        process.wait(timeout=15)
-                    except subprocess.TimeoutExpired:
-                        process.kill()
-
-            threading.Thread(target=watch_cancel, daemon=True).start()
-            assert process.stdout is not None
-            for raw in process.stdout:
-                for line in raw.replace("\r", "\n").splitlines():
-                    line = re.sub(r"\x1b\[[0-9;]*[A-Za-z]", "", line).strip()
-                    if not line:
-                        continue
-                    if line.startswith("GRANUM_PHASE "):
-                        job.phase = line[len("GRANUM_PHASE "):]
-                    elif line.startswith("GRANUM_PROGRESS "):
-                        done, total = line.split()[1:3]
-                        job.done, job.total = int(done), int(total)
-                    elif not job.log or job.log[-1] != line:
-                        job.log.append(line[:400])
-            code = process.wait()
-            finished.set()
-            # A stopped or crashed trainer never marks its run finished; say what happened.
-            if job.cancel.is_set() or code != 0:
-                try:
-                    stopped = Run.from_url(ProjectLayout(config.project_root).run(request.project, name))
-                    if stopped.status == "running":
-                        stopped.set_status("cancelled" if job.cancel.is_set() else "failed")
-                except GranumError:
-                    pass
-            index.refresh(force=True)
-            if job.cancel.is_set():
-                return {"run_name": name, "cancelled": True}
-            if code != 0:
-                raise GranumError(f"training stopped with an error (exit code {code}); see the technical log")
-            return {"run_name": name, "exit_code": code}
+                workdir = training_dir(Path(config.project_root.path))
+                workdir.mkdir(parents=True, exist_ok=True)
+            process, record = trainers.launch(command, cwd=workdir, project_root=str(config.project_root),
+                                              project=request.project, run_name=name, rounds=request.rounds)
+            return trainers.follow(job, record, process, _finish_training,
+                                   fallback_step=_rfdetr_steps(record) if request.family == "rfdetr" else None)
 
         job = jobs.start("training", work)
         job.payload = request.project

@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Granum
+GenericName=Data workbench
+Comment=Better data. Better models.
+Exec=granum
+Icon=granum
+Terminal=false
+Categories=Development;Science;
+StartupWMClass=granum
+X-AppImage-Version=@VERSION@

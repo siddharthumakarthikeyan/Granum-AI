@@ -8,7 +8,7 @@ workspace**: three linked panels that share one selection and one set of filters
 
 | Page | Address | What it shows |
 |---|---|---|
-| Projects | `#/` | Every project under the project root |
+| Projects | `#/` | Every project under the project root. Hover a row to rename (pencil) or delete (bin) a project |
 | Overview | `#/p/<project>` | Images, boxes, best mAP50, preflight findings needing attention, datasets |
 | Datasets | `#/p/<project>/datasets` | Each dataset's sets and their version history |
 | Review | `#/p/<project>/review` | Review, rework, isolate, delete and ship. See [Review and shipping](review-and-shipping.md) |
@@ -16,6 +16,22 @@ workspace**: three linked panels that share one selection and one set of filters
 | Samples | `#/p/<project>/learning?url=<run>` | When each image was learned during a run |
 | Removed | `#/p/<project>/removed?dataset=<name>` | Deleted images, with a way to put them back |
 | Import | `#/import` | The import wizard |
+
+## Renaming a project
+
+Rename a project from the pencil icon on its row in **Projects**, or next to its name on the overview
+(hover the title). Names may use letters, numbers, spaces, dots, dashes and underscores, and must not match
+another project. Everything inside the project follows the new name: dataset versions and their history,
+runs and their metrics, reviews, comments, isolated images and shipments. Image files are not touched.
+A project cannot be renamed while it is training.
+
+## Deleting a project
+
+Delete a project from the bin icon on its row in **Projects**, or next to **Train model** on its
+overview. Type the project name to confirm. This permanently removes its dataset versions, runs, reviews,
+comments, shipments, import reports, and the model weights its training runs saved under
+`~/granum-training`. Your original image and annotation files are never deleted. A project cannot be deleted
+while it is training.
 
 ## Rows
 

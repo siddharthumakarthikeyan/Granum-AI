@@ -7,6 +7,9 @@ from, which is the fastest way to debug an install inside someone else's infrast
 
 from __future__ import annotations
 
+import os
+from pathlib import Path
+
 import typer
 
 from granum.core.config import OPTIONS, Config, Tier, set_config
@@ -26,6 +29,10 @@ thumbnails_app = typer.Typer(
 app.add_typer(thumbnails_app)
 import_app = typer.Typer(name="import", help="Check and import external datasets.")
 app.add_typer(import_app)
+app_app = typer.Typer(
+    name="app", help="Install Granum as an app: background service at login and a menu launcher."
+)
+app.add_typer(app_app)
 
 _STATE: dict[str, object] = {}
 
@@ -58,6 +65,9 @@ def main(
     overrides: dict[str, object] = {}
     if project_root_url:
         overrides["project-root-url"] = project_root_url
+    from granum import addons
+
+    addons.activate()
     if log_level:
         overrides["log-level"] = log_level
     config = Config.load(
@@ -80,7 +90,7 @@ def version() -> None:
 @app.command()
 def service(
     host: str = typer.Option("127.0.0.1", "--host", help="Address to bind to."),
-    port: int = typer.Option(8000, "--port", help="Port to bind to."),
+    port: int | None = typer.Option(None, "--port", help="Port to bind to. Defaults to config (8000)."),
     reindex_interval: float = typer.Option(
         None, "--scan-interval", help="Seconds between index scans. Defaults to config."
     ),
@@ -117,6 +127,7 @@ def service(
     from granum.service.cache import ByteCache
 
     config = _config()
+    port = port or int(config.get("service.port"))
     index = Index(config=config)
     typer.echo(f"granum: indexing {config.project_root} ...")
     index.refresh()
@@ -281,6 +292,141 @@ def thumbnails_create(
         f"{verb} {totals['written']} thumbnails for {totals['images']} images "
         f"({totals['skipped']} up to date, {totals['failed']} failed)"
     )
+
+
+def _local_project_root(config: Config) -> Path:
+    root = config.project_root
+    if root.scheme not in ("", "file"):
+        typer.echo(f"error: the app needs a local project root, not {root}", err=True)
+        raise typer.Exit(1)
+    return Path(root.path).expanduser()
+
+
+def _pin_project_root(config: Config, root: Path) -> str | None:
+    """Record the project root in the user config, so the service, the launcher and every
+    terminal agree on where data lives even if the environment changes later."""
+    from granum.core.config import user_config_url
+
+    if config.provenance("project-root-url").tier is Tier.USER:
+        return None
+    target = user_config_url()
+    existing = target.read_text() if target.exists() else ""
+    lines = [line for line in existing.splitlines() if not line.startswith("project-root-url:")]
+    lines.append(f"project-root-url: {root}")
+    target.parent.mkdir()
+    target.write_text("\n".join(lines) + "\n")
+    return str(target)
+
+
+@app_app.command("install")
+def app_install(
+    port: int | None = typer.Option(None, "--port", help="Port for the dashboard. Defaults to config (8000)."),
+    autostart: bool = typer.Option(True, "--autostart/--no-autostart", help="Start Granum in the background at login."),
+    launcher: bool = typer.Option(True, "--launcher/--no-launcher", help="Add Granum to the application menu."),
+) -> None:
+    """Install or update the background service and launcher. Project data is never changed."""
+    from granum.cli import desktop
+
+    config = _config()
+    root = _local_project_root(config)
+    port = port or int(config.get("service.port"))
+    pinned = _pin_project_root(config, root)
+    if pinned:
+        typer.echo(f"project root {root} saved in {pinned}")
+    try:
+        steps = desktop.install(port, root, autostart=autostart, launcher=launcher)
+    except RuntimeError as exc:
+        typer.echo(f"error: {exc}", err=True)
+        raise typer.Exit(1) from exc
+    for step in steps:
+        typer.echo(step)
+    if autostart and desktop.has_systemd():
+        up = desktop.ensure_running(port, root)
+        typer.echo(f"dashboard {'running' if up else 'starting'} on {desktop.url_for(port)}")
+
+
+@app_app.command("uninstall")
+def app_uninstall() -> None:
+    """Remove the background service and launcher. Projects and model weights are kept."""
+    from granum.cli import desktop
+
+    for step in desktop.uninstall():
+        typer.echo(step)
+    typer.echo(f"your data is untouched in {_config().project_root}")
+
+
+@app_app.command("status")
+def app_status() -> None:
+    """Show whether Granum is installed and running, and where its data lives."""
+    from granum.cli import desktop
+
+    config = _config()
+    root = _local_project_root(config)
+    port = int(config.get("service.port"))
+    paths = desktop.AppPaths.for_user()
+    service = "not installed"
+    if paths.unit.exists():
+        service = desktop.systemctl("is-active", desktop.UNIT_NAME).stdout.strip() if desktop.has_systemd() else "installed"
+    projects = root / "projects"
+    count = sum(1 for p in projects.iterdir() if p.is_dir()) if projects.is_dir() else 0
+    rows = [
+        ("dashboard", f"{desktop.url_for(port)} ({'up' if desktop.is_up(port) else 'down'})"),
+        ("service", f"{service}  {paths.unit if paths.unit.exists() else ''}".rstrip()),
+        ("launcher", str(paths.desktop) if paths.desktop.exists() else "not installed"),
+        ("projects", f"{count} in {root}"),
+        ("model weights", str(desktop.training_dir(root))),
+        ("service log", str(paths.state / "service.log")),
+    ]
+    for name, value in rows:
+        typer.echo(f"{name:<14} {value}")
+
+
+@app.command("open")
+def open_dashboard(
+    browser: bool = typer.Option(False, "--browser", help="Open in the web browser instead of the Granum window."),
+    no_window: bool = typer.Option(False, "--no-window", help="Only make sure the service is running."),
+) -> None:
+    """Open Granum in its own window, starting the service in the background first if needed."""
+    import webbrowser
+
+    from granum.cli import desktop
+
+    config = _config()
+    root = _local_project_root(config)
+    port = int(config.get("service.port"))
+    if desktop.needs_install(port):
+        # First launch of the self-contained app, or a newer download: set it up as an app.
+        _pin_project_root(config, root)
+        try:
+            for step in desktop.install(port, root):
+                typer.echo(step)
+        except RuntimeError as exc:
+            typer.echo(f"granum: could not install the background service ({exc}); starting it for this session", err=True)
+    if not desktop.ensure_running(port, root):
+        typer.echo(f"error: Granum did not start; see {desktop.AppPaths.for_user().state / 'service.log'}", err=True)
+        raise typer.Exit(1)
+    address = desktop.url_for(port)
+    typer.echo(f"granum: dashboard on {address}")
+    if no_window:
+        return
+    desktop.log_launch_environment()
+    if not browser and desktop.window_available():
+        try:
+            desktop.open_window(port)
+            return
+        except Exception as exc:  # noqa: BLE001 - any window failure falls back to the browser
+            typer.echo(f"granum: the Granum window could not open ({exc}); opening the browser instead", err=True)
+    elif not browser and (runner := desktop.installed_runner()) is not None:
+        typer.echo(f"granum: opening the window with the installed app ({runner[0]})", err=True)
+        os.environ["GRANUM_HANDED_OVER"] = "1"
+        os.execv(runner[0], [*runner, "open"])
+    elif not browser:
+        typer.echo(
+            "granum: no window toolkit or display was found (the window needs pywebview and WebKitGTK, "
+            "or the Granum app); opening the browser instead",
+            err=True,
+        )
+    webbrowser.open(address)
 
 
 @config_app.command("show")

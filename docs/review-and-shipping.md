@@ -93,17 +93,27 @@ put back from **Datasets → removed → Review removed**.
 
 ## Shipping
 
-The **Ship** button is enabled only when every image in every set (isolated images excluded) is
-*Reviewed*. Hovering over it explains why it is disabled.
+Shipping approves a version of a set for training. Each set (train, valid, test) ships on its own:
+a fully reviewed `train` can ship while `valid` is still in review.
 
-Shipping records, per set, the exact version shipped, its image count, who shipped it, when, and
-an optional note. From then on:
+1. Click **Ship** in the Review header. It is enabled when at least one set has a version whose images
+   are all *Reviewed* and that has not shipped yet.
+2. In the dialog, each set has a row with its **version** (the newest, or any earlier one), the review
+   counts for that version, and its status: *Ready*, *Not reviewed* or *Shipped*.
+3. Tick the sets to ship. Only *Ready* versions can be ticked.
+4. Add an optional note and click **Ship**.
 
-- **Training accepts shipped versions only.** The Train dialog lists them, and the service rejects
-  any other version with `409`.
-- Any later change (box edits, isolate, delete, return) creates a new version, and the summary shows
-  **Changed since shipped** until the dataset is reviewed and shipped again. The earlier shipped
-  versions remain trainable.
+Each shipment records, per set, the exact version, its image count, who shipped it, when, and the note.
+
+- **Training accepts shipped versions only**, and **every version ever shipped stays available**. The
+  Train dialog lists them all, so you can train on `train` version 3 with `valid` version 1, or go back
+  to an earlier shipment.
+- A version is ready when every image *in that version* is reviewed. An earlier version can be shipped even
+  if the newest one is still in review.
+- Later changes (box edits, isolate, delete, return) create new versions. The summary shows each set as
+  *shipped*, *ready* or *in review* for its newest version, and **Partly shipped** when only some sets
+  are shipped. Tabs of sets whose newest version is shipped show a check mark.
+- Shipping the same version twice is refused.
 
 ## Where it is stored
 

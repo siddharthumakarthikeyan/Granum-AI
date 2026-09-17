@@ -204,6 +204,7 @@ const RUN_STATUS: Record<string, { label: string; tone: string }> = {
   finished: { label: "Finished", tone: "pass" },
   cancelled: { label: "Cancelled", tone: "muted" },
   failed: { label: "Failed", tone: "block" },
+  interrupted: { label: "Interrupted", tone: "warn" },
 };
 
 export function RunStatus({ status, epochs, total }: { status?: string; epochs?: number; total?: unknown }) {

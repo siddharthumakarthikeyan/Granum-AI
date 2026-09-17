@@ -5,7 +5,7 @@
  */
 
 import type {
-  BrowseResult, Health, QaEvent, QaImageDetail, QaOverview, QaState, QaStatus, Shipment, ImageRounds, LearningReport, RemovedImage, VersionRef, ReviewEvent, TrainingResult, TrainingStatus, ImportResult, ImportSource, ImportSummary, Job, LineageGraph,
+  BrowseResult, Health, QaEvent, QaVersionCounts, QaImageDetail, QaOverview, QaState, QaStatus, Shipment, ImageRounds, LearningReport, RemovedImage, VersionRef, ReviewEvent, TrainingResult, TrainingStatus, ImportResult, ImportSource, ImportSummary, Job, LineageGraph,
   ObjectEntry, PreflightReport, ProjectSummary, CommitResult, RowPage, RunMetadata, TableMetadata,
 } from "./types";
 import type { CommitPayload } from "../store/editing";
@@ -58,6 +58,12 @@ async function request<T>(
 
 export const api = {
   health: () => request<Health>("/api/health"),
+
+  renameProject: (name: string, newName: string) =>
+    request<{ name: string; files_updated: number }>(`/api/projects/${encodeURIComponent(name)}/rename`, undefined, { new_name: newName }),
+
+  deleteProject: (name: string, confirm: string) =>
+    request<{ deleted: string; tables: number; runs: number }>(`/api/projects/${encodeURIComponent(name)}/delete`, undefined, { confirm }),
 
   projects: () =>
     request<{ projects: ProjectSummary[] }>("/api/projects").then((r) => r.projects),
@@ -124,8 +130,13 @@ export const api = {
   returnIsolated: (payload: { project: string; dataset: string; samples: string[]; author?: string }) =>
     request<{ count: number; versions: VersionRef[] }>("/api/qa/return", undefined, payload),
 
-  ship: (payload: { project: string; dataset: string; author?: string; note?: string }) =>
+  qaVersion: (project: string, dataset: string, table: string) =>
+    request<QaVersionCounts>("/api/qa/version", { project, dataset, table }),
+
+  ship: (payload: { project: string; dataset: string; author?: string; note?: string; sets?: Record<string, string> }) =>
     request<{ shipment: Shipment }>("/api/qa/ship", undefined, payload),
+
+  installTraining: () => request<Job<{ installed: string }>>("/api/training/install", undefined, {}),
 
   trainingStatus: (project: string) =>
     request<TrainingStatus>("/api/training/status", { project }),

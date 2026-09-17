@@ -1,0 +1,21 @@
+#!/bin/sh
+# Entry point of the Granum AppImage. With no arguments it opens Granum (installing it as
+# an app on first launch); with arguments it runs the granum command, e.g. `Granum.AppImage service`.
+HERE="$(dirname "$(readlink -f "$0")")"
+
+export GRANUM_BUNDLED=1
+# Use only what is inside the app: never the user's or system's Python packages.
+export PYTHONNOUSERSITE=1
+unset PYTHONHOME PYTHONPATH
+export LD_LIBRARY_PATH="$HERE/usr/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+export QTWEBENGINE_DISABLE_SANDBOX=1
+
+if [ "$#" -eq 0 ]; then
+  set -- open
+fi
+if [ "$1" = "--python" ]; then
+  # The bundled Python itself, e.g. for trainers that must outlive the service's app mount.
+  shift
+  exec "$HERE/usr/python/bin/python3" "$@"
+fi
+exec "$HERE/usr/python/bin/python3" -m granum "$@"

@@ -152,26 +152,46 @@ history, open any version, and train on exactly the one you mean. Earlier versio
 
 ## Quick start
 
-**Requirements:** Python 3.10+, Node.js 20+ (to build the dashboard), and optionally an NVIDIA GPU
-with PyTorch for training.
+### Download and run (Linux)
+
+1. Download **`Granum-0.1.0-x86_64.AppImage`** from the releases page. It is one file (about 250 MB)
+   with everything inside: Python, all libraries, the dashboard and its window.
+2. Make it executable and open it:
+
+   ```bash
+   chmod +x Granum-0.1.0-x86_64.AppImage
+   ./Granum-0.1.0-x86_64.AppImage
+   ```
+
+   (or right-click → Properties → *Allow executing file as program*, then double-click).
+
+No internet connection, Python, Node.js or other packages are needed. On first launch Granum installs
+itself: a **Granum** entry in the application menu, a background service that starts at login, and its
+own window. The downloaded file can be deleted afterwards.
+
+**Training** is the one part that downloads later: the first time you train, Granum offers to install
+PyTorch and Ultralytics (about 3 GB) into its own folder. Training on a GPU needs the NVIDIA driver.
+
+Everything you do is kept across restarts, reboots and upgrades:
+
+| What | Where |
+|---|---|
+| Projects, dataset versions, reviews, comments, shipments, runs | `~/granum` |
+| Trained and downloaded model weights | `~/granum-training` |
+| Settings (project location, port) | `~/.config/granum/config.granum.yaml` |
+| The app, and the training add-on | `~/.local/share/granum` |
+
+To upgrade, open a newer AppImage once. To uninstall, run `~/.local/share/granum/Granum.AppImage app uninstall`;
+your data is kept.
+
+### From source
+
+**Requirements:** Linux with Python 3.10+ and Node.js 20+.
 
 ```bash
 git clone <your-remote>/granum.git
 cd granum
-
-# 1. Build the dashboard (writes src/granum/service/static)
-cd web && npm ci && npm run build && cd ..
-
-# 2. Install Granum with the service and image support
-python -m venv .venv && source .venv/bin/activate
-pip install -e ".[service,images,pandas]"
-
-# 3. Optional: training backends
-pip install ultralytics          # YOLO and RT-DETR
-pip install rfdetr               # RF-DETR
-
-# 4. Start
-granum service --open            # http://127.0.0.1:8000
+./install.sh              # add --training to also install Ultralytics (YOLO, RT-DETR)
 ```
 
 Then, in the dashboard:
@@ -189,8 +209,8 @@ granum import coco train=data/train/_annotations.coco.json valid=data/valid/_ann
 granum import coco train=... valid=... --project aerial
 ```
 
-Projects are stored under `~/granum` by default. Point elsewhere with
-`granum --project-root-url /path/to/root service`, or see `granum config show`.
+To keep projects somewhere else (for example a larger disk), set it once before installing:
+`granum config project-root /mnt/data/granum`, then `./install.sh`.
 
 ## Using Granum from Python
 
@@ -256,7 +276,9 @@ granum/
 │   ├── integration/        Ultralytics and RF-DETR callbacks
 │   ├── training/           Dashboard training: model families, trainer, evaluation
 │   ├── service/            FastAPI Object Service, jobs, media cache
-│   └── cli/                The `granum` command
+│   ├── assets/             App icons installed with the launcher
+│   ├── addons.py           The training add-on, installed on demand into Granum's own folder
+│   └── cli/                The `granum` command, and app install (service, launcher)
 ├── tests/                  Backend tests (pytest)
 ├── web/                    Dashboard (React, TypeScript, Vite, deck.gl)
 │   └── src/
@@ -267,6 +289,9 @@ granum/
 │       ├── shell/          Sidebar and inspection workspace
 │       └── store/          State, filtering, editing, selection
 ├── .github/workflows/      CI: lint, backend tests (3.10 to 3.12), dashboard tests and build
+├── packaging/linux/        Builds the self-contained AppImage (Python, Qt WebEngine window, dashboard)
+├── install.sh              One-command install, upgrade and uninstall as a desktop app
+├── hatch_build.py          Builds the dashboard into the package during pip install
 ├── pyproject.toml
 └── LICENSE
 ```
@@ -287,11 +312,9 @@ granum/
 ## Development
 
 ```bash
-pip install -e ".[dev,service,images,pandas]"
-cd web && npm ci && cd ..
-
-granum service                               # terminal 1: API on :8000
-cd web && npm run dev                        # terminal 2: dashboard with hot reload on :5173
+./install.sh --dev                           # editable install, running as the app on :8000
+systemctl --user restart granum              # load Python changes
+cd web && npm run dev                        # dashboard with hot reload on :5173, using the service on :8000
 
 python3 -m pytest                            # backend tests
 cd web && npm run test && npm run build      # dashboard tests and production build

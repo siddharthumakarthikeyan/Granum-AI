@@ -1,5 +1,6 @@
 import io
 import json
+from pathlib import Path
 
 import pyarrow as pa
 import pytest
@@ -485,6 +486,50 @@ def test_import_rejects_bad_choices_before_starting(client, tmp_path):
     assert response.status_code == 400 and "choose one of" in response.json()["detail"]
 
 
+# -- deleting projects --------------------------------------------------------------
+
+
+def test_delete_project_removes_its_data_and_training_output(client, isolated_project):
+    api, table, _, run, paths = client
+    work = isolated_project.parent / "granum-training"
+    weights = work / "runs" / run.name / "weights" / "best.pt"
+    weights.parent.mkdir(parents=True)
+    weights.write_bytes(b"weights")
+    (work / "exports" / run.name).mkdir(parents=True)
+    run.set_parameters({"weights": str(weights)})
+    other = work / "runs" / "someone-elses-run"
+    other.mkdir(parents=True)
+
+    assert api.post("/api/projects/demo/delete", json={"confirm": "Demo"}).status_code == 400
+    assert api.post("/api/projects/nope/delete", json={"confirm": "nope"}).status_code == 404
+    assert any(p["name"] == "demo" for p in api.get("/api/projects").json()["projects"])
+
+    done = api.post("/api/projects/demo/delete", json={"confirm": "demo"})
+    assert done.status_code == 200, done.text
+    assert done.json()["tables"] >= 2 and done.json()["runs"] == 1
+    assert not (isolated_project / "projects" / "demo").exists()
+    assert all(p["name"] != "demo" for p in api.get("/api/projects").json()["projects"])
+    assert api.get("/api/projects/demo/tables").json()["tables"] == []
+    assert not (work / "runs" / run.name).exists() and not (work / "exports" / run.name).exists()
+    # Other runs' output and the original images are untouched.
+    assert other.is_dir() and all(Path(p).exists() for p in paths)
+
+
+def test_rename_project_through_the_service(client, isolated_project):
+    api, table, child, run, _ = client
+    assert api.post("/api/projects/demo/rename", json={"new_name": "../x"}).status_code == 400
+    assert api.post("/api/projects/nope/rename", json={"new_name": "x"}).status_code == 404
+    done = api.post("/api/projects/demo/rename", json={"new_name": "demo renamed"})
+    assert done.status_code == 200, done.text
+    names = [p["name"] for p in api.get("/api/projects").json()["projects"]]
+    assert "demo renamed" in names and "demo" not in names
+    tables = api.get("/api/projects/demo renamed/tables").json()["tables"]
+    assert len(tables) >= 2 and all("/projects/demo renamed/" in t["url"] for t in tables)
+    runs = api.get("/api/projects/demo renamed/runs").json()["runs"]
+    joined = api.get("/api/run/joined", params={"url": runs[0]["url"]})
+    assert joined.status_code == 200, joined.text
+
+
 # -- annotation review and shipping ------------------------------------------------
 
 
@@ -519,6 +564,60 @@ def test_review_statuses_comments_and_shipping(client):
 
     assert api.post("/api/qa/status", json={**base, "samples": [paths[0]], "status": "done"}).status_code == 400
     assert api.get("/api/qa", params={**base, "dataset": "nope"}).status_code == 404
+
+
+def test_ship_any_version_of_any_set(client):
+    api, table, child, _, paths = client
+    base = {"project": "demo", "dataset": "train"}
+    overview = api.get("/api/qa", params=base).json()
+    [initial] = overview["sets"]
+    assert [v["url"] for v in initial["versions"]] == [str(child.url), str(table.url)]
+    assert initial["ready"] is False and initial["shipped"] is False
+
+    # The earlier, three-image version can ship on its own once its images are reviewed.
+    older = api.get("/api/qa/version", params={**base, "table": str(table.url)}).json()
+    assert older["images"] == 3 and older["ready"] is False
+    api.post("/api/qa/status", json={**base, "samples": paths, "status": "reviewed"})
+    assert api.get("/api/qa/version", params={**base, "table": str(table.url)}).json()["ready"] is True
+    shipped = api.post("/api/qa/ship", json={**base, "sets": {"initial": str(table.url)}, "note": "full"})
+    assert shipped.status_code == 200, shipped.text
+    overview = api.get("/api/qa", params=base).json()
+    assert overview["up_to_date"] is False and overview["sets"][0]["shipped"] is False
+    assert [v["shipped"] for v in overview["sets"][0]["versions"]] == [False, True]
+
+    # Then the newest version too; both stay available for training.
+    assert api.post("/api/qa/ship", json={**base, "sets": {"initial": str(child.url)}}).status_code == 200
+    assert api.get("/api/qa", params=base).json()["up_to_date"] is True
+    assert set(api.get("/api/training/status", params={"project": "demo"}).json()["shipped"]) == {str(table.url), str(child.url)}
+
+    assert api.post("/api/qa/ship", json={**base, "sets": {"initial": str(child.url)}}).status_code == 409
+    assert api.post("/api/qa/ship", json={**base, "sets": {}}).status_code == 400
+    assert api.post("/api/qa/ship", json={**base, "sets": {"nope": str(child.url)}}).status_code == 400
+
+
+def test_ship_one_set_while_another_is_still_in_review(client, tmp_path):
+    api = client[0]
+    folder = _dataset(tmp_path)
+    valid = folder.parent / "valid"
+    valid.mkdir()
+    for f in folder.iterdir():
+        (valid / f.name).write_bytes(f.read_bytes())
+    sources = [{"split": "train", "annotations": str(folder / "_annotations.coco.json")},
+               {"split": "valid", "annotations": str(valid / "_annotations.coco.json")}]
+    job = api.post("/api/import/preflight", json={"sources": sources, "media": "none"}).json()
+    _wait(api, job)
+    _wait(api, api.post("/api/import/commit", json={"preflight_job": job["id"], "project_name": "shop"}).json())
+    [dataset] = {t["dataset_name"] for t in api.get("/api/projects/shop/tables").json()["tables"]}
+    base = {"project": "shop", "dataset": dataset}
+    sets = {s["set"]: s for s in api.get("/api/qa", params=base).json()["sets"]}
+    train_images = [i["image"] for i in sets["train"]["images"]]
+    api.post("/api/qa/status", json={**base, "samples": train_images, "status": "reviewed"})
+    # valid shares file names but not paths, so it is still unreviewed.
+    assert api.post("/api/qa/ship", json=base).status_code == 409
+    done = api.post("/api/qa/ship", json={**base, "sets": {"train": sets["train"]["url"]}})
+    assert done.status_code == 200, done.text
+    after = {s["set"]: s for s in api.get("/api/qa", params=base).json()["sets"]}
+    assert after["train"]["shipped"] and not after["valid"]["shipped"]
 
 
 def test_review_isolate_return_delete_and_edit_boxes(client, tmp_path):
@@ -580,6 +679,9 @@ def test_training_refuses_bad_requests_before_starting(client, monkeypatch):
     api, table, child, run, _ = client
     status = api.get("/api/training/status", params={"project": "demo"}).json()
     assert "available" in status and status["running_job"] is None
+    assert status["installable"] is (not status["available"]) and status["install_size"] and status["install_job"] is None
+    if status["available"]:
+        assert api.post("/api/training/install", json={}).status_code == 409
     if not status["available"]:
         response = api.post("/api/training", json={"project": "demo", "train_table": str(table.url), "valid_table": str(child.url)})
         assert response.status_code == 400

@@ -148,7 +148,7 @@ export interface ImportResult {
 
 export interface Job<T> {
   id: string;
-  kind: "preflight" | "import" | "training";
+  kind: "preflight" | "import" | "training" | "training-install";
   status: "running" | "done" | "failed" | "cancelled";
   phase: string;
   done: number;
@@ -157,6 +157,10 @@ export interface Job<T> {
   error: string | null;
   result: T | null;
   log?: string[];
+  /** Training only: progress within the current round, and seconds left in it. */
+  step?: number;
+  steps?: number;
+  round_eta?: number | null;
 }
 
 export interface ImportSource {
@@ -361,9 +365,33 @@ export interface QaImage {
   reason?: string;
 }
 
+export interface QaVersion {
+  url: string;
+  name: string;
+  row_count: number;
+  created: string;
+  change: string | null;
+  description: string;
+  shipped: boolean;
+  images: number;
+  reviewed: number;
+  ready: boolean;
+}
+
 export interface QaSet extends VersionRef {
   images: QaImage[];
   counts: Record<QaStatus, number>;
+  /** Present for train/valid/test sets, not for the isolated set. */
+  ready?: boolean;
+  shipped?: boolean;
+  versions?: QaVersion[];
+}
+
+export interface QaVersionCounts extends VersionRef {
+  images: number;
+  counts: Record<QaStatus, number>;
+  ready: boolean;
+  shipped: boolean;
 }
 
 export interface QaState {
@@ -472,4 +500,8 @@ export interface TrainingStatus {
   busy_elsewhere: boolean;
   /** Dataset versions that have been shipped: the only ones training accepts. */
   shipped?: string[];
+  /** Training packages are missing and Granum can install them into its own folder. */
+  installable?: boolean;
+  install_size?: string;
+  install_job?: Job<{ installed: string }> | null;
 }

@@ -8,6 +8,8 @@ import { ROLE_NAMES, ROLE_STYLE, type BoxRole } from "../boxes/model";
 import { EmptyState, Icon, PageHeader, RunStatus, SeverityLabel, formatNumber, formatWhen, plural } from "../components/ui";
 import { navigate, routeHref } from "../router";
 import { useStore } from "../store/store";
+import { DeleteProjectDialog } from "../components/DeleteProjectDialog";
+import { RenameProjectDialog } from "../components/RenameProjectDialog";
 import { TrainDialog, TrainingProgressCard, useTrainingJob, type TrainPreset } from "../training/Training";
 import { HOLDING_SETS, groupDatasets, splitOfTable } from "./datasets";
 import { TrainingChart } from "./TrainingChart";
@@ -34,6 +36,8 @@ export function ProjectOverview({ project }: { project: string }) {
   const refreshProject = useStore((s) => s.refreshProject);
   const { job, setJob, dismiss, cancel } = useTrainingJob(project);
   const [trainPreset, setTrainPreset] = useState<TrainPreset | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [renaming, setRenaming] = useState(false);
   const training = runs.some((r) => r.status === "running") || job?.status === "running";
 
   useEffect(() => {
@@ -93,7 +97,12 @@ export function ProjectOverview({ project }: { project: string }) {
         <div className="lab-banner-content">
           <div className="lab-banner-title">
             <span className="page-context">Project</span>
-            <h1>{project}</h1>
+            <h1 className="project-title">
+              {project}
+              <button className="icon-button title-rename" title="Rename project" aria-label="Rename project" onClick={() => setRenaming(true)}>
+                <Icon name="pencil" size={15} />
+              </button>
+            </h1>
             <span className="muted">
               {datasets.map((d) => d.name).join(", ") || "No datasets"}{classes ? `, ${plural(classes, "class", "classes")}` : ""}, {plural(tables.length, "version")}
             </span>
@@ -106,6 +115,15 @@ export function ProjectOverview({ project }: { project: string }) {
             <a className="button" href={routeHref({ name: "import", project })}><Icon name="import" />Import</a>
             <button className="button primary" onClick={() => setTrainPreset({})} disabled={job?.status === "running" || live.length === 0}>
               <Icon name="runs" />Train model
+            </button>
+            <button
+              className="icon-button banner-delete"
+              title="Delete project"
+              aria-label="Delete project"
+              onClick={() => setDeleting(true)}
+              disabled={job?.status === "running"}
+            >
+              <Icon name="trash" size={16} />
             </button>
           </div>
         </div>
@@ -123,6 +141,10 @@ export function ProjectOverview({ project }: { project: string }) {
 
         {job && <TrainingProgressCard project={project} job={job} onCancel={() => void cancel()} onDismiss={dismiss} />}
         {trainPreset && <TrainDialog project={project} preset={trainPreset} onClose={() => setTrainPreset(null)} onStarted={setJob} />}
+        {renaming && <RenameProjectDialog project={project} onClose={() => setRenaming(false)} />}
+        {deleting && (
+          <DeleteProjectDialog project={{ name: project, tables: tables.length, runs: runs.length }} onClose={() => setDeleting(false)} />
+        )}
 
         {(tracked || runs.length > 0) && (
           <div className="lab-grid-3">
@@ -131,7 +153,7 @@ export function ProjectOverview({ project }: { project: string }) {
             ) : (
               <div className="lab-card"><div className="lab-card-head"><h3>Hardest sample</h3></div><p className="faint small">Train with per-sample metrics to surface hard samples.</p></div>
             )}
-            {runs.some((r) => (r.history?.length ?? 0) > 1) ? <TrainingChart runs={runs} compact metricKey="map50" /> : <div className="lab-card"><div className="lab-card-head"><h3>mAP50</h3></div><p className="faint small">No epochs logged yet.</p></div>}
+            {runs.some((r) => (r.history?.length ?? 0) > 1) ? <TrainingChart runs={runs} compact metricKey="map50" /> : <div className="lab-card"><div className="lab-card-head"><h3>mAP50</h3></div><p className="faint small">{runs.some((r) => r.status === "running") ? "Training is in its first round. Scores are plotted when each round finishes." : "No epochs logged yet."}</p></div>}
             <DynamicsCard project={project} run={tracked} split={dynamicsSplit} />
           </div>
         )}

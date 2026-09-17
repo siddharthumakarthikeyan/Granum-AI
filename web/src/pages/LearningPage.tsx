@@ -59,6 +59,18 @@ export function LearningPage({ project, url }: { project: string; url: string })
   const [applyError, setApplyError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
+  // While the run trains, new epochs keep arriving: reload them, and the run's status.
+  const [tick, setTick] = useState(0);
+  const isRunning = runs.find((r) => r.url === url)?.status === "running";
+  useEffect(() => {
+    if (!isRunning) return;
+    const timer = window.setInterval(() => {
+      setTick((t) => t + 1);
+      void refreshProject();
+    }, 20000);
+    return () => window.clearInterval(timer);
+  }, [isRunning, refreshProject]);
+
   useEffect(() => {
     let alive = true;
     setError(null);
@@ -72,7 +84,7 @@ export function LearningPage({ project, url }: { project: string; url: string })
     return () => {
       alive = false;
     };
-  }, [url, good]);
+  }, [url, good, tick]);
 
   const split = report?.splits.find((s) => s.split === splitName) ?? null;
   const decisions = useDecisions(project, split?.dataset ?? null);
@@ -151,9 +163,22 @@ export function LearningPage({ project, url }: { project: string; url: string })
     return (
       <div className="page">
         {header}
-        <EmptyState title="No per-epoch sample metrics in this run">
-          <p>Train with “Record per-sample metrics and predictions every epoch” enabled.</p>
-        </EmptyState>
+        {run?.status === "running" ? (
+          <EmptyState title="Waiting for the first epoch to finish">
+            <p>
+              Per-image results are recorded at the end of every epoch, after the model has been run on each image.
+              They appear here automatically; on a large dataset the first epoch can take several minutes.
+            </p>
+          </EmptyState>
+        ) : (
+          <EmptyState title="No per-epoch sample metrics in this run">
+            <p>
+              {run?.status === "interrupted" || run?.status === "cancelled" || run?.status === "failed"
+                ? "The run stopped before its first epoch finished, so no per-image results were recorded."
+                : "Train with “Record per-sample metrics and predictions every epoch” enabled."}
+            </p>
+          </EmptyState>
+        )}
       </div>
     );
   }

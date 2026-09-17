@@ -42,9 +42,33 @@ class Job:
     cancel: threading.Event = field(default_factory=threading.Event)
     #: Recent output lines, for jobs that run a process.
     log: deque = field(default_factory=lambda: deque(maxlen=200))
+    #: Progress within the current round of a training, and when that round started.
+    step: int = 0
+    steps: int = 0
+    round_started: float | None = None
+    #: The step when timing began: after a restart the service joins a round midway.
+    round_base: int = 0
 
     def progress(self, phase: str, done: int, total: int) -> None:
         self.phase, self.done, self.total = phase, done, total
+
+    def set_step(self, step: int, steps: int) -> None:
+        if steps <= 0:
+            return
+        if step < self.step or self.round_started is None or steps != self.steps:
+            self.round_started = time.time()
+            self.round_base = step
+        self.step, self.steps = step, steps
+
+    def _round_eta(self) -> float | None:
+        """Seconds left in the current round, from the pace so far."""
+        if not self.steps or not self.step or self.round_started is None or self.step >= self.steps:
+            return None
+        elapsed = time.time() - self.round_started
+        progressed = self.step - self.round_base
+        if elapsed < 20 or progressed < 5:
+            return None
+        return round(elapsed / progressed * (self.steps - self.step))
 
     def to_dict(self) -> dict[str, Any]:
         result = self.result.to_dict() if hasattr(self.result, "to_dict") else self.result
@@ -59,6 +83,9 @@ class Job:
             "error": self.error,
             "result": result if self.status == "done" else None,
             "log": list(self.log)[-80:],
+            "step": self.step,
+            "steps": self.steps,
+            "round_eta": self._round_eta(),
         }
 
 

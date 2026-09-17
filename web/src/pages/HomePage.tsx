@@ -1,5 +1,9 @@
 /** Every project on this machine, and the way in for someone who has none yet. */
 
+import { useState } from "react";
+import type { ProjectSummary } from "../api/types";
+import { DeleteProjectDialog } from "../components/DeleteProjectDialog";
+import { RenameProjectDialog } from "../components/RenameProjectDialog";
 import { EmptyState, Icon, PageHeader, formatNumber } from "../components/ui";
 import { navigate, routeHref } from "../router";
 import { useStore } from "../store/store";
@@ -7,6 +11,8 @@ import { useStore } from "../store/store";
 export function HomePage() {
   const projects = useStore((s) => s.projects);
   const health = useStore((s) => s.health);
+  const [deleting, setDeleting] = useState<ProjectSummary | null>(null);
+  const [renaming, setRenaming] = useState<string | null>(null);
 
   if (projects.length === 0) {
     return (
@@ -35,6 +41,7 @@ export function HomePage() {
               <th>Project</th>
               <th className="num">Versions</th>
               <th className="num">Runs</th>
+              <th className="actions" aria-label="Actions" />
             </tr>
           </thead>
           <tbody>
@@ -43,11 +50,37 @@ export function HomePage() {
                 <td><a className="cell-title" href={routeHref({ name: "overview", project: project.name })}>{project.name}</a></td>
                 <td className="num">{formatNumber(project.tables)}</td>
                 <td className="num">{formatNumber(project.runs)}</td>
+                <td className="actions">
+                  <button
+                    className="icon-button row-delete row-rename"
+                    title={`Rename ${project.name}`}
+                    aria-label={`Rename ${project.name}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setRenaming(project.name);
+                    }}
+                  >
+                    <Icon name="pencil" size={15} />
+                  </button>
+                  <button
+                    className="icon-button row-delete"
+                    title={`Delete ${project.name}`}
+                    aria-label={`Delete ${project.name}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setDeleting(project);
+                    }}
+                  >
+                    <Icon name="trash" size={15} />
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+      {deleting && <DeleteProjectDialog project={deleting} onClose={() => setDeleting(null)} />}
+      {renaming && <RenameProjectDialog project={renaming} onClose={() => setRenaming(null)} />}
     </div>
   );
 }

@@ -36,6 +36,11 @@ def progress(done: int, total: int) -> None:
     print(f"GRANUM_PROGRESS {min(done, total)} {total}", flush=True)
 
 
+def step(done: int, total: int) -> None:
+    """Progress within the current round, so a long round does not look stuck."""
+    print(f"GRANUM_STEP {min(done, total)} {total}", flush=True)
+
+
 # -- predictors for scoring ------------------------------------------------------
 
 
@@ -100,6 +105,20 @@ def train_ultralytics(args: argparse.Namespace, train: Any, valid: Any, work: Pa
     def on_epoch_end(trainer: Any) -> None:
         progress(int(trainer.epoch) + 1, int(trainer.epochs))
 
+    batches = {"done": 0}
+
+    def on_batch_start(trainer: Any) -> None:
+        batches["done"] = 0 if batches.get("epoch") != trainer.epoch else batches["done"]
+        batches["epoch"] = trainer.epoch
+
+    def on_batch_end(trainer: Any) -> None:
+        batches["done"] += 1
+        total = len(getattr(trainer, "train_loader", None) or []) or 0
+        if total and (batches["done"] % 10 == 0 or batches["done"] == total):
+            step(batches["done"], total)
+
+    model.add_callback("on_train_batch_start", on_batch_start)
+    model.add_callback("on_train_batch_end", on_batch_end)
     model.add_callback("on_train_epoch_start", on_epoch_start)
     model.add_callback("on_fit_epoch_end", on_epoch_end)
     batch = args.batch or (8 if args.family == "rtdetr" else 16)
@@ -156,6 +175,11 @@ def train_rfdetr(args: argparse.Namespace, train: Any, valid: Any, work: Path) -
             phase(f"Training, round {trainer.current_epoch + 1} of {args.epochs}")
             progress(trainer.current_epoch, args.epochs)
 
+        def on_train_batch_end(self, trainer: Any, module: Any, outputs: Any, batch: Any, batch_idx: int) -> None:
+            total = int(trainer.num_training_batches) if str(trainer.num_training_batches).isdigit() else 0
+            if total and ((batch_idx + 1) % 20 == 0 or batch_idx + 1 == total):
+                step(batch_idx + 1, total)
+
         def on_train_epoch_end(self, trainer: Any, module: Any) -> None:
             if trainer.sanity_checking:
                 return
@@ -167,6 +191,7 @@ def train_rfdetr(args: argparse.Namespace, train: Any, valid: Any, work: Path) -
                 except (TypeError, ValueError):
                     continue
             granum.log(scalars, run=run)
+            phase(f"Recording per-image results, round {epoch + 1} of {args.epochs}")
 
             final = epoch + 1 >= args.epochs
             full = final or (epoch + 1) % collect_every == 0

@@ -37,13 +37,14 @@ dependencies = [
 
 [project.optional-dependencies]
 service = ["fastapi>=0.100", "uvicorn>=0.23"]
+desktop = ["pywebview>=5"]
 pandas = ["pandas>=1.5"]
 images = ["pillow>=9"]
 s3 = ["s3fs"]
 gcs = ["gcsfs"]
 azure = ["adlfs"]
 dev = ["pytest>=6", "pytest-cov", "ruff", "mypy", "httpx"]
-all = ["granum[service,pandas,images,s3,gcs,azure]"]
+all = ["granum[service,desktop,pandas,images,s3,gcs,azure]"]
 
 [project.scripts]
 granum = "granum.cli.main:app"
@@ -56,6 +57,12 @@ packages = ["src/granum"]
 # `pip install granum` then `granum service` is the whole setup. Without a build the
 # package still builds and the service serves the API only.
 artifacts = ["src/granum/service/static/**"]
+
+# hatch_build.py builds the dashboard during `pip install` when it is missing.
+[tool.hatch.build.targets.wheel.hooks.custom]
+
+[tool.hatch.build.targets.sdist]
+exclude = ["web/node_modules", "src/granum/service/static", "docs/assets"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

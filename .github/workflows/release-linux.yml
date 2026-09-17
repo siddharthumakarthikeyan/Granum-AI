@@ -1,0 +1,35 @@
+name: release-linux
+# Builds the self-contained Linux app (one AppImage) and attaches it to the GitHub release.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+jobs:
+  appimage:
+    # The oldest supported Ubuntu, so the app runs on it and everything newer.
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Libraries bundled into the app
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends binutils libxcb-cursor0 libxcb-icccm4 libxcb-keysyms1 \
+            libxcb-image0 libxcb-render-util0 libxcb-xkb1 libxkbcommon-x11-0
+      - name: Build the AppImage
+        run: packaging/linux/build-appimage.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Granum-linux-x86_64
+          path: dist/*.AppImage
+          compression-level: 0
+      - name: Attach to the release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.AppImage
