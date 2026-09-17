@@ -10,20 +10,31 @@ jobs:
     # The oldest supported Ubuntu, so the app runs on it and everything newer.
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
-          node-version: "20"
+          node-version: "22"
           cache: npm
           cache-dependency-path: web/package-lock.json
-      - name: Libraries bundled into the app
+      - name: Desktop libraries
+        # The app uses the desktop's own graphics, font and display libraries (they belong to the
+        # GPU driver and the session), so they are not bundled. Build machines are servers without
+        # them; install a desktop's set so the build can check that the window imports.
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends binutils libxcb-cursor0 libxcb-icccm4 libxcb-keysyms1 \
-            libxcb-image0 libxcb-render-util0 libxcb-xkb1 libxkbcommon-x11-0
+          sudo apt-get install -y --no-install-recommends binutils \
+            libegl1 libgl1 libopengl0 libgbm1 libdrm2 \
+            libx11-6 libx11-xcb1 libxcomposite1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 \
+            libxtst6 libxkbfile1 libxshmfence1 libxkbcommon0 \
+            libxcb1 libxcb-dri3-0 libxcb-glx0 libxcb-randr0 libxcb-render0 libxcb-shape0 libxcb-shm0 libxcb-sync1 \
+            libxcb-util1 libxcb-xfixes0 \
+            libwayland-client0 libwayland-cursor0 libwayland-egl1 \
+            libfontconfig1 libfreetype6 libharfbuzz0b libdbus-1-3 libglib2.0-0 libnss3 libnspr4 libasound2 libudev1 \
+            libgssapi-krb5-2 libbrotli1 libexpat1 libzstd1 libatomic1 \
+            libxcb-cursor0 libxcb-icccm4 libxcb-keysyms1 libxcb-image0 libxcb-render-util0 libxcb-xkb1 libxkbcommon-x11-0
       - name: Build the AppImage
         run: packaging/linux/build-appimage.sh
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: Granum-linux-x86_64
           path: dist/*.AppImage

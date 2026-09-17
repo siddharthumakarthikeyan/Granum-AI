@@ -67,7 +67,7 @@ The script downloads a relocatable CPython ([python-build-standalone](https://gi
 builds the dashboard and the wheel, installs Granum with its dependencies and PySide6 (Qt WebEngine, LGPL)
 into that Python, trims unused Qt modules (`prune_qt.py`), checks that everything imports, bundles the xcb
 libraries Qt needs, precompiles, and packs the result with appimagetool. Downloads are cached in `build/cache`.
-Build on the oldest distribution you support (CI uses Ubuntu 22.04).
+Build on the oldest distribution you support (CI uses Ubuntu 22.04 with a desktop set of graphics and display libraries installed, so the build can check the window imports).
 
 Inside the app, `AppRun` sets `GRANUM_BUNDLED=1` and ignores the user's Python packages, then runs
 `python -m granum open` (or `python -m granum <args>`). `granum open` installs the app on first launch
