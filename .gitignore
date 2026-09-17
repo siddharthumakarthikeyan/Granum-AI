@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+dist/
+build/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Dashboard build output (rebuilt from web/ with `npm run build`)
+src/granum/service/static/
+web/dist/
+web/node_modules/
+*.tsbuildinfo
+
+# Training artefacts: model weights and Ultralytics run folders
+*.pt
+*.pth
+*.onnx
+runs/
+
+# Local data, projects and scratch work
+scratch/
+data/
+datasets/
+
+# Internal business documents (kept local, never pushed)
+docs/ceo-product-and-go-to-market-strategy.md
+docs/product-capability-blueprint.md
+
+# Editors and OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+.env
+.env.*

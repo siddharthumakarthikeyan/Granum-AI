@@ -1,0 +1,72 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "granum"
+version = "0.1.0"
+description = "Inspect and improve ML training data sample by sample."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [
+    { name = "Siddharth Umakarthikeyan", email = "siddharthumakarthikeyan@gmail.com" },
+    { name = "Melvin Jacob" },
+]
+maintainers = [
+    { name = "Siddharth Umakarthikeyan", email = "siddharthumakarthikeyan@gmail.com" },
+    { name = "Melvin Jacob" },
+]
+keywords = ["machine-learning", "data-centric", "dataset", "computer-vision", "mlops"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: Other/Proprietary License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "pyarrow>=14",
+    "fsspec>=2023.1",
+    "pydantic>=2.0",
+    "typer>=0.9",
+    "pyyaml>=5.4",
+    "numpy>=1.23",
+]
+
+[project.optional-dependencies]
+service = ["fastapi>=0.100", "uvicorn>=0.23"]
+pandas = ["pandas>=1.5"]
+images = ["pillow>=9"]
+s3 = ["s3fs"]
+gcs = ["gcsfs"]
+azure = ["adlfs"]
+dev = ["pytest>=6", "pytest-cov", "ruff", "mypy", "httpx"]
+all = ["granum[service,pandas,images,s3,gcs,azure]"]
+
+[project.scripts]
+granum = "granum.cli.main:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/granum"]
+
+# The built dashboard ships inside the package when it has been built
+# (`cd web && npm ci && npm run build` writes src/granum/service/static), so
+# `pip install granum` then `granum service` is the whole setup. Without a build the
+# package still builds and the service serves the API only.
+artifacts = ["src/granum/service/static/**"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+# E501: long lines are left to review, not CI. B008: FastAPI declares parameters as
+# `Query(...)` defaults by design. B905: zips here pair columns of one table.
+ignore = ["E501", "B008", "B905"]
