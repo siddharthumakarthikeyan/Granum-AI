@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Files and settings · Granum documentation</title>
+  <meta name="description" content="Where everything lives on disk, every setting, and the command line.">
+  <meta name="theme-color" content="#ffffff">
+  <meta property="og:title" content="Files and settings · Granum documentation">
+  <meta property="og:description" content="Where everything lives on disk, every setting, and the command line.">
+  <meta property="og:type" content="article">
+  <meta property="og:image" content="/assets/og.jpg">
+  <link rel="canonical" href="https://granum.app/docs/reference/files">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/docs/docs.css">
+  <script>document.documentElement.classList.remove("no-js");</script>
+</head>
+<body class="doc-body">
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header doc-header">
+    <div class="wrap">
+      <a class="brand" href="/" aria-label="Granum home"><img src="/assets/lockup-ink.svg" alt="Granum" width="128" height="32"></a>
+      <span class="doc-badge"><a href="/docs">Docs</a></span>
+      <nav class="nav" id="nav" aria-label="Main">
+        <a href="/#tour">Product</a>
+        <a href="/#plans">Pricing</a>
+        <a href="/docs/help/faq">FAQ</a>
+      </nav>
+      <div class="header-actions">
+        <button class="doc-search-button" type="button" data-search aria-label="Search documentation">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3 3"/></svg>
+          <span>Search</span><kbd>/</kbd>
+        </button>
+        <a class="btn primary small" href="/download">Download</a>
+        <button class="menu-button" type="button" aria-controls="doc-sidebar" aria-expanded="false" aria-label="Menu" data-sidebar-toggle>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="doc-shell">
+    <div class="doc-sidebar" id="doc-sidebar">
+      <nav class="doc-nav" aria-label="Documentation">
+<a class="doc-nav-home" href="/docs">Start here</a>
+<div class="doc-nav-group"><p class="doc-nav-title">Getting started</p><ul>
+<li><a href="/docs/start/install">Install Granum</a></li>
+<li><a href="/docs/start/activate">Sign in and licences</a></li>
+<li><a href="/docs/start/first-project">Your first project</a></li>
+<li><a href="/docs/start/the-loop">Run the loop once</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Concepts</p><ul>
+<li><a href="/docs/concepts/model">How Granum is organised</a></li>
+<li><a href="/docs/concepts/projects">Projects and project types</a></li>
+<li><a href="/docs/concepts/versions">Versions and lineage</a></li>
+<li><a href="/docs/concepts/dataset-versions">Dataset versions</a></li>
+<li><a href="/docs/concepts/verification">Verification and decisions</a></li>
+<li><a href="/docs/concepts/identity">Image identity</a></li>
+<li><a href="/docs/concepts/runs">Runs and metrics</a></li>
+<li><a href="/docs/concepts/evidence">What the evidence is worth</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Guides</p><ul>
+<li><a href="/docs/guides/import">Import data</a></li>
+<li><a href="/docs/guides/pull-from-projects">Build from existing projects</a></li>
+<li><a href="/docs/guides/browse">Browse images</a></li>
+<li><a href="/docs/guides/review">Review and verify</a></li>
+<li><a href="/docs/guides/edit">Edit annotations</a></li>
+<li><a href="/docs/guides/isolate-remove">Isolate, remove and restore</a></li>
+<li><a href="/docs/guides/dataset-versions">Create a dataset version</a></li>
+<li><a href="/docs/guides/augmentation">Augmentation</a></li>
+<li><a href="/docs/guides/train">Train a model</a></li>
+<li><a href="/docs/guides/runs">Read a run</a></li>
+<li><a href="/docs/guides/learning">Per-image learning</a></li>
+<li><a href="/docs/guides/findings">Work the Findings queue</a></li>
+<li><a href="/docs/guides/compare">Compare two runs</a></li>
+<li><a href="/docs/guides/projects">Manage projects</a></li>
+<li><a href="/docs/guides/python">Use Granum from Python</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Reference</p><ul>
+<li><a href="/docs/reference/screens">Map of the app</a></li>
+<li><a href="/docs/reference/shortcuts">Keyboard shortcuts</a></li>
+<li><a href="/docs/reference/preflight">Import checks</a></li>
+<li><a href="/docs/reference/models">Models you can train</a></li>
+<li><a href="/docs/reference/files" class="on" aria-current="page">Files and settings</a></li>
+<li><a href="/docs/reference/limits">Scale and limits</a></li>
+<li><a href="/docs/reference/glossary">Glossary</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Help</p><ul>
+<li><a href="/docs/help/troubleshooting">Troubleshooting</a></li>
+<li><a href="/docs/help/faq">Frequently asked questions</a></li>
+<li><a href="/docs/help/privacy">Your data and privacy</a></li>
+</ul></div>
+</nav>
+    </div>
+    <main class="doc-main" id="main">
+      <article class="doc-article">
+        <nav class="doc-crumb" aria-label="Breadcrumb"><a href="/docs">Documentation</a><span aria-hidden="true">/</span><a href="/docs#reference">Reference</a></nav>
+        <h1>Files and settings</h1>
+        <p class="doc-summary">Where everything lives on disk, every setting, and the command line.</p>
+        <h2 id="on-disk">On disk</h2>
+<pre><code>~/granum/                                   the project root
+└── projects/&lt;project&gt;/
+    ├── datasets/&lt;dataset&gt;/tables/&lt;version&gt;/ every version of every set (Parquet + a JSON descriptor)
+    ├── releases/&lt;dataset&gt;/&lt;id&gt;/             frozen dataset versions, and augmented images
+    ├── reviews/&lt;dataset&gt;.qa.jsonl           image statuses and comments
+    ├── reviews/&lt;dataset&gt;.jsonl              findings and review decisions
+    ├── reviews/&lt;dataset&gt;.ships.jsonl        dataset versions
+    ├── runs/&lt;run&gt;/                          parameters, per-round scores, per-image metrics
+    ├── imports/&lt;id&gt;.json                    preflight reports and the choices made
+    └── example.json                         marks a project made from the example dataset
+
+~/granum-training/                           weights, exports and framework run folders
+~/.config/granum/config.granum.yaml          settings, incl. the pinned project root
+~/.local/state/granum/service.log            service log
+~/.local/share/granum/                       the installed app, its window storage, licence and add-ons
+</code></pre>
+<p>Everything is a plain file. Object descriptors are JSON, rows are Parquet, logs are JSON Lines. You can
+read any of it without Granum, which is the point.</p>
+<h2 id="settings">Settings</h2>
+<p>Settings resolve, highest priority first: command-line flags, environment variables, then the project,
+user and system config files, then defaults. <code>granum config show</code> reports where each value came from and
+<code>granum config path</code> says which files are in play.</p>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Environment variable</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>project-root-url</code></td>
+<td><code>GRANUM_PROJECT_ROOT_URL</code></td>
+<td><code>~/granum</code></td>
+</tr>
+<tr>
+<td><code>service.port</code></td>
+<td><code>GRANUM_SERVICE_PORT</code></td>
+<td><code>8000</code></td>
+</tr>
+<tr>
+<td><code>service.data-roots</code></td>
+<td><code>GRANUM_SERVICE_DATA_ROOTS</code></td>
+<td>your home folder</td>
+</tr>
+<tr>
+<td><code>service.allowed-origins</code></td>
+<td><code>GRANUM_SERVICE_ALLOWED_ORIGINS</code></td>
+<td>none</td>
+</tr>
+<tr>
+<td><code>licence.server</code></td>
+<td><code>GRANUM_LICENCE_SERVER</code></td>
+<td>the Granum licence server</td>
+</tr>
+<tr>
+<td><code>log-level</code></td>
+<td><code>GRANUM_LOG_LEVEL</code></td>
+<td><code>WARNING</code></td>
+</tr>
+<tr>
+<td><code>log-file</code></td>
+<td><code>GRANUM_LOG_FILE</code></td>
+<td>none</td>
+</tr>
+</tbody>
+</table>
+<p>The project root may be a local path or an fsspec URL (<code>s3://</code>, <code>gs://</code>, <code>az://</code>) with the matching extra
+installed.</p>
+<h2 id="commands">Commands</h2>
+<pre><code class="language-bash">granum open [--browser] [--no-window]     # open the window, starting the service if needed
+granum app install [--port N] [--no-autostart] [--no-launcher]
+granum app status
+granum app uninstall                      # removes the service and launcher; data is kept
+granum service [--host 127.0.0.1] [--port 8000] [--data-root DIR]... [--allow-host H]...
+granum import coco SPLIT=PATH... --project NAME [--dataset NAME] [--media full|sample|none]
+                   [--choose CODE=OPTION]... [--check-only] [--fail-on block|warn|never] [--json]
+granum thumbnails create &lt;table-or-run-url&gt;
+granum config show | path | validate | project-root PATH
+granum version
+</code></pre>
+<p>Global options go before the command: <code>granum --project-root-url /data/granum service</code>.</p>
+<h2 id="the-service">The service</h2>
+<p>One process, listening on <code>127.0.0.1:8000</code>. On Linux it is a systemd user unit:</p>
+<pre><code class="language-bash">systemctl --user status granum      # also restart, stop
+journalctl --user -u granum -f      # or tail ~/.local/state/granum/service.log
+</code></pre>
+<p>It starts at login. <code>sudo loginctl enable-linger $USER</code> keeps it running while you are logged out.</p>
+<h2 id="security-model">Security model</h2>
+<p>The service reads your data locally and serves it to the dashboard. Nothing is uploaded.</p>
+<p>Three rules make a local web service safe to leave running:</p>
+<ul>
+<li><strong>Every URL is checked.</strong> Object URLs must sit under a scan root, media must be referenced by an
+  indexed table, and import sources must sit under a configured data root. Without that,
+  <code>/api/media?url=/etc/passwd</code> would turn a local dashboard into a file-exfiltration endpoint.</li>
+<li><strong>The Host header must be one Granum allows</strong>, which defeats DNS rebinding — a web page you have open
+  in another tab resolving its own domain to <code>127.0.0.1</code>.</li>
+<li><strong>Writes must be JSON</strong>, and cross-origin requests from origins not explicitly allowed are refused, so
+  a page cannot make your browser change your data.</li>
+</ul>
+<p>There is no authentication: anyone who can reach the port can use it. Keep it on the loopback address —
+the default — unless you understand exactly what you are exposing.</p>
+        <div class="doc-steps"><a class="doc-step prev" href="/docs/reference/models"><span>Previous</span>Models you can train</a><a class="doc-step next" href="/docs/reference/limits"><span>Next</span>Scale and limits</a></div>
+      </article>
+      <aside class="doc-toc" aria-label="On this page"><p>On this page</p><ul><li><a href="#on-disk">On disk</a></li><li><a href="#settings">Settings</a></li><li><a href="#commands">Commands</a></li><li><a href="#the-service">The service</a></li><li><a href="#security-model">Security model</a></li></ul></aside>
+    </main>
+  </div>
+
+  <footer class="doc-footer">
+    <div class="wrap">
+      <p>© Granum. Your data stays on your computer.</p>
+      <p><a href="/">Product</a><a href="/download">Download</a><a href="/privacy">Privacy</a><a href="/docs/help/troubleshooting">Support</a></p>
+    </div>
+  </footer>
+
+  <div class="doc-search" data-search-panel hidden>
+    <div class="doc-search-box" role="dialog" aria-modal="true" aria-label="Search documentation">
+      <input type="search" placeholder="Search the documentation" autocomplete="off" spellcheck="false" data-search-input>
+      <ul data-search-results></ul>
+      <p class="doc-search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move · <kbd>Enter</kbd> to open · <kbd>Esc</kbd> to close</p>
+    </div>
+  </div>
+
+  <script src="/docs/docs.js" defer></script>
+</body>
+</html>

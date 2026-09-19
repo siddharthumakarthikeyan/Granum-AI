@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Download Granum: free 7-day trial</title>
+  <meta name="description" content="Download Granum for Windows or Linux and start a 7-day free trial.">
+  <meta name="theme-color" content="#ffffff">
+  <meta property="og:title" content="Download Granum">
+  <meta property="og:image" content="/assets/og.jpg">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="/" aria-label="Granum home"><img src="/assets/lockup-ink.svg" alt="Granum" width="128" height="32"></a>
+      <nav class="nav" id="nav" aria-label="Main">
+        <a href="/#tour">Product</a>
+        <a href="/#trial">Free trial</a>
+        <a href="/#plans">Pricing</a>
+        <a href="/docs">Docs</a>
+        <a href="/#faq">FAQ</a>
+      </nav>
+      <div class="header-actions">
+        <button class="menu-button" type="button" aria-controls="nav" aria-expanded="false" aria-label="Menu">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main" class="download">
+    <div class="wrap download-grid">
+      <div class="download-intro">
+        <h1>Download Granum and try it free for 7 days.</h1>
+        <p class="lead">Enter your email to get the download. Sign in with the same email inside the app and your trial starts.</p>
+      </div>
+      <div class="download-more">
+        <ol class="side-list">
+          <li><div><h3>Download</h3><p>One installer for Windows, one file for Linux.</p></div></li>
+          <li><div><h3>Install</h3><p>No Python, drivers or accounts to set up. Training components download the first time you train.</p></div></li>
+          <li><div><h3>Sign in</h3><p>Open <strong>Licence</strong> in the app, then enter your email and the 6-digit code we send you.</p></div></li>
+        </ol>
+        <div class="system">
+          <div><h4>Windows</h4><p>Windows 10 or 11, 64-bit. Installs for your user; no administrator rights needed.</p></div>
+          <div><h4>Linux</h4><p>x86-64 AppImage. Runs on most current distributions.</p></div>
+          <div><h4>For training</h4><p>An NVIDIA GPU is strongly recommended.</p></div>
+          <div><h4>Current version</h4><p data-version>Latest release</p></div>
+        </div>
+      </div>
+
+      <div class="card" id="panel">
+        <form class="form" id="download-form" novalidate>
+          <div class="form-head">
+            <h2>Get the download</h2>
+            <p class="sub">We email you a code to confirm your address.</p>
+          </div>
+          <div class="field">
+            <label for="email">Work email</label>
+            <input class="input" id="email" name="email" type="email" autocomplete="email" required placeholder="you@company.com">
+          </div>
+          <div class="field">
+            <label for="name">Name <span class="faint">(optional)</span></label>
+            <input class="input" id="name" name="name" autocomplete="name" maxlength="120">
+          </div>
+          <div class="field">
+            <label for="company">Company <span class="faint">(optional)</span></label>
+            <input class="input" id="company" name="company" autocomplete="organization" maxlength="120">
+          </div>
+          <fieldset class="field">
+            <legend class="field-label">Operating system</legend>
+            <div class="os-choice">
+              <label><input type="radio" name="os" value="windows" checked><span><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3.5" y="3.5" width="7.5" height="7.5" rx="1"/><rect x="13" y="3.5" width="7.5" height="7.5" rx="1"/><rect x="3.5" y="13" width="7.5" height="7.5" rx="1"/><rect x="13" y="13" width="7.5" height="7.5" rx="1"/></svg><span class="os-text">Windows<small>10 and 11, 64-bit</small></span></span></label>
+              <label><input type="radio" name="os" value="linux"><span><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9l3 3-3 3M12.5 15H17"/></svg><span class="os-text">Linux<small>x86-64 AppImage</small></span></span></label>
+            </div>
+          </fieldset>
+          <p class="form-error" id="form-error" role="alert" hidden></p>
+          <button class="btn primary" type="submit" id="submit">Email me a download code</button>
+          <p class="form-note">We use your email for your licence and to reply when you write to us. No newsletters unless you ask. See the <a href="/privacy">privacy notice</a>.</p>
+        </form>
+
+        <form class="form" id="verify-form" novalidate hidden>
+          <div class="form-head">
+            <div class="status-icon mail" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5 12 13l8.5-6.5"/></svg></div>
+            <h2>Check your inbox</h2>
+            <p class="sub">We sent a 6-digit code to <strong id="verify-email"></strong>. It expires in 10 minutes.</p>
+          </div>
+          <div class="field">
+            <label for="code">Download code</label>
+            <input class="input code-input" id="code" name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000">
+          </div>
+          <p class="form-note" id="dev-code" hidden></p>
+          <p class="form-error" id="verify-error" role="alert" hidden></p>
+          <button class="btn primary" type="submit" id="verify-submit">Verify and download</button>
+          <div class="form-links"><button type="button" class="link-button" id="resend">Send a new code</button><button type="button" class="link-button" id="change">Use another email</button></div>
+        </form>
+
+        <div id="done" hidden>
+          <div class="status-icon done" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 10.4l3.2 3.1L15 6.7"/></svg></div>
+          <h2>Your download is ready</h2>
+          <div class="done-files" id="files"></div>
+          <div id="steps"></div>
+          <p class="note">In Granum, open <strong>Licence</strong> and sign in with <strong id="done-email"></strong> to start your 7-day trial.</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <div class="footer-grid">
+        <div>
+          <img src="/assets/lockup-ink.svg" alt="Granum" width="112" height="28">
+          <p>The data workbench for computer-vision teams. Runs on your computer.</p>
+        </div>
+        <div>
+          <h4>Product</h4>
+          <ul><li><a href="/#tour">Product tour</a></li><li><a href="/#plans">Pricing</a></li><li><a href="/docs">Documentation</a></li><li><a href="/#faq">FAQ</a></li></ul>
+        </div>
+        <div>
+          <h4>Get started</h4>
+          <ul><li><a href="/download">Download</a></li><li><a href="/#trial">Free trial</a></li><li><a href="/docs/start/install">Install guide</a></li></ul>
+        </div>
+        <div>
+          <h4>Company</h4>
+          <ul><li><a href="/privacy">Privacy</a></li><li><a data-contact="Granum" href="/" hidden>Contact</a></li></ul>
+        </div>
+      </div>
+      <div class="footer-base"><span>© <span data-year></span> Granum. All rights reserved.</span></div>
+    </div>
+  </footer>
+  <script src="/site.js" defer></script>
+</body>
+</html>

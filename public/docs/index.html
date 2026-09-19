@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Granum documentation</title>
+  <meta name="description" content="How to get your computer-vision data into shape, and what every screen is for.">
+  <meta name="theme-color" content="#ffffff">
+  <meta property="og:title" content="Granum documentation">
+  <meta property="og:description" content="How to get your computer-vision data into shape, and what every screen is for.">
+  <meta property="og:type" content="article">
+  <meta property="og:image" content="/assets/og.jpg">
+  <link rel="canonical" href="https://granum.app/docs">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/docs/docs.css">
+  <script>document.documentElement.classList.remove("no-js");</script>
+</head>
+<body class="doc-body">
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header doc-header">
+    <div class="wrap">
+      <a class="brand" href="/" aria-label="Granum home"><img src="/assets/lockup-ink.svg" alt="Granum" width="128" height="32"></a>
+      <span class="doc-badge"><a href="/docs">Docs</a></span>
+      <nav class="nav" id="nav" aria-label="Main">
+        <a href="/#tour">Product</a>
+        <a href="/#plans">Pricing</a>
+        <a href="/docs/help/faq">FAQ</a>
+      </nav>
+      <div class="header-actions">
+        <button class="doc-search-button" type="button" data-search aria-label="Search documentation">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3 3"/></svg>
+          <span>Search</span><kbd>/</kbd>
+        </button>
+        <a class="btn primary small" href="/download">Download</a>
+        <button class="menu-button" type="button" aria-controls="doc-sidebar" aria-expanded="false" aria-label="Menu" data-sidebar-toggle>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="doc-shell">
+    <div class="doc-sidebar" id="doc-sidebar">
+      <nav class="doc-nav" aria-label="Documentation">
+<a class="doc-nav-home on" href="/docs">Start here</a>
+<div class="doc-nav-group"><p class="doc-nav-title">Getting started</p><ul>
+<li><a href="/docs/start/install">Install Granum</a></li>
+<li><a href="/docs/start/activate">Sign in and licences</a></li>
+<li><a href="/docs/start/first-project">Your first project</a></li>
+<li><a href="/docs/start/the-loop">Run the loop once</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Concepts</p><ul>
+<li><a href="/docs/concepts/model">How Granum is organised</a></li>
+<li><a href="/docs/concepts/projects">Projects and project types</a></li>
+<li><a href="/docs/concepts/versions">Versions and lineage</a></li>
+<li><a href="/docs/concepts/dataset-versions">Dataset versions</a></li>
+<li><a href="/docs/concepts/verification">Verification and decisions</a></li>
+<li><a href="/docs/concepts/identity">Image identity</a></li>
+<li><a href="/docs/concepts/runs">Runs and metrics</a></li>
+<li><a href="/docs/concepts/evidence">What the evidence is worth</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Guides</p><ul>
+<li><a href="/docs/guides/import">Import data</a></li>
+<li><a href="/docs/guides/pull-from-projects">Build from existing projects</a></li>
+<li><a href="/docs/guides/browse">Browse images</a></li>
+<li><a href="/docs/guides/review">Review and verify</a></li>
+<li><a href="/docs/guides/edit">Edit annotations</a></li>
+<li><a href="/docs/guides/isolate-remove">Isolate, remove and restore</a></li>
+<li><a href="/docs/guides/dataset-versions">Create a dataset version</a></li>
+<li><a href="/docs/guides/augmentation">Augmentation</a></li>
+<li><a href="/docs/guides/train">Train a model</a></li>
+<li><a href="/docs/guides/runs">Read a run</a></li>
+<li><a href="/docs/guides/learning">Per-image learning</a></li>
+<li><a href="/docs/guides/findings">Work the Findings queue</a></li>
+<li><a href="/docs/guides/compare">Compare two runs</a></li>
+<li><a href="/docs/guides/projects">Manage projects</a></li>
+<li><a href="/docs/guides/python">Use Granum from Python</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Reference</p><ul>
+<li><a href="/docs/reference/screens">Map of the app</a></li>
+<li><a href="/docs/reference/shortcuts">Keyboard shortcuts</a></li>
+<li><a href="/docs/reference/preflight">Import checks</a></li>
+<li><a href="/docs/reference/models">Models you can train</a></li>
+<li><a href="/docs/reference/files">Files and settings</a></li>
+<li><a href="/docs/reference/limits">Scale and limits</a></li>
+<li><a href="/docs/reference/glossary">Glossary</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Help</p><ul>
+<li><a href="/docs/help/troubleshooting">Troubleshooting</a></li>
+<li><a href="/docs/help/faq">Frequently asked questions</a></li>
+<li><a href="/docs/help/privacy">Your data and privacy</a></li>
+</ul></div>
+</nav>
+    </div>
+    <main class="doc-main" id="main">
+      <article class="doc-article">
+        <nav class="doc-crumb" aria-label="Breadcrumb"><a href="/docs">Documentation</a></nav>
+        <h1>Granum documentation</h1>
+        <p class="doc-summary">How to get your computer-vision data into shape, and what every screen is for.</p>
+        <p>Granum is a data workbench for computer-vision teams. It checks a dataset as you import it, gives
+everyone one place to look at, correct and verify every label, freezes what you agreed on into a
+dataset version, trains a detector on exactly that version, and then uses the model's own behaviour
+to point at the labels worth checking next.</p>
+<p>It runs on your computer. Your images are never uploaded.</p>
+<figure class="doc-figure">
+<svg viewBox="0 0 880 150" role="img" aria-label="The loop: import, review, dataset version, train, findings, back to review">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0 0 10 5 0 10z" fill="#9aa6b5"/>
+    </marker>
+  </defs>
+  <g font-family="Instrument Sans, sans-serif" font-size="13" text-anchor="middle">
+    <g fill="#ffffff" stroke="#c9d1db">
+      <rect x="8" y="42" width="130" height="46" rx="8"/>
+      <rect x="178" y="42" width="130" height="46" rx="8"/>
+      <rect x="348" y="42" width="150" height="46" rx="8"/>
+      <rect x="538" y="42" width="130" height="46" rx="8"/>
+      <rect x="708" y="42" width="160" height="46" rx="8"/>
+    </g>
+    <g fill="#0e1420" font-weight="600">
+      <text x="73" y="70">Import</text>
+      <text x="243" y="70">Review and fix</text>
+      <text x="423" y="70">Dataset version</text>
+      <text x="603" y="70">Train</text>
+      <text x="788" y="70">Findings</text>
+    </g>
+    <g stroke="#9aa6b5" stroke-width="1.5" fill="none" marker-end="url(#a)">
+      <path d="M140 65h32"/><path d="M310 65h32"/><path d="M500 65h32"/><path d="M670 65h32"/>
+      <path d="M788 92v22H243V92"/>
+    </g>
+    <text x="515" y="131" fill="#6b7585" font-size="12">what the model says is worth checking, back into review</text>
+  </g>
+</svg>
+</figure>
+
+<h2 id="start-with-one-of-these">Start with one of these</h2>
+<div class="doc-cards">
+<a class="doc-card" href="/docs/start/install"><strong>Install Granum</strong><span>Windows and Linux, the training add-on, and where your work is kept.</span></a>
+<a class="doc-card" href="/docs/start/the-loop"><strong>Run the loop once</strong><span>An hour end to end on a small dataset, so the whole product makes sense.</span></a>
+<a class="doc-card" href="/docs/concepts/model"><strong>How Granum thinks</strong><span>Projects, sets, versions and runs — the five ideas everything else rests on.</span></a>
+<a class="doc-card" href="/docs/reference/screens"><strong>Map of the app</strong><span>Every screen, what it is for, and where its buttons lead.</span></a>
+</div>
+
+<h2 id="how-this-documentation-is-organised">How this documentation is organised</h2>
+<p><strong>Getting started</strong> is a path: install, sign in, make a project, then run the full loop once. Follow it
+in order the first time and you will have trained a model on data you verified yourself.</p>
+<p><strong>Concepts</strong> explains the model behind the product — what a set is, what a version is, what makes a
+dataset version different from the images you are looking at, and how Granum keeps a metric attached to
+the image it was measured on. These pages are short and worth reading once; they save you from guessing
+later.</p>
+<p><strong>Guides</strong> are task pages: one job each, in the order the work usually happens. Each says what the screen
+does, what to do, what gets written, and where the honest limits are.</p>
+<p><strong>Reference</strong> is for looking things up: every screen, every keyboard shortcut, every import check, the
+models you can train, where files live on disk, what scales and what does not.</p>
+<p><strong>Help</strong> covers what to do when something is wrong, the questions people ask most, and exactly what
+leaves your machine.</p>
+<div class="admonition note">
+<p class="admonition-title">A note on tone</p>
+<p>These pages assume you know your own field: that you have trained a detector, that you know what
+precision and recall are, and that you can tell a hard example from a wrong label. They explain
+Granum, not computer vision.</p>
+</div><div class="doc-sections">
+<section class="doc-section"><h2 id="start">Getting started</h2><p class="doc-section-blurb">Install Granum, sign in, and run the whole loop once on a small dataset.</p><ul><li><a href="/docs/start/install">Install Granum</a><span>One download per platform, no dependencies to manage, and everything kept in folders you can back up.</span></li><li><a href="/docs/start/activate">Sign in and licences</a><span>A free trial by email, plans counted per computer, and what changes when a licence ends.</span></li><li><a href="/docs/start/first-project">Your first project</a><span>Create a project from a folder of COCO annotations, or from the built-in example dataset, and see what arrived.</span></li><li><a href="/docs/start/the-loop">Run the loop once</a><span>Import, verify, freeze, train, read the evidence, fix, retrain — the whole product in about an hour.</span></li></ul></section>
+<section class="doc-section"><h2 id="concepts">Concepts</h2><p class="doc-section-blurb">The ideas the product is built on. Read these once and the rest of the app explains itself.</p><ul><li><a href="/docs/concepts/model">How Granum is organised</a><span>Five ideas — project, dataset, set, version, run — and how they fit together.</span></li><li><a href="/docs/concepts/projects">Projects and project types</a><span>What a project holds, how its type changes the tools, and how to organise several.</span></li><li><a href="/docs/concepts/versions">Versions and lineage</a><span>Why every change writes a new version, what that costs, and how to read the history.</span></li><li><a href="/docs/concepts/dataset-versions">Dataset versions</a><span>The frozen, named datasets that training uses — why they exist and what goes into one.</span></li><li><a href="/docs/concepts/verification">Verification and decisions</a><span>The two kinds of judgement Granum records — is this image checked, and is this label right — and who made them.</span></li><li><a href="/docs/concepts/identity">Image identity</a><span>Why a metric stays attached to the image it was measured on, and the one rule that keeps it true.</span></li><li><a href="/docs/concepts/runs">Runs and metrics</a><span>What a training run records, what a round is, and why Granum scores every model the same way.</span></li><li><a href="/docs/concepts/evidence">What the evidence is worth</a><span>How Granum turns a model&#x27;s behaviour into candidates for review — and where it refuses to draw conclusions.</span></li></ul></section>
+<section class="doc-section"><h2 id="guides">Guides</h2><p class="doc-section-blurb">Step-by-step for each job: bring data in, make it right, freeze it, train on it, judge the result.</p><ul><li><a href="/docs/guides/import">Import data</a><span>Preflight checks, what each finding means, re-cutting splits, and adding data to a project.</span></li><li><a href="/docs/guides/pull-from-projects">Build from existing projects</a><span>Pick classes out of projects you already have and make a new dataset from them.</span></li><li><a href="/docs/guides/browse">Browse images</a><span>Filters, ordering, annotations, and the full-screen viewer with per-class isolation.</span></li><li><a href="/docs/guides/review">Review and verify</a><span>Work through a dataset image by image or in bulk, with comments, rework and a progress bar.</span></li><li><a href="/docs/guides/edit">Edit annotations</a><span>Draw, move, relabel and delete boxes, masks and keypoints — and what each save writes.</span></li><li><a href="/docs/guides/isolate-remove">Isolate, remove and restore</a><span>Set images aside, take them out of a set, and put them back.</span></li><li><a href="/docs/guides/dataset-versions">Create a dataset version</a><span>Freeze what you agreed on into the named dataset that training uses.</span></li><li><a href="/docs/guides/augmentation">Augmentation</a><span>Generate augmented copies into a dataset version, and see exactly what the model will see.</span></li><li><a href="/docs/guides/train">Train a model</a><span>Choose data, model and schedule; watch the run; know what it is doing to your machine.</span></li><li><a href="/docs/guides/runs">Read a run</a><span>Scores per round, the framework-neutral final score, and where each number comes from.</span></li><li><a href="/docs/guides/learning">Per-image learning</a><span>Which images the model learned early, late, unstably or never — and what to do with each group.</span></li><li><a href="/docs/guides/findings">Work the Findings queue</a><span>A ranked list of labels worth checking, the evidence for each, and a decision you record.</span></li><li><a href="/docs/guides/compare">Compare two runs</a><span>Improved, regressed, unchanged and unmatched images — and what the comparison is worth.</span></li><li><a href="/docs/guides/projects">Manage projects</a><span>Rename, delete, back up and move projects; keep several without losing track.</span></li><li><a href="/docs/guides/python">Use Granum from Python</a><span>The same objects the app uses, for scripted imports, custom metrics and your own training loop.</span></li></ul></section>
+<section class="doc-section"><h2 id="reference">Reference</h2><p class="doc-section-blurb">Look things up: every screen, every key, every check, every file.</p><ul><li><a href="/docs/reference/screens">Map of the app</a><span>Every screen, what it is for, and what its controls do.</span></li><li><a href="/docs/reference/shortcuts">Keyboard shortcuts</a><span>Every key, by screen.</span></li><li><a href="/docs/reference/preflight">Import checks</a><span>Every preflight check, what it means, and which option to choose.</span></li><li><a href="/docs/reference/models">Models you can train</a><span>YOLO, RT-DETR and RF-DETR — sizes, hardware and when each is the right choice.</span></li><li><a href="/docs/reference/files">Files and settings</a><span>Where everything lives on disk, every setting, and the command line.</span></li><li><a href="/docs/reference/limits">Scale and limits</a><span>What Granum handles comfortably, what is slow, and what it does not do.</span></li><li><a href="/docs/reference/glossary">Glossary</a><span>The words this product uses, and exactly what each one means.</span></li></ul></section>
+<section class="doc-section"><h2 id="help">Help</h2><p class="doc-section-blurb">When something is wrong, or you want to know how Granum handles your data.</p><ul><li><a href="/docs/help/troubleshooting">Troubleshooting</a><span>The service, the window, training, imports and licences, when they do not behave.</span></li><li><a href="/docs/help/faq">Frequently asked questions</a><span>Short answers about data, teams, formats, models and cost.</span></li><li><a href="/docs/help/privacy">Your data and privacy</a><span>What stays on your computer, what leaves it, and when.</span></li></ul></section>
+</div>
+        <div class="doc-steps"><a class="doc-step next" href="/docs/start/install"><span>Next</span>Install Granum</a></div>
+      </article>
+      <aside class="doc-toc" aria-label="On this page"><p>On this page</p><ul><li><a href="#start-with-one-of-these">Start with one of these</a></li><li><a href="#how-this-documentation-is-organised">How this documentation is organised</a></li><li><a href="#start">Getting started</a></li><li><a href="#concepts">Concepts</a></li><li><a href="#guides">Guides</a></li><li><a href="#reference">Reference</a></li><li><a href="#help">Help</a></li></ul></aside>
+    </main>
+  </div>
+
+  <footer class="doc-footer">
+    <div class="wrap">
+      <p>© Granum. Your data stays on your computer.</p>
+      <p><a href="/">Product</a><a href="/download">Download</a><a href="/privacy">Privacy</a><a href="/docs/help/troubleshooting">Support</a></p>
+    </div>
+  </footer>
+
+  <div class="doc-search" data-search-panel hidden>
+    <div class="doc-search-box" role="dialog" aria-modal="true" aria-label="Search documentation">
+      <input type="search" placeholder="Search the documentation" autocomplete="off" spellcheck="false" data-search-input>
+      <ul data-search-results></ul>
+      <p class="doc-search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move · <kbd>Enter</kbd> to open · <kbd>Esc</kbd> to close</p>
+    </div>
+  </div>
+
+  <script src="/docs/docs.js" defer></script>
+</body>
+</html>

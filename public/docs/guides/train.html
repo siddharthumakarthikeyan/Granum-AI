@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Train a model · Granum documentation</title>
+  <meta name="description" content="Choose data, model and schedule; watch the run; know what it is doing to your machine.">
+  <meta name="theme-color" content="#ffffff">
+  <meta property="og:title" content="Train a model · Granum documentation">
+  <meta property="og:description" content="Choose data, model and schedule; watch the run; know what it is doing to your machine.">
+  <meta property="og:type" content="article">
+  <meta property="og:image" content="/assets/og.jpg">
+  <link rel="canonical" href="https://granum.app/docs/guides/train">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/docs/docs.css">
+  <script>document.documentElement.classList.remove("no-js");</script>
+</head>
+<body class="doc-body">
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header doc-header">
+    <div class="wrap">
+      <a class="brand" href="/" aria-label="Granum home"><img src="/assets/lockup-ink.svg" alt="Granum" width="128" height="32"></a>
+      <span class="doc-badge"><a href="/docs">Docs</a></span>
+      <nav class="nav" id="nav" aria-label="Main">
+        <a href="/#tour">Product</a>
+        <a href="/#plans">Pricing</a>
+        <a href="/docs/help/faq">FAQ</a>
+      </nav>
+      <div class="header-actions">
+        <button class="doc-search-button" type="button" data-search aria-label="Search documentation">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3 3"/></svg>
+          <span>Search</span><kbd>/</kbd>
+        </button>
+        <a class="btn primary small" href="/download">Download</a>
+        <button class="menu-button" type="button" aria-controls="doc-sidebar" aria-expanded="false" aria-label="Menu" data-sidebar-toggle>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="doc-shell">
+    <div class="doc-sidebar" id="doc-sidebar">
+      <nav class="doc-nav" aria-label="Documentation">
+<a class="doc-nav-home" href="/docs">Start here</a>
+<div class="doc-nav-group"><p class="doc-nav-title">Getting started</p><ul>
+<li><a href="/docs/start/install">Install Granum</a></li>
+<li><a href="/docs/start/activate">Sign in and licences</a></li>
+<li><a href="/docs/start/first-project">Your first project</a></li>
+<li><a href="/docs/start/the-loop">Run the loop once</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Concepts</p><ul>
+<li><a href="/docs/concepts/model">How Granum is organised</a></li>
+<li><a href="/docs/concepts/projects">Projects and project types</a></li>
+<li><a href="/docs/concepts/versions">Versions and lineage</a></li>
+<li><a href="/docs/concepts/dataset-versions">Dataset versions</a></li>
+<li><a href="/docs/concepts/verification">Verification and decisions</a></li>
+<li><a href="/docs/concepts/identity">Image identity</a></li>
+<li><a href="/docs/concepts/runs">Runs and metrics</a></li>
+<li><a href="/docs/concepts/evidence">What the evidence is worth</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Guides</p><ul>
+<li><a href="/docs/guides/import">Import data</a></li>
+<li><a href="/docs/guides/pull-from-projects">Build from existing projects</a></li>
+<li><a href="/docs/guides/browse">Browse images</a></li>
+<li><a href="/docs/guides/review">Review and verify</a></li>
+<li><a href="/docs/guides/edit">Edit annotations</a></li>
+<li><a href="/docs/guides/isolate-remove">Isolate, remove and restore</a></li>
+<li><a href="/docs/guides/dataset-versions">Create a dataset version</a></li>
+<li><a href="/docs/guides/augmentation">Augmentation</a></li>
+<li><a href="/docs/guides/train" class="on" aria-current="page">Train a model</a></li>
+<li><a href="/docs/guides/runs">Read a run</a></li>
+<li><a href="/docs/guides/learning">Per-image learning</a></li>
+<li><a href="/docs/guides/findings">Work the Findings queue</a></li>
+<li><a href="/docs/guides/compare">Compare two runs</a></li>
+<li><a href="/docs/guides/projects">Manage projects</a></li>
+<li><a href="/docs/guides/python">Use Granum from Python</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Reference</p><ul>
+<li><a href="/docs/reference/screens">Map of the app</a></li>
+<li><a href="/docs/reference/shortcuts">Keyboard shortcuts</a></li>
+<li><a href="/docs/reference/preflight">Import checks</a></li>
+<li><a href="/docs/reference/models">Models you can train</a></li>
+<li><a href="/docs/reference/files">Files and settings</a></li>
+<li><a href="/docs/reference/limits">Scale and limits</a></li>
+<li><a href="/docs/reference/glossary">Glossary</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Help</p><ul>
+<li><a href="/docs/help/troubleshooting">Troubleshooting</a></li>
+<li><a href="/docs/help/faq">Frequently asked questions</a></li>
+<li><a href="/docs/help/privacy">Your data and privacy</a></li>
+</ul></div>
+</nav>
+    </div>
+    <main class="doc-main" id="main">
+      <article class="doc-article">
+        <nav class="doc-crumb" aria-label="Breadcrumb"><a href="/docs">Documentation</a><span aria-hidden="true">/</span><a href="/docs#guides">Guides</a></nav>
+        <h1>Train a model</h1>
+        <p class="doc-summary">Choose data, model and schedule; watch the run; know what it is doing to your machine.</p>
+        <p><strong>Runs → Train model</strong> trains a detector on this computer, on a dataset version, and records everything
+about it. Training runs as a separate process, so a long job cannot take the app down with it, and the
+app can be closed and reopened while it runs.</p>
+<h2 id="the-dialog">The dialog</h2>
+<p><strong>Dataset version.</strong> Choose one; then which of its sets to <strong>train on</strong>, which to <strong>validate on</strong>, and
+optionally a <strong>test</strong> set. Only dataset versions are offered — if the list is empty, create one from
+Images first.</p>
+<p><strong>Model.</strong> Three families, each with sizes:</p>
+<table>
+<thead>
+<tr>
+<th>Family</th>
+<th>Character</th>
+<th>Start here when</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>YOLO</strong></td>
+<td>Fast, reliable, the most widely used</td>
+<td>Always, for a first run</td>
+</tr>
+<tr>
+<td><strong>RT-DETR</strong></td>
+<td>Transformer; often better in crowded scenes</td>
+<td>Many overlapping objects, and you have GPU memory</td>
+</tr>
+<tr>
+<td><strong>RF-DETR</strong></td>
+<td>Modern transformer on a large pretrained backbone</td>
+<td>Few images, and you want the most from them</td>
+</tr>
+</tbody>
+</table>
+<p>Sizes run from nano to extra large. Nano trains in minutes and tells you whether the pipeline works;
+medium is where most real runs land. → <a href="/docs/reference/models">Models you can train</a></p>
+<p><strong>Image size</strong> decides how much detail survives. The default 640 px is right for most datasets; raise it
+when your objects are small in frame — aerial and satellite work usually wants 1024 or more — and expect
+memory and time to rise with the square of it. RF-DETR uses its own input size and ignores this.</p>
+<p><strong>Epochs</strong> are full passes over the training set. Ten to fifteen is a reasonable first run on a few
+thousand images. Long schedules matter more than people expect for the evidence features: a model that
+never becomes competent produces no findings worth reading.</p>
+<p><strong>Record per-sample metrics and predictions every epoch</strong> keeps the per-image record that
+<a href="/docs/guides/learning">learning</a> and <a href="/docs/guides/findings">Findings</a> are built on. Leave it on. The
+cost is disk — on a dense dataset of 12,000 images it is roughly 15 MB per round — and it is what makes
+the difference between a score and a list of images to look at.</p>
+<p><strong>Compare with</strong> scores an earlier run's weights on the same labels at the end, giving an immediate
+like-for-like number. The fuller picture is <a href="/docs/guides/compare">Compare runs</a>.</p>
+<h2 id="while-it-runs">While it runs</h2>
+<p>The progress card shows the phase — preparing images, loading the model, training round <em>n</em> of <em>m</em>,
+recording per-image results, scoring — with a progress bar within the round so a long round does not look
+stuck. The chart and the per-image dynamics update at the end of each round.</p>
+<p>You can leave the page, close the window, or restart the service; the run keeps going and is picked up
+again. <strong>Cancel</strong> stops it; what it recorded up to that point is kept.</p>
+<p>One training job runs at a time per machine. The dialog says so if another is already going.</p>
+<h2 id="what-it-does-to-your-machine">What it does to your machine</h2>
+<ul>
+<li><strong>GPU</strong>: it will use all of it. Training a medium model at 640 px needs roughly 8 GB; RT-DETR large
+  wants about 8 GB at batch 8. If you run out of memory, drop the size or the image size.</li>
+<li><strong>Disk</strong>: weights in <code>~/granum-training</code>, per-image metrics in the project. Both are listed in
+  <a href="/docs/reference/files">Files and settings</a>.</li>
+<li><strong>First run</strong>: pretrained weights are downloaded once, into <code>~/granum-training</code>.</li>
+</ul>
+<h2 id="the-final-score">The final score</h2>
+<p>When training ends, Granum scores the finished model itself — same matching rules, same operating point,
+for every family — on the validation set's current labels, and records that as the run's score. If you
+chose a test set, it is scored once here too, and never used for anything else.
+→ <a href="/docs/concepts/runs">Runs and metrics</a></p>
+        <div class="doc-steps"><a class="doc-step prev" href="/docs/guides/augmentation"><span>Previous</span>Augmentation</a><a class="doc-step next" href="/docs/guides/runs"><span>Next</span>Read a run</a></div>
+      </article>
+      <aside class="doc-toc" aria-label="On this page"><p>On this page</p><ul><li><a href="#the-dialog">The dialog</a></li><li><a href="#while-it-runs">While it runs</a></li><li><a href="#what-it-does-to-your-machine">What it does to your machine</a></li><li><a href="#the-final-score">The final score</a></li></ul></aside>
+    </main>
+  </div>
+
+  <footer class="doc-footer">
+    <div class="wrap">
+      <p>© Granum. Your data stays on your computer.</p>
+      <p><a href="/">Product</a><a href="/download">Download</a><a href="/privacy">Privacy</a><a href="/docs/help/troubleshooting">Support</a></p>
+    </div>
+  </footer>
+
+  <div class="doc-search" data-search-panel hidden>
+    <div class="doc-search-box" role="dialog" aria-modal="true" aria-label="Search documentation">
+      <input type="search" placeholder="Search the documentation" autocomplete="off" spellcheck="false" data-search-input>
+      <ul data-search-results></ul>
+      <p class="doc-search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move · <kbd>Enter</kbd> to open · <kbd>Esc</kbd> to close</p>
+    </div>
+  </div>
+
+  <script src="/docs/docs.js" defer></script>
+</body>
+</html>

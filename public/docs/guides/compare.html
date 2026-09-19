@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Compare two runs · Granum documentation</title>
+  <meta name="description" content="Improved, regressed, unchanged and unmatched images — and what the comparison is worth.">
+  <meta name="theme-color" content="#ffffff">
+  <meta property="og:title" content="Compare two runs · Granum documentation">
+  <meta property="og:description" content="Improved, regressed, unchanged and unmatched images — and what the comparison is worth.">
+  <meta property="og:type" content="article">
+  <meta property="og:image" content="/assets/og.jpg">
+  <link rel="canonical" href="https://granum.app/docs/guides/compare">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/docs/docs.css">
+  <script>document.documentElement.classList.remove("no-js");</script>
+</head>
+<body class="doc-body">
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header doc-header">
+    <div class="wrap">
+      <a class="brand" href="/" aria-label="Granum home"><img src="/assets/lockup-ink.svg" alt="Granum" width="128" height="32"></a>
+      <span class="doc-badge"><a href="/docs">Docs</a></span>
+      <nav class="nav" id="nav" aria-label="Main">
+        <a href="/#tour">Product</a>
+        <a href="/#plans">Pricing</a>
+        <a href="/docs/help/faq">FAQ</a>
+      </nav>
+      <div class="header-actions">
+        <button class="doc-search-button" type="button" data-search aria-label="Search documentation">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3 3"/></svg>
+          <span>Search</span><kbd>/</kbd>
+        </button>
+        <a class="btn primary small" href="/download">Download</a>
+        <button class="menu-button" type="button" aria-controls="doc-sidebar" aria-expanded="false" aria-label="Menu" data-sidebar-toggle>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="doc-shell">
+    <div class="doc-sidebar" id="doc-sidebar">
+      <nav class="doc-nav" aria-label="Documentation">
+<a class="doc-nav-home" href="/docs">Start here</a>
+<div class="doc-nav-group"><p class="doc-nav-title">Getting started</p><ul>
+<li><a href="/docs/start/install">Install Granum</a></li>
+<li><a href="/docs/start/activate">Sign in and licences</a></li>
+<li><a href="/docs/start/first-project">Your first project</a></li>
+<li><a href="/docs/start/the-loop">Run the loop once</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Concepts</p><ul>
+<li><a href="/docs/concepts/model">How Granum is organised</a></li>
+<li><a href="/docs/concepts/projects">Projects and project types</a></li>
+<li><a href="/docs/concepts/versions">Versions and lineage</a></li>
+<li><a href="/docs/concepts/dataset-versions">Dataset versions</a></li>
+<li><a href="/docs/concepts/verification">Verification and decisions</a></li>
+<li><a href="/docs/concepts/identity">Image identity</a></li>
+<li><a href="/docs/concepts/runs">Runs and metrics</a></li>
+<li><a href="/docs/concepts/evidence">What the evidence is worth</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Guides</p><ul>
+<li><a href="/docs/guides/import">Import data</a></li>
+<li><a href="/docs/guides/pull-from-projects">Build from existing projects</a></li>
+<li><a href="/docs/guides/browse">Browse images</a></li>
+<li><a href="/docs/guides/review">Review and verify</a></li>
+<li><a href="/docs/guides/edit">Edit annotations</a></li>
+<li><a href="/docs/guides/isolate-remove">Isolate, remove and restore</a></li>
+<li><a href="/docs/guides/dataset-versions">Create a dataset version</a></li>
+<li><a href="/docs/guides/augmentation">Augmentation</a></li>
+<li><a href="/docs/guides/train">Train a model</a></li>
+<li><a href="/docs/guides/runs">Read a run</a></li>
+<li><a href="/docs/guides/learning">Per-image learning</a></li>
+<li><a href="/docs/guides/findings">Work the Findings queue</a></li>
+<li><a href="/docs/guides/compare" class="on" aria-current="page">Compare two runs</a></li>
+<li><a href="/docs/guides/projects">Manage projects</a></li>
+<li><a href="/docs/guides/python">Use Granum from Python</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Reference</p><ul>
+<li><a href="/docs/reference/screens">Map of the app</a></li>
+<li><a href="/docs/reference/shortcuts">Keyboard shortcuts</a></li>
+<li><a href="/docs/reference/preflight">Import checks</a></li>
+<li><a href="/docs/reference/models">Models you can train</a></li>
+<li><a href="/docs/reference/files">Files and settings</a></li>
+<li><a href="/docs/reference/limits">Scale and limits</a></li>
+<li><a href="/docs/reference/glossary">Glossary</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Help</p><ul>
+<li><a href="/docs/help/troubleshooting">Troubleshooting</a></li>
+<li><a href="/docs/help/faq">Frequently asked questions</a></li>
+<li><a href="/docs/help/privacy">Your data and privacy</a></li>
+</ul></div>
+</nav>
+    </div>
+    <main class="doc-main" id="main">
+      <article class="doc-article">
+        <nav class="doc-crumb" aria-label="Breadcrumb"><a href="/docs">Documentation</a><span aria-hidden="true">/</span><a href="/docs#guides">Guides</a></nav>
+        <h1>Compare two runs</h1>
+        <p class="doc-summary">Improved, regressed, unchanged and unmatched images — and what the comparison is worth.</p>
+        <p><strong>Compare runs</strong> puts a baseline and a candidate side by side on the evaluation set they share. Reach it
+from the Runs header, or from a run's <strong>Compare</strong> button, which compares it with the run before it.</p>
+<p>The page answers three questions in order, and the order is the point.</p>
+<h2 id="1-may-these-two-be-compared-at-all">1. May these two be compared at all?</h2>
+<p>Before any number is shown, Granum checks the pair and <strong>refuses</strong> rather than averaging when the
+comparison would be meaningless:</p>
+<table>
+<thead>
+<tr>
+<th>Check</th>
+<th>Refuses when</th>
+<th>Warns when</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Evaluation set</td>
+<td>The two were scored on different sets</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Evaluation version</td>
+<td>—</td>
+<td>The same set, but a different version: the labels changed</td>
+</tr>
+<tr>
+<td>Scoring rules</td>
+<td>The runs used different matching or operating points</td>
+<td>One did not record its policy</td>
+</tr>
+<tr>
+<td>Classes</td>
+<td>The class lists have nothing in common</td>
+<td>They differ but overlap</td>
+</tr>
+<tr>
+<td>Training recipe</td>
+<td>—</td>
+<td>Model, size, rounds or batch differ</td>
+</tr>
+<tr>
+<td>Seeds</td>
+<td>—</td>
+<td>One seed each: small differences cannot be separated from noise</td>
+</tr>
+</tbody>
+</table>
+<p>Warnings are listed above the numbers, with the passed checks collapsed behind a count.</p>
+<h2 id="2-what-may-be-read-into-it">2. What may be read into it?</h2>
+<p>The verdict card names the comparison:</p>
+<ul>
+<li><strong>Controlled</strong> — only the thing under test changed.</li>
+<li><strong>Observational</strong> — the data changed too. "The comparison shows what happened alongside that change,
+  not what any single edit caused."</li>
+</ul>
+<p>And the headline score, with a <strong>declared tolerance</strong>: a difference smaller than it is reported as <em>too
+close to call</em>, because with one seed per run nobody has measured the run-to-run spread. This is a
+declared threshold, not a measured noise level, and the page says so.</p>
+<h2 id="3-what-actually-moved">3. What actually moved?</h2>
+<p>Five tiles count every image of the shared set: <strong>improved</strong>, <strong>regressed</strong>, <strong>unchanged</strong>, <strong>only in
+baseline</strong>, <strong>only in candidate</strong>. Click one to filter the table below it.</p>
+<ul>
+<li>Images are paired by <strong>image reference</strong>, never by row, so a version that removed images cannot
+  misalign the comparison.</li>
+<li><em>Unchanged</em> means the same true positives, misses and false positives — not merely a similar score. An
+  image that traded a miss for a false positive did not stay the same.</li>
+<li>The unmatched tiles are listed, not dropped. When you removed 200 images between runs, that is the
+  most important fact on the page.</li>
+</ul>
+<p>Below the table: <strong>pooled scores</strong> on the images both runs scored, with their support; <strong>slices</strong> by
+class and by object size, each marked <em>too few to call</em> under 30 labels; <strong>what changed in the data</strong> —
+images added, removed or edited, boxes drawn, deleted, relabelled or moved; and <strong>what it cost</strong> — rounds,
+training time, and the review decisions recorded between the two runs, with observed counts separate from
+the estimate.</p>
+<h2 id="download-report">Download report</h2>
+<p><strong>Download report</strong> saves the whole comparison as JSON: the versions of everything, every check and its
+result, every image with its before and after counts, the slices, the data change and the costs.</p>
+<p>It is meant for the places a screenshot will not do — a pilot write-up, a regression record attached to a
+release, or a colleague who wants to check your arithmetic.</p>
+<div class="admonition tip">
+<p class="admonition-title">Getting a comparison worth reading</p>
+<p>Change one thing at a time. If you fix labels <em>and</em> switch from nano to medium <em>and</em> add 5,000
+images, the page will tell you honestly that it cannot attribute anything — which is correct, and
+not what you wanted to learn. Keep the evaluation set fixed across the comparison, and the honest
+version of the question stays answerable.</p>
+</div>
+        <div class="doc-steps"><a class="doc-step prev" href="/docs/guides/findings"><span>Previous</span>Work the Findings queue</a><a class="doc-step next" href="/docs/guides/projects"><span>Next</span>Manage projects</a></div>
+      </article>
+      <aside class="doc-toc" aria-label="On this page"><p>On this page</p><ul><li><a href="#1-may-these-two-be-compared-at-all">1. May these two be compared at all?</a></li><li><a href="#2-what-may-be-read-into-it">2. What may be read into it?</a></li><li><a href="#3-what-actually-moved">3. What actually moved?</a></li><li><a href="#download-report">Download report</a></li></ul></aside>
+    </main>
+  </div>
+
+  <footer class="doc-footer">
+    <div class="wrap">
+      <p>© Granum. Your data stays on your computer.</p>
+      <p><a href="/">Product</a><a href="/download">Download</a><a href="/privacy">Privacy</a><a href="/docs/help/troubleshooting">Support</a></p>
+    </div>
+  </footer>
+
+  <div class="doc-search" data-search-panel hidden>
+    <div class="doc-search-box" role="dialog" aria-modal="true" aria-label="Search documentation">
+      <input type="search" placeholder="Search the documentation" autocomplete="off" spellcheck="false" data-search-input>
+      <ul data-search-results></ul>
+      <p class="doc-search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move · <kbd>Enter</kbd> to open · <kbd>Esc</kbd> to close</p>
+    </div>
+  </div>
+
+  <script src="/docs/docs.js" defer></script>
+</body>
+</html>

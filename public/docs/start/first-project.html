@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Your first project · Granum documentation</title>
+  <meta name="description" content="Create a project from a folder of COCO annotations, or from the built-in example dataset, and see what arrived.">
+  <meta name="theme-color" content="#ffffff">
+  <meta property="og:title" content="Your first project · Granum documentation">
+  <meta property="og:description" content="Create a project from a folder of COCO annotations, or from the built-in example dataset, and see what arrived.">
+  <meta property="og:type" content="article">
+  <meta property="og:image" content="/assets/og.jpg">
+  <link rel="canonical" href="https://granum.app/docs/start/first-project">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/docs/docs.css">
+  <script>document.documentElement.classList.remove("no-js");</script>
+</head>
+<body class="doc-body">
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header doc-header">
+    <div class="wrap">
+      <a class="brand" href="/" aria-label="Granum home"><img src="/assets/lockup-ink.svg" alt="Granum" width="128" height="32"></a>
+      <span class="doc-badge"><a href="/docs">Docs</a></span>
+      <nav class="nav" id="nav" aria-label="Main">
+        <a href="/#tour">Product</a>
+        <a href="/#plans">Pricing</a>
+        <a href="/docs/help/faq">FAQ</a>
+      </nav>
+      <div class="header-actions">
+        <button class="doc-search-button" type="button" data-search aria-label="Search documentation">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3 3"/></svg>
+          <span>Search</span><kbd>/</kbd>
+        </button>
+        <a class="btn primary small" href="/download">Download</a>
+        <button class="menu-button" type="button" aria-controls="doc-sidebar" aria-expanded="false" aria-label="Menu" data-sidebar-toggle>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="doc-shell">
+    <div class="doc-sidebar" id="doc-sidebar">
+      <nav class="doc-nav" aria-label="Documentation">
+<a class="doc-nav-home" href="/docs">Start here</a>
+<div class="doc-nav-group"><p class="doc-nav-title">Getting started</p><ul>
+<li><a href="/docs/start/install">Install Granum</a></li>
+<li><a href="/docs/start/activate">Sign in and licences</a></li>
+<li><a href="/docs/start/first-project" class="on" aria-current="page">Your first project</a></li>
+<li><a href="/docs/start/the-loop">Run the loop once</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Concepts</p><ul>
+<li><a href="/docs/concepts/model">How Granum is organised</a></li>
+<li><a href="/docs/concepts/projects">Projects and project types</a></li>
+<li><a href="/docs/concepts/versions">Versions and lineage</a></li>
+<li><a href="/docs/concepts/dataset-versions">Dataset versions</a></li>
+<li><a href="/docs/concepts/verification">Verification and decisions</a></li>
+<li><a href="/docs/concepts/identity">Image identity</a></li>
+<li><a href="/docs/concepts/runs">Runs and metrics</a></li>
+<li><a href="/docs/concepts/evidence">What the evidence is worth</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Guides</p><ul>
+<li><a href="/docs/guides/import">Import data</a></li>
+<li><a href="/docs/guides/pull-from-projects">Build from existing projects</a></li>
+<li><a href="/docs/guides/browse">Browse images</a></li>
+<li><a href="/docs/guides/review">Review and verify</a></li>
+<li><a href="/docs/guides/edit">Edit annotations</a></li>
+<li><a href="/docs/guides/isolate-remove">Isolate, remove and restore</a></li>
+<li><a href="/docs/guides/dataset-versions">Create a dataset version</a></li>
+<li><a href="/docs/guides/augmentation">Augmentation</a></li>
+<li><a href="/docs/guides/train">Train a model</a></li>
+<li><a href="/docs/guides/runs">Read a run</a></li>
+<li><a href="/docs/guides/learning">Per-image learning</a></li>
+<li><a href="/docs/guides/findings">Work the Findings queue</a></li>
+<li><a href="/docs/guides/compare">Compare two runs</a></li>
+<li><a href="/docs/guides/projects">Manage projects</a></li>
+<li><a href="/docs/guides/python">Use Granum from Python</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Reference</p><ul>
+<li><a href="/docs/reference/screens">Map of the app</a></li>
+<li><a href="/docs/reference/shortcuts">Keyboard shortcuts</a></li>
+<li><a href="/docs/reference/preflight">Import checks</a></li>
+<li><a href="/docs/reference/models">Models you can train</a></li>
+<li><a href="/docs/reference/files">Files and settings</a></li>
+<li><a href="/docs/reference/limits">Scale and limits</a></li>
+<li><a href="/docs/reference/glossary">Glossary</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Help</p><ul>
+<li><a href="/docs/help/troubleshooting">Troubleshooting</a></li>
+<li><a href="/docs/help/faq">Frequently asked questions</a></li>
+<li><a href="/docs/help/privacy">Your data and privacy</a></li>
+</ul></div>
+</nav>
+    </div>
+    <main class="doc-main" id="main">
+      <article class="doc-article">
+        <nav class="doc-crumb" aria-label="Breadcrumb"><a href="/docs">Documentation</a><span aria-hidden="true">/</span><a href="/docs#start">Getting started</a></nav>
+        <h1>Your first project</h1>
+        <p class="doc-summary">Create a project from a folder of COCO annotations, or from the built-in example dataset, and see what arrived.</p>
+        <p>A <strong>project</strong> is one body of work: a dataset, its versions, the reviews and comments on it, and every
+training run made from it. Most teams keep one project per problem — "aerial people", "shelf audit" —
+rather than one per experiment.</p>
+<h2 id="option-a-the-example-dataset">Option A: the example dataset</h2>
+<p>If you want to see the whole product before committing your own data, use the generated example. It is
+120 small images of coloured shapes, drawn on your machine, with deliberate label problems planted in
+them: boxes missing from shapes that are drawn, boxes carrying the wrong class, boxes far too large, one
+box with no width, and two training images copied into the validation set.</p>
+<p>Click <strong>Create project → Use the example dataset</strong>, or the <em>Try the example project</em> tile on the
+Projects screen. Example projects do not count towards your plan's project limit.</p>
+<p>Because you know what is wrong with it, the example is the honest way to judge whether the import
+checks, the review tools and Findings actually earn their place.</p>
+<h2 id="option-b-your-own-data">Option B: your own data</h2>
+<p>Granum imports COCO detection annotations — one annotation file per set, images beside it, which is what
+Roboflow and most labelling tools export:</p>
+<pre><code>human_aerial/
+├── train/  _annotations.coco.json  + images
+├── valid/  _annotations.coco.json  + images
+└── test/   _annotations.coco.json  + images
+</code></pre>
+<ol>
+<li>Click <strong>Create project</strong> in the sidebar.</li>
+<li>Give the project a name and choose what its labels are for — object detection, instance segmentation,
+   keypoints, classification, and so on. You can pick more than one; the choice is recorded with every
+   table imported and decides which tools the editor offers later.</li>
+<li><strong>Select folder</strong>, and choose the dataset folder <em>or any one of its set folders</em>. The sets beside it
+   are found together.</li>
+<li>Choose how thoroughly to check the images, then run the preflight.</li>
+<li>Read the findings, adjust any option you disagree with, and import.</li>
+</ol>
+<p>Nothing is written until the last step. Every check, what you chose and how many images it affected is
+kept with the import, so how a dataset came to be is always inspectable. The full list is in
+<a href="/docs/guides/import">Import data</a>.</p>
+<h2 id="what-you-get">What you get</h2>
+<p>After the import, the sidebar has five places:</p>
+<table>
+<thead>
+<tr>
+<th>Screen</th>
+<th>What it holds</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Overview</strong></td>
+<td>The project at a glance: mosaic, headline counts, what needs attention</td>
+</tr>
+<tr>
+<td><strong>Images</strong></td>
+<td>Every image with its annotations — and the browse, review and edit modes</td>
+</tr>
+<tr>
+<td><strong>Datasets</strong></td>
+<td>The dataset versions you have created; training uses these only</td>
+</tr>
+<tr>
+<td><strong>Runs</strong></td>
+<td>Training runs, their charts and scores, and the comparison between two of them</td>
+</tr>
+<tr>
+<td><strong>Findings</strong></td>
+<td>Labels a finished run suggests are worth checking</td>
+</tr>
+</tbody>
+</table>
+<p>All the sets land in one dataset, named after the folder that held them, with <code>train</code>, <code>valid</code> and <code>test</code>
+as splits inside it. Every image starts <strong>unverified</strong>.</p>
+<p>Next, see what that data actually looks like: <a href="/docs/start/the-loop">Run the loop once</a>.</p>
+        <div class="doc-steps"><a class="doc-step prev" href="/docs/start/activate"><span>Previous</span>Sign in and licences</a><a class="doc-step next" href="/docs/start/the-loop"><span>Next</span>Run the loop once</a></div>
+      </article>
+      <aside class="doc-toc" aria-label="On this page"><p>On this page</p><ul><li><a href="#option-a-the-example-dataset">Option A: the example dataset</a></li><li><a href="#option-b-your-own-data">Option B: your own data</a></li><li><a href="#what-you-get">What you get</a></li></ul></aside>
+    </main>
+  </div>
+
+  <footer class="doc-footer">
+    <div class="wrap">
+      <p>© Granum. Your data stays on your computer.</p>
+      <p><a href="/">Product</a><a href="/download">Download</a><a href="/privacy">Privacy</a><a href="/docs/help/troubleshooting">Support</a></p>
+    </div>
+  </footer>
+
+  <div class="doc-search" data-search-panel hidden>
+    <div class="doc-search-box" role="dialog" aria-modal="true" aria-label="Search documentation">
+      <input type="search" placeholder="Search the documentation" autocomplete="off" spellcheck="false" data-search-input>
+      <ul data-search-results></ul>
+      <p class="doc-search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move · <kbd>Enter</kbd> to open · <kbd>Esc</kbd> to close</p>
+    </div>
+  </div>
+
+  <script src="/docs/docs.js" defer></script>
+</body>
+</html>

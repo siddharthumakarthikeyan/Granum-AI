@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Image identity · Granum documentation</title>
+  <meta name="description" content="Why a metric stays attached to the image it was measured on, and the one rule that keeps it true.">
+  <meta name="theme-color" content="#ffffff">
+  <meta property="og:title" content="Image identity · Granum documentation">
+  <meta property="og:description" content="Why a metric stays attached to the image it was measured on, and the one rule that keeps it true.">
+  <meta property="og:type" content="article">
+  <meta property="og:image" content="/assets/og.jpg">
+  <link rel="canonical" href="https://granum.app/docs/concepts/identity">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/docs/docs.css">
+  <script>document.documentElement.classList.remove("no-js");</script>
+</head>
+<body class="doc-body">
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header doc-header">
+    <div class="wrap">
+      <a class="brand" href="/" aria-label="Granum home"><img src="/assets/lockup-ink.svg" alt="Granum" width="128" height="32"></a>
+      <span class="doc-badge"><a href="/docs">Docs</a></span>
+      <nav class="nav" id="nav" aria-label="Main">
+        <a href="/#tour">Product</a>
+        <a href="/#plans">Pricing</a>
+        <a href="/docs/help/faq">FAQ</a>
+      </nav>
+      <div class="header-actions">
+        <button class="doc-search-button" type="button" data-search aria-label="Search documentation">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3 3"/></svg>
+          <span>Search</span><kbd>/</kbd>
+        </button>
+        <a class="btn primary small" href="/download">Download</a>
+        <button class="menu-button" type="button" aria-controls="doc-sidebar" aria-expanded="false" aria-label="Menu" data-sidebar-toggle>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="doc-shell">
+    <div class="doc-sidebar" id="doc-sidebar">
+      <nav class="doc-nav" aria-label="Documentation">
+<a class="doc-nav-home" href="/docs">Start here</a>
+<div class="doc-nav-group"><p class="doc-nav-title">Getting started</p><ul>
+<li><a href="/docs/start/install">Install Granum</a></li>
+<li><a href="/docs/start/activate">Sign in and licences</a></li>
+<li><a href="/docs/start/first-project">Your first project</a></li>
+<li><a href="/docs/start/the-loop">Run the loop once</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Concepts</p><ul>
+<li><a href="/docs/concepts/model">How Granum is organised</a></li>
+<li><a href="/docs/concepts/projects">Projects and project types</a></li>
+<li><a href="/docs/concepts/versions">Versions and lineage</a></li>
+<li><a href="/docs/concepts/dataset-versions">Dataset versions</a></li>
+<li><a href="/docs/concepts/verification">Verification and decisions</a></li>
+<li><a href="/docs/concepts/identity" class="on" aria-current="page">Image identity</a></li>
+<li><a href="/docs/concepts/runs">Runs and metrics</a></li>
+<li><a href="/docs/concepts/evidence">What the evidence is worth</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Guides</p><ul>
+<li><a href="/docs/guides/import">Import data</a></li>
+<li><a href="/docs/guides/pull-from-projects">Build from existing projects</a></li>
+<li><a href="/docs/guides/browse">Browse images</a></li>
+<li><a href="/docs/guides/review">Review and verify</a></li>
+<li><a href="/docs/guides/edit">Edit annotations</a></li>
+<li><a href="/docs/guides/isolate-remove">Isolate, remove and restore</a></li>
+<li><a href="/docs/guides/dataset-versions">Create a dataset version</a></li>
+<li><a href="/docs/guides/augmentation">Augmentation</a></li>
+<li><a href="/docs/guides/train">Train a model</a></li>
+<li><a href="/docs/guides/runs">Read a run</a></li>
+<li><a href="/docs/guides/learning">Per-image learning</a></li>
+<li><a href="/docs/guides/findings">Work the Findings queue</a></li>
+<li><a href="/docs/guides/compare">Compare two runs</a></li>
+<li><a href="/docs/guides/projects">Manage projects</a></li>
+<li><a href="/docs/guides/python">Use Granum from Python</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Reference</p><ul>
+<li><a href="/docs/reference/screens">Map of the app</a></li>
+<li><a href="/docs/reference/shortcuts">Keyboard shortcuts</a></li>
+<li><a href="/docs/reference/preflight">Import checks</a></li>
+<li><a href="/docs/reference/models">Models you can train</a></li>
+<li><a href="/docs/reference/files">Files and settings</a></li>
+<li><a href="/docs/reference/limits">Scale and limits</a></li>
+<li><a href="/docs/reference/glossary">Glossary</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Help</p><ul>
+<li><a href="/docs/help/troubleshooting">Troubleshooting</a></li>
+<li><a href="/docs/help/faq">Frequently asked questions</a></li>
+<li><a href="/docs/help/privacy">Your data and privacy</a></li>
+</ul></div>
+</nav>
+    </div>
+    <main class="doc-main" id="main">
+      <article class="doc-article">
+        <nav class="doc-crumb" aria-label="Breadcrumb"><a href="/docs">Documentation</a><span aria-hidden="true">/</span><a href="/docs#concepts">Concepts</a></nav>
+        <h1>Image identity</h1>
+        <p class="doc-summary">Why a metric stays attached to the image it was measured on, and the one rule that keeps it true.</p>
+        <p>Every number Granum shows about an image — its F1 in round 7, the boxes the model predicted, the finding
+that says a label is wrong — was computed at a moment when the set was in a particular state. Between
+then and now, images may have been deleted, added, reordered or edited.</p>
+<p>If that join breaks, the product does not degrade gracefully: it shows you a confident, wrong picture of
+a different image. So it is worth knowing how it is kept.</p>
+<h2 id="two-ways-to-name-an-image">Two ways to name an image</h2>
+<p><strong>By position.</strong> Metrics are recorded per row: row 4,172 of this table. Positions are compact and fast,
+which is why per-image metrics use them, and they are correct <em>only</em> against the exact version the
+metrics were collected on.</p>
+<p><strong>By reference.</strong> The image's path. Positions move when a row is deleted; the photograph does not. Review
+statuses, comments, findings decisions and run comparisons are all keyed by reference.</p>
+<h2 id="the-rule">The rule</h2>
+<blockquote>
+<p>A metric may be joined to a different version of a set only if every step between them preserved rows.</p>
+</blockquote>
+<p>Granum knows which operations preserve rows (editing labels, changing a class list, setting weights) and
+which do not (deleting rows, adding rows, re-splitting). When you look at a run against the newest
+version of its data, Granum walks the lineage from the version the metrics were collected on: if every
+step in between kept rows in place, it joins to the newer one, so you see the <em>corrected</em> labels beside
+the metrics computed before the fix. If any step moved rows, it joins to the original version and says
+so, rather than guessing.</p>
+<p>Equal row counts are not enough, and Granum does not accept them as evidence: a deletion followed by an
+addition leaves the count unchanged and every position after the deletion wrong.</p>
+<figure class="doc-figure">
+<svg viewBox="0 0 880 152" role="img" aria-label="Metrics collected on v1 join to v2 because it only edited labels, but not to v3 which deleted rows">
+  <g font-family="Instrument Sans, sans-serif" font-size="12.5">
+    <g fill="#ffffff" stroke="#c9d1db">
+      <rect x="20" y="52" width="120" height="44" rx="8"/>
+      <rect x="230" y="52" width="120" height="44" rx="8"/>
+      <rect x="440" y="52" width="120" height="44" rx="8"/>
+      <rect x="660" y="20" width="196" height="44" rx="8"/>
+    </g>
+    <g fill="#0e1420" font-weight="600" text-anchor="middle">
+      <text x="80" y="79">train v1</text><text x="290" y="79">train v2</text><text x="500" y="79">train v3</text>
+      <text x="758" y="47">run: per-image metrics</text>
+    </g>
+    <g fill="#6b7585" font-size="11.5" text-anchor="middle">
+      <text x="185" y="44">edited labels</text><text x="185" y="118">rows kept</text>
+      <text x="395" y="44">deleted 12 images</text><text x="395" y="118">rows moved</text>
+    </g>
+    <g stroke="#9aa6b5" stroke-width="1.5" fill="none">
+      <path d="M140 74h84"/><path d="M350 74h84"/>
+    </g>
+    <path d="M660 52 L352 70" stroke="#067647" stroke-width="1.5" fill="none"/>
+    <text x="512" y="140" fill="#067647" font-size="11.5" text-anchor="middle">joins forward to v2: safe</text>
+    <path d="M700 64 L560 70" stroke="#b42318" stroke-width="1.5" stroke-dasharray="4 3" fill="none"/>
+    <text x="790" y="92" fill="#b42318" font-size="11.5" text-anchor="middle">not to v3: refused</text>
+  </g>
+</svg>
+</figure>
+
+<h2 id="why-this-shapes-the-product">Why this shapes the product</h2>
+<p>Several decisions that look like UI choices follow from this rule:</p>
+<ul>
+<li><strong>Deleting images creates a new version</strong> instead of removing rows in place, so old metrics keep a
+  version they are valid against.</li>
+<li><strong>Review status is keyed by image reference</strong>, so it survives deletions that would scramble positions.</li>
+<li><strong>Run comparison pairs images by reference</strong>, not by row, and reports images one run has and the other
+  does not rather than lining up two lists of different lengths.</li>
+<li><strong>Findings are computed against the exact version the run was collected on</strong>, then shown with today's
+  review decisions merged in.</li>
+</ul>
+<p>A regression test for exactly this ships with Granum: a run is collected, an image is removed, and every
+screen that shows per-image results must still show each number on the image it was measured on.</p>
+        <div class="doc-steps"><a class="doc-step prev" href="/docs/concepts/verification"><span>Previous</span>Verification and decisions</a><a class="doc-step next" href="/docs/concepts/runs"><span>Next</span>Runs and metrics</a></div>
+      </article>
+      <aside class="doc-toc" aria-label="On this page"><p>On this page</p><ul><li><a href="#two-ways-to-name-an-image">Two ways to name an image</a></li><li><a href="#the-rule">The rule</a></li><li><a href="#why-this-shapes-the-product">Why this shapes the product</a></li></ul></aside>
+    </main>
+  </div>
+
+  <footer class="doc-footer">
+    <div class="wrap">
+      <p>© Granum. Your data stays on your computer.</p>
+      <p><a href="/">Product</a><a href="/download">Download</a><a href="/privacy">Privacy</a><a href="/docs/help/troubleshooting">Support</a></p>
+    </div>
+  </footer>
+
+  <div class="doc-search" data-search-panel hidden>
+    <div class="doc-search-box" role="dialog" aria-modal="true" aria-label="Search documentation">
+      <input type="search" placeholder="Search the documentation" autocomplete="off" spellcheck="false" data-search-input>
+      <ul data-search-results></ul>
+      <p class="doc-search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move · <kbd>Enter</kbd> to open · <kbd>Esc</kbd> to close</p>
+    </div>
+  </div>
+
+  <script src="/docs/docs.js" defer></script>
+</body>
+</html>

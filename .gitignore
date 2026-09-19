@@ -1,0 +1,9 @@
+*.sqlite3
+*.sqlite3-shm
+*.sqlite3-wal
+*.pem
+.env
+.env.*
+__pycache__/
+.pytest_cache/
+.vercel

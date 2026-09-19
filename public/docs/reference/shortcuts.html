@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Keyboard shortcuts · Granum documentation</title>
+  <meta name="description" content="Every key, by screen.">
+  <meta name="theme-color" content="#ffffff">
+  <meta property="og:title" content="Keyboard shortcuts · Granum documentation">
+  <meta property="og:description" content="Every key, by screen.">
+  <meta property="og:type" content="article">
+  <meta property="og:image" content="/assets/og.jpg">
+  <link rel="canonical" href="https://granum.app/docs/reference/shortcuts">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/docs/docs.css">
+  <script>document.documentElement.classList.remove("no-js");</script>
+</head>
+<body class="doc-body">
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header doc-header">
+    <div class="wrap">
+      <a class="brand" href="/" aria-label="Granum home"><img src="/assets/lockup-ink.svg" alt="Granum" width="128" height="32"></a>
+      <span class="doc-badge"><a href="/docs">Docs</a></span>
+      <nav class="nav" id="nav" aria-label="Main">
+        <a href="/#tour">Product</a>
+        <a href="/#plans">Pricing</a>
+        <a href="/docs/help/faq">FAQ</a>
+      </nav>
+      <div class="header-actions">
+        <button class="doc-search-button" type="button" data-search aria-label="Search documentation">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3 3"/></svg>
+          <span>Search</span><kbd>/</kbd>
+        </button>
+        <a class="btn primary small" href="/download">Download</a>
+        <button class="menu-button" type="button" aria-controls="doc-sidebar" aria-expanded="false" aria-label="Menu" data-sidebar-toggle>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="doc-shell">
+    <div class="doc-sidebar" id="doc-sidebar">
+      <nav class="doc-nav" aria-label="Documentation">
+<a class="doc-nav-home" href="/docs">Start here</a>
+<div class="doc-nav-group"><p class="doc-nav-title">Getting started</p><ul>
+<li><a href="/docs/start/install">Install Granum</a></li>
+<li><a href="/docs/start/activate">Sign in and licences</a></li>
+<li><a href="/docs/start/first-project">Your first project</a></li>
+<li><a href="/docs/start/the-loop">Run the loop once</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Concepts</p><ul>
+<li><a href="/docs/concepts/model">How Granum is organised</a></li>
+<li><a href="/docs/concepts/projects">Projects and project types</a></li>
+<li><a href="/docs/concepts/versions">Versions and lineage</a></li>
+<li><a href="/docs/concepts/dataset-versions">Dataset versions</a></li>
+<li><a href="/docs/concepts/verification">Verification and decisions</a></li>
+<li><a href="/docs/concepts/identity">Image identity</a></li>
+<li><a href="/docs/concepts/runs">Runs and metrics</a></li>
+<li><a href="/docs/concepts/evidence">What the evidence is worth</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Guides</p><ul>
+<li><a href="/docs/guides/import">Import data</a></li>
+<li><a href="/docs/guides/pull-from-projects">Build from existing projects</a></li>
+<li><a href="/docs/guides/browse">Browse images</a></li>
+<li><a href="/docs/guides/review">Review and verify</a></li>
+<li><a href="/docs/guides/edit">Edit annotations</a></li>
+<li><a href="/docs/guides/isolate-remove">Isolate, remove and restore</a></li>
+<li><a href="/docs/guides/dataset-versions">Create a dataset version</a></li>
+<li><a href="/docs/guides/augmentation">Augmentation</a></li>
+<li><a href="/docs/guides/train">Train a model</a></li>
+<li><a href="/docs/guides/runs">Read a run</a></li>
+<li><a href="/docs/guides/learning">Per-image learning</a></li>
+<li><a href="/docs/guides/findings">Work the Findings queue</a></li>
+<li><a href="/docs/guides/compare">Compare two runs</a></li>
+<li><a href="/docs/guides/projects">Manage projects</a></li>
+<li><a href="/docs/guides/python">Use Granum from Python</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Reference</p><ul>
+<li><a href="/docs/reference/screens">Map of the app</a></li>
+<li><a href="/docs/reference/shortcuts" class="on" aria-current="page">Keyboard shortcuts</a></li>
+<li><a href="/docs/reference/preflight">Import checks</a></li>
+<li><a href="/docs/reference/models">Models you can train</a></li>
+<li><a href="/docs/reference/files">Files and settings</a></li>
+<li><a href="/docs/reference/limits">Scale and limits</a></li>
+<li><a href="/docs/reference/glossary">Glossary</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Help</p><ul>
+<li><a href="/docs/help/troubleshooting">Troubleshooting</a></li>
+<li><a href="/docs/help/faq">Frequently asked questions</a></li>
+<li><a href="/docs/help/privacy">Your data and privacy</a></li>
+</ul></div>
+</nav>
+    </div>
+    <main class="doc-main" id="main">
+      <article class="doc-article">
+        <nav class="doc-crumb" aria-label="Breadcrumb"><a href="/docs">Documentation</a><span aria-hidden="true">/</span><a href="/docs#reference">Reference</a></nav>
+        <h1>Keyboard shortcuts</h1>
+        <p class="doc-summary">Every key, by screen.</p>
+        <h2 id="review-inspector">Review inspector</h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><kbd>←</kbd> <kbd>→</kbd></td>
+<td>Previous / next image, saving edits first</td>
+</tr>
+<tr>
+<td><kbd>A</kbd></td>
+<td>Verify and go to the next image</td>
+</tr>
+<tr>
+<td><kbd>R</kbd></td>
+<td>Rework (write the reason first)</td>
+</tr>
+<tr>
+<td><kbd>U</kbd></td>
+<td>Back to unverified</td>
+</tr>
+<tr>
+<td><kbd>I</kbd></td>
+<td>Isolate</td>
+</tr>
+<tr>
+<td><kbd>B</kbd></td>
+<td>Show or hide boxes</td>
+</tr>
+<tr>
+<td><kbd>Delete</kbd> <kbd>Backspace</kbd></td>
+<td>Delete the selected box</td>
+</tr>
+<tr>
+<td><kbd>Ctrl</kbd>+<kbd>S</kbd></td>
+<td>Save box edits</td>
+</tr>
+<tr>
+<td><kbd>Ctrl</kbd>+<kbd>Enter</kbd></td>
+<td>Post the comment</td>
+</tr>
+<tr>
+<td><kbd>Esc</kbd></td>
+<td>Deselect the box, then close</td>
+</tr>
+</tbody>
+</table>
+<h2 id="full-screen-viewer-browse">Full-screen viewer (browse)</h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><kbd>←</kbd> <kbd>→</kbd></td>
+<td>Previous / next image</td>
+</tr>
+<tr>
+<td><kbd>C</kbd></td>
+<td>Add a comment (sets the image back to unverified)</td>
+</tr>
+<tr>
+<td><kbd>Esc</kbd></td>
+<td>Close</td>
+</tr>
+</tbody>
+</table>
+<h2 id="editor">Editor</h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><kbd>V</kbd></td>
+<td>Select tool</td>
+</tr>
+<tr>
+<td><kbd>B</kbd></td>
+<td>Box tool</td>
+</tr>
+<tr>
+<td><kbd>P</kbd></td>
+<td>Polygon (mask) tool; <kbd>Enter</kbd> closes the polygon</td>
+</tr>
+<tr>
+<td><kbd>K</kbd></td>
+<td>Keypoint tool</td>
+</tr>
+<tr>
+<td><kbd>0</kbd></td>
+<td>Fit the image</td>
+</tr>
+<tr>
+<td>Wheel</td>
+<td>Zoom; drag empty space to pan</td>
+</tr>
+<tr>
+<td><kbd>Delete</kbd> <kbd>Backspace</kbd></td>
+<td>Delete the picked vertex or keypoint, otherwise the object</td>
+</tr>
+<tr>
+<td><kbd>Ctrl</kbd>+<kbd>Z</kbd> / <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd></td>
+<td>Undo / redo (<kbd>Ctrl</kbd>+<kbd>Y</kbd> also redoes)</td>
+</tr>
+<tr>
+<td><kbd>Ctrl</kbd>+<kbd>S</kbd></td>
+<td>Save as a new version</td>
+</tr>
+<tr>
+<td><kbd>←</kbd> <kbd>→</kbd></td>
+<td>Previous / next image (saves first)</td>
+</tr>
+<tr>
+<td><kbd>Esc</kbd></td>
+<td>Cancel the drawing, then deselect, then close</td>
+</tr>
+</tbody>
+</table>
+<h2 id="findings-reviewer">Findings reviewer</h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><kbd>←</kbd> <kbd>→</kbd></td>
+<td>Previous / next image</td>
+</tr>
+<tr>
+<td><kbd>↑</kbd> <kbd>↓</kbd></td>
+<td>Move between findings on this image</td>
+</tr>
+<tr>
+<td><kbd>Z</kbd></td>
+<td>Close-up or whole image</td>
+</tr>
+<tr>
+<td><kbd>C</kbd></td>
+<td>Label is right</td>
+</tr>
+<tr>
+<td><kbd>F</kbd></td>
+<td>Fix — opens the editor</td>
+</tr>
+<tr>
+<td><kbd>A</kbd></td>
+<td>Ambiguous</td>
+</tr>
+<tr>
+<td><kbd>L</kbd></td>
+<td>Later</td>
+</tr>
+<tr>
+<td><kbd>X</kbd></td>
+<td>Exclude image</td>
+</tr>
+<tr>
+<td><kbd>U</kbd></td>
+<td>Undo the decision</td>
+</tr>
+<tr>
+<td><kbd>Esc</kbd></td>
+<td>Close</td>
+</tr>
+</tbody>
+</table>
+<h2 id="sample-viewer-samples">Sample viewer (Samples)</h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><kbd>←</kbd> <kbd>→</kbd></td>
+<td>Previous / next image</td>
+</tr>
+<tr>
+<td><kbd>[</kbd> <kbd>]</kbd></td>
+<td>Previous / next round</td>
+</tr>
+<tr>
+<td><kbd>Space</kbd></td>
+<td>Play the rounds</td>
+</tr>
+<tr>
+<td><kbd>L</kbd> / <kbd>G</kbd></td>
+<td>Labels / the model's boxes</td>
+</tr>
+<tr>
+<td><kbd>M</kbd></td>
+<td>Only the mistakes</td>
+</tr>
+<tr>
+<td><kbd>K</kbd> / <kbd>R</kbd></td>
+<td>Keep / remove</td>
+</tr>
+<tr>
+<td><kbd>U</kbd></td>
+<td>Undo</td>
+</tr>
+<tr>
+<td><kbd>F</kbd>, <kbd>+</kbd> <kbd>−</kbd></td>
+<td>Fit, zoom in, zoom out</td>
+</tr>
+<tr>
+<td><kbd>Esc</kbd></td>
+<td>Close</td>
+</tr>
+</tbody>
+</table>
+<h2 id="everywhere">Everywhere</h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><kbd>Esc</kbd></td>
+<td>Close the dialog or the full-screen view</td>
+</tr>
+<tr>
+<td><kbd>Enter</kbd></td>
+<td>Confirm the dialog</td>
+</tr>
+<tr>
+<td>Click and <kbd>Shift</kbd>-click</td>
+<td>Select one, then a range, in review</td>
+</tr>
+</tbody>
+</table>
+<p>On this documentation site, <kbd>/</kbd> or <kbd>Ctrl</kbd>+<kbd>K</kbd> opens search.</p>
+        <div class="doc-steps"><a class="doc-step prev" href="/docs/reference/screens"><span>Previous</span>Map of the app</a><a class="doc-step next" href="/docs/reference/preflight"><span>Next</span>Import checks</a></div>
+      </article>
+      <aside class="doc-toc" aria-label="On this page"><p>On this page</p><ul><li><a href="#review-inspector">Review inspector</a></li><li><a href="#full-screen-viewer-browse">Full-screen viewer (browse)</a></li><li><a href="#editor">Editor</a></li><li><a href="#findings-reviewer">Findings reviewer</a></li><li><a href="#sample-viewer-samples">Sample viewer (Samples)</a></li><li><a href="#everywhere">Everywhere</a></li></ul></aside>
+    </main>
+  </div>
+
+  <footer class="doc-footer">
+    <div class="wrap">
+      <p>© Granum. Your data stays on your computer.</p>
+      <p><a href="/">Product</a><a href="/download">Download</a><a href="/privacy">Privacy</a><a href="/docs/help/troubleshooting">Support</a></p>
+    </div>
+  </footer>
+
+  <div class="doc-search" data-search-panel hidden>
+    <div class="doc-search-box" role="dialog" aria-modal="true" aria-label="Search documentation">
+      <input type="search" placeholder="Search the documentation" autocomplete="off" spellcheck="false" data-search-input>
+      <ul data-search-results></ul>
+      <p class="doc-search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move · <kbd>Enter</kbd> to open · <kbd>Esc</kbd> to close</p>
+    </div>
+  </div>
+
+  <script src="/docs/docs.js" defer></script>
+</body>
+</html>

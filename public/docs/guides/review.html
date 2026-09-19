@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Review and verify · Granum documentation</title>
+  <meta name="description" content="Work through a dataset image by image or in bulk, with comments, rework and a progress bar.">
+  <meta name="theme-color" content="#ffffff">
+  <meta property="og:title" content="Review and verify · Granum documentation">
+  <meta property="og:description" content="Work through a dataset image by image or in bulk, with comments, rework and a progress bar.">
+  <meta property="og:type" content="article">
+  <meta property="og:image" content="/assets/og.jpg">
+  <link rel="canonical" href="https://granum.app/docs/guides/review">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/docs/docs.css">
+  <script>document.documentElement.classList.remove("no-js");</script>
+</head>
+<body class="doc-body">
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header doc-header">
+    <div class="wrap">
+      <a class="brand" href="/" aria-label="Granum home"><img src="/assets/lockup-ink.svg" alt="Granum" width="128" height="32"></a>
+      <span class="doc-badge"><a href="/docs">Docs</a></span>
+      <nav class="nav" id="nav" aria-label="Main">
+        <a href="/#tour">Product</a>
+        <a href="/#plans">Pricing</a>
+        <a href="/docs/help/faq">FAQ</a>
+      </nav>
+      <div class="header-actions">
+        <button class="doc-search-button" type="button" data-search aria-label="Search documentation">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3 3"/></svg>
+          <span>Search</span><kbd>/</kbd>
+        </button>
+        <a class="btn primary small" href="/download">Download</a>
+        <button class="menu-button" type="button" aria-controls="doc-sidebar" aria-expanded="false" aria-label="Menu" data-sidebar-toggle>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="doc-shell">
+    <div class="doc-sidebar" id="doc-sidebar">
+      <nav class="doc-nav" aria-label="Documentation">
+<a class="doc-nav-home" href="/docs">Start here</a>
+<div class="doc-nav-group"><p class="doc-nav-title">Getting started</p><ul>
+<li><a href="/docs/start/install">Install Granum</a></li>
+<li><a href="/docs/start/activate">Sign in and licences</a></li>
+<li><a href="/docs/start/first-project">Your first project</a></li>
+<li><a href="/docs/start/the-loop">Run the loop once</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Concepts</p><ul>
+<li><a href="/docs/concepts/model">How Granum is organised</a></li>
+<li><a href="/docs/concepts/projects">Projects and project types</a></li>
+<li><a href="/docs/concepts/versions">Versions and lineage</a></li>
+<li><a href="/docs/concepts/dataset-versions">Dataset versions</a></li>
+<li><a href="/docs/concepts/verification">Verification and decisions</a></li>
+<li><a href="/docs/concepts/identity">Image identity</a></li>
+<li><a href="/docs/concepts/runs">Runs and metrics</a></li>
+<li><a href="/docs/concepts/evidence">What the evidence is worth</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Guides</p><ul>
+<li><a href="/docs/guides/import">Import data</a></li>
+<li><a href="/docs/guides/pull-from-projects">Build from existing projects</a></li>
+<li><a href="/docs/guides/browse">Browse images</a></li>
+<li><a href="/docs/guides/review" class="on" aria-current="page">Review and verify</a></li>
+<li><a href="/docs/guides/edit">Edit annotations</a></li>
+<li><a href="/docs/guides/isolate-remove">Isolate, remove and restore</a></li>
+<li><a href="/docs/guides/dataset-versions">Create a dataset version</a></li>
+<li><a href="/docs/guides/augmentation">Augmentation</a></li>
+<li><a href="/docs/guides/train">Train a model</a></li>
+<li><a href="/docs/guides/runs">Read a run</a></li>
+<li><a href="/docs/guides/learning">Per-image learning</a></li>
+<li><a href="/docs/guides/findings">Work the Findings queue</a></li>
+<li><a href="/docs/guides/compare">Compare two runs</a></li>
+<li><a href="/docs/guides/projects">Manage projects</a></li>
+<li><a href="/docs/guides/python">Use Granum from Python</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Reference</p><ul>
+<li><a href="/docs/reference/screens">Map of the app</a></li>
+<li><a href="/docs/reference/shortcuts">Keyboard shortcuts</a></li>
+<li><a href="/docs/reference/preflight">Import checks</a></li>
+<li><a href="/docs/reference/models">Models you can train</a></li>
+<li><a href="/docs/reference/files">Files and settings</a></li>
+<li><a href="/docs/reference/limits">Scale and limits</a></li>
+<li><a href="/docs/reference/glossary">Glossary</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Help</p><ul>
+<li><a href="/docs/help/troubleshooting">Troubleshooting</a></li>
+<li><a href="/docs/help/faq">Frequently asked questions</a></li>
+<li><a href="/docs/help/privacy">Your data and privacy</a></li>
+</ul></div>
+</nav>
+    </div>
+    <main class="doc-main" id="main">
+      <article class="doc-article">
+        <nav class="doc-crumb" aria-label="Breadcrumb"><a href="/docs">Documentation</a><span aria-hidden="true">/</span><a href="/docs#guides">Guides</a></nav>
+        <h1>Review and verify</h1>
+        <p class="doc-summary">Work through a dataset image by image or in bulk, with comments, rework and a progress bar.</p>
+        <p>Review is a mode of the Images screen, not a separate place: turn on <strong>Review</strong> in the ribbon and the
+same grid becomes selectable, with a review bar above it and a decision tray below.</p>
+<h2 id="set-up">Set up</h2>
+<p>Type your name in the <strong>Reviewer</strong> box. It is remembered in this browser and attached to every decision
+and comment you make. There is no login; the name is a record among colleagues, not a credential.</p>
+<h2 id="working-in-bulk">Working in bulk</h2>
+<p>Tick images and act on all of them at once. <kbd>Shift</kbd>-click selects a range. <strong>Select shown</strong>
+takes the images loaded on the page; <strong>Select all</strong> takes everything matching the current filters,
+including images not yet loaded.</p>
+<p>The tray offers:</p>
+<table>
+<thead>
+<tr>
+<th>Decision</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Verify</strong></td>
+<td>The labels are right</td>
+</tr>
+<tr>
+<td><strong>Unverify</strong></td>
+<td>Back to unverified, e.g. after fixing something</td>
+</tr>
+<tr>
+<td><strong>Rework…</strong></td>
+<td>Asks for a note saying what is wrong, and records it</td>
+</tr>
+<tr>
+<td><strong>Isolate…</strong></td>
+<td>Sets the images aside, out of new dataset versions, until returned</td>
+</tr>
+<tr>
+<td><strong>Return to set</strong></td>
+<td>Puts isolated images back where they came from</td>
+</tr>
+<tr>
+<td><strong>Delete…</strong></td>
+<td>Moves them to the removed set, recoverable</td>
+</tr>
+</tbody>
+</table>
+<p>The progress bar counts verified images against the total for the current filters, so the number moves as
+you work.</p>
+<h2 id="working-one-image-at-a-time">Working one image at a time</h2>
+<p>Click an image to open the inspector: the picture with its boxes on the left, the decision buttons,
+class counts and the comment thread on the right.</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><kbd>←</kbd> <kbd>→</kbd></td>
+<td>Previous / next image, saving any box edits first</td>
+</tr>
+<tr>
+<td><kbd>A</kbd></td>
+<td>Verify and move to the next image</td>
+</tr>
+<tr>
+<td><kbd>R</kbd></td>
+<td>Rework — write the reason in the comment box first</td>
+</tr>
+<tr>
+<td><kbd>U</kbd></td>
+<td>Back to unverified</td>
+</tr>
+<tr>
+<td><kbd>I</kbd></td>
+<td>Isolate</td>
+</tr>
+<tr>
+<td><kbd>B</kbd></td>
+<td>Show or hide boxes</td>
+</tr>
+<tr>
+<td><kbd>Delete</kbd></td>
+<td>Delete the selected box</td>
+</tr>
+<tr>
+<td><kbd>Ctrl</kbd>+<kbd>S</kbd></td>
+<td>Save box edits</td>
+</tr>
+<tr>
+<td><kbd>Ctrl</kbd>+<kbd>Enter</kbd></td>
+<td>Post the comment</td>
+</tr>
+<tr>
+<td><kbd>Esc</kbd></td>
+<td>Deselect the box, then close</td>
+</tr>
+</tbody>
+</table>
+<p>Boxes can be fixed here: drag on the image to draw one, click to select, <kbd>Delete</kbd> to remove.
+Anything more — moving, resizing, masks, keypoints, new classes — belongs in the
+<a href="/docs/guides/edit">editor</a>, which the inspector links to.</p>
+<h2 id="the-rework-loop">The rework loop</h2>
+<p>Rework is how a reviewer hands an image back without losing the thread:</p>
+<ol>
+<li>The reviewer marks the image <strong>Rework</strong> with a note: <em>"two pedestrians at the crossing are
+   unlabelled"</em>.</li>
+<li>The annotator filters to rework, reads the note, fixes the boxes, replies <em>"added both"</em>, and the
+   image returns to <strong>unverified</strong>.</li>
+<li>The reviewer checks it again and verifies.</li>
+</ol>
+<p>Every step is appended to the image's thread with a name and a time, and nothing is overwritten, so the
+history of an image is always readable.</p>
+<h2 id="how-much-to-review">How much to review</h2>
+<p>You do not have to review everything before training, and usually should not. A sensible first pass:</p>
+<ul>
+<li>Verify the validation set properly. Every conclusion you draw later rests on it.</li>
+<li>Skim the training set for convention breaks rather than checking each image.</li>
+<li>Train, then let <a href="/docs/guides/findings">Findings</a> tell you where in the training set to spend the rest
+  of the effort.</li>
+</ul>
+<p>That ordering matters: reviewing 11,000 training images by hand before the first run is weeks of work,
+and the model can tell you which few hundred of them are worth your time.</p>
+        <div class="doc-steps"><a class="doc-step prev" href="/docs/guides/browse"><span>Previous</span>Browse images</a><a class="doc-step next" href="/docs/guides/edit"><span>Next</span>Edit annotations</a></div>
+      </article>
+      <aside class="doc-toc" aria-label="On this page"><p>On this page</p><ul><li><a href="#set-up">Set up</a></li><li><a href="#working-in-bulk">Working in bulk</a></li><li><a href="#working-one-image-at-a-time">Working one image at a time</a></li><li><a href="#the-rework-loop">The rework loop</a></li><li><a href="#how-much-to-review">How much to review</a></li></ul></aside>
+    </main>
+  </div>
+
+  <footer class="doc-footer">
+    <div class="wrap">
+      <p>© Granum. Your data stays on your computer.</p>
+      <p><a href="/">Product</a><a href="/download">Download</a><a href="/privacy">Privacy</a><a href="/docs/help/troubleshooting">Support</a></p>
+    </div>
+  </footer>
+
+  <div class="doc-search" data-search-panel hidden>
+    <div class="doc-search-box" role="dialog" aria-modal="true" aria-label="Search documentation">
+      <input type="search" placeholder="Search the documentation" autocomplete="off" spellcheck="false" data-search-input>
+      <ul data-search-results></ul>
+      <p class="doc-search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move · <kbd>Enter</kbd> to open · <kbd>Esc</kbd> to close</p>
+    </div>
+  </div>
+
+  <script src="/docs/docs.js" defer></script>
+</body>
+</html>

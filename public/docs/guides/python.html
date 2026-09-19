@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Use Granum from Python · Granum documentation</title>
+  <meta name="description" content="The same objects the app uses, for scripted imports, custom metrics and your own training loop.">
+  <meta name="theme-color" content="#ffffff">
+  <meta property="og:title" content="Use Granum from Python · Granum documentation">
+  <meta property="og:description" content="The same objects the app uses, for scripted imports, custom metrics and your own training loop.">
+  <meta property="og:type" content="article">
+  <meta property="og:image" content="/assets/og.jpg">
+  <link rel="canonical" href="https://granum.app/docs/guides/python">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/docs/docs.css">
+  <script>document.documentElement.classList.remove("no-js");</script>
+</head>
+<body class="doc-body">
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header doc-header">
+    <div class="wrap">
+      <a class="brand" href="/" aria-label="Granum home"><img src="/assets/lockup-ink.svg" alt="Granum" width="128" height="32"></a>
+      <span class="doc-badge"><a href="/docs">Docs</a></span>
+      <nav class="nav" id="nav" aria-label="Main">
+        <a href="/#tour">Product</a>
+        <a href="/#plans">Pricing</a>
+        <a href="/docs/help/faq">FAQ</a>
+      </nav>
+      <div class="header-actions">
+        <button class="doc-search-button" type="button" data-search aria-label="Search documentation">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3 3"/></svg>
+          <span>Search</span><kbd>/</kbd>
+        </button>
+        <a class="btn primary small" href="/download">Download</a>
+        <button class="menu-button" type="button" aria-controls="doc-sidebar" aria-expanded="false" aria-label="Menu" data-sidebar-toggle>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="doc-shell">
+    <div class="doc-sidebar" id="doc-sidebar">
+      <nav class="doc-nav" aria-label="Documentation">
+<a class="doc-nav-home" href="/docs">Start here</a>
+<div class="doc-nav-group"><p class="doc-nav-title">Getting started</p><ul>
+<li><a href="/docs/start/install">Install Granum</a></li>
+<li><a href="/docs/start/activate">Sign in and licences</a></li>
+<li><a href="/docs/start/first-project">Your first project</a></li>
+<li><a href="/docs/start/the-loop">Run the loop once</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Concepts</p><ul>
+<li><a href="/docs/concepts/model">How Granum is organised</a></li>
+<li><a href="/docs/concepts/projects">Projects and project types</a></li>
+<li><a href="/docs/concepts/versions">Versions and lineage</a></li>
+<li><a href="/docs/concepts/dataset-versions">Dataset versions</a></li>
+<li><a href="/docs/concepts/verification">Verification and decisions</a></li>
+<li><a href="/docs/concepts/identity">Image identity</a></li>
+<li><a href="/docs/concepts/runs">Runs and metrics</a></li>
+<li><a href="/docs/concepts/evidence">What the evidence is worth</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Guides</p><ul>
+<li><a href="/docs/guides/import">Import data</a></li>
+<li><a href="/docs/guides/pull-from-projects">Build from existing projects</a></li>
+<li><a href="/docs/guides/browse">Browse images</a></li>
+<li><a href="/docs/guides/review">Review and verify</a></li>
+<li><a href="/docs/guides/edit">Edit annotations</a></li>
+<li><a href="/docs/guides/isolate-remove">Isolate, remove and restore</a></li>
+<li><a href="/docs/guides/dataset-versions">Create a dataset version</a></li>
+<li><a href="/docs/guides/augmentation">Augmentation</a></li>
+<li><a href="/docs/guides/train">Train a model</a></li>
+<li><a href="/docs/guides/runs">Read a run</a></li>
+<li><a href="/docs/guides/learning">Per-image learning</a></li>
+<li><a href="/docs/guides/findings">Work the Findings queue</a></li>
+<li><a href="/docs/guides/compare">Compare two runs</a></li>
+<li><a href="/docs/guides/projects">Manage projects</a></li>
+<li><a href="/docs/guides/python" class="on" aria-current="page">Use Granum from Python</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Reference</p><ul>
+<li><a href="/docs/reference/screens">Map of the app</a></li>
+<li><a href="/docs/reference/shortcuts">Keyboard shortcuts</a></li>
+<li><a href="/docs/reference/preflight">Import checks</a></li>
+<li><a href="/docs/reference/models">Models you can train</a></li>
+<li><a href="/docs/reference/files">Files and settings</a></li>
+<li><a href="/docs/reference/limits">Scale and limits</a></li>
+<li><a href="/docs/reference/glossary">Glossary</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Help</p><ul>
+<li><a href="/docs/help/troubleshooting">Troubleshooting</a></li>
+<li><a href="/docs/help/faq">Frequently asked questions</a></li>
+<li><a href="/docs/help/privacy">Your data and privacy</a></li>
+</ul></div>
+</nav>
+    </div>
+    <main class="doc-main" id="main">
+      <article class="doc-article">
+        <nav class="doc-crumb" aria-label="Breadcrumb"><a href="/docs">Documentation</a><span aria-hidden="true">/</span><a href="/docs#guides">Guides</a></nav>
+        <h1>Use Granum from Python</h1>
+        <p class="doc-summary">The same objects the app uses, for scripted imports, custom metrics and your own training loop.</p>
+        <p>Everything the dashboard does sits on a small Python API, and the app is a client of it like any other.
+Use it when your work is repetitive, when your training loop is your own, or when the metric you care
+about is not one Granum computes.</p>
+<pre><code class="language-python">import granum
+from granum import Table
+
+granum.set_config(granum.Config.load(overrides={&quot;project-root-url&quot;: &quot;~/granum&quot;}))
+
+table = Table.from_coco(&quot;data/train/_annotations.coco.json&quot;, &quot;data/train&quot;,
+                        project_name=&quot;aerial&quot;, dataset_name=&quot;human_aerial&quot;, table_name=&quot;train&quot;)
+print(len(table), table.columns)
+</code></pre>
+<h2 id="tables">Tables</h2>
+<p>A <code>Table</code> is one version of one set: rows of samples, a schema that knows what each column means, and a
+parent. Editing returns a new table rather than changing this one.</p>
+<pre><code class="language-python">fixed = table.apply_edits(values={&quot;bbs&quot;: {4172: corrected_boxes}})   # a new version
+subset = table.filter(lambda row: row[&quot;bbs&quot;][&quot;instances&quot;])           # images with labels
+latest = table.latest()                                             # newest safe revision
+</code></pre>
+<h2 id="runs-and-metrics">Runs and metrics</h2>
+<pre><code class="language-python">run = granum.init(&quot;aerial&quot;, &quot;baseline&quot;, parameters={&quot;framework&quot;: &quot;yolo&quot;, &quot;epochs&quot;: 12})
+
+for epoch in range(12):
+    ...  # your training loop
+    granum.log({&quot;epoch&quot;: epoch, &quot;map50&quot;: score}, run=run)
+    granum.collect_metrics(
+        valid, [granum.DetectionMetricsCollector(&quot;bbs&quot;, value_map=valid.schema[&quot;bbs&quot;].value_map)],
+        predictor=my_predictor, constants={&quot;epoch&quot;: epoch}, split=&quot;valid&quot;,
+    )
+</code></pre>
+<p><code>collect_metrics</code> writes one metrics table per call, joined to the input table by row position, with the
+predicted boxes and per-image counts the dashboard reads. Anything you collect this way appears in the
+app: the run views, per-image learning and — when the predictions are stored every round — Findings.</p>
+<h2 id="training-and-export">Training and export</h2>
+<pre><code class="language-python">from granum import export_yolo
+export_yolo({&quot;train&quot;: train, &quot;val&quot;: valid}, &quot;/tmp/export&quot;, image_strategy=&quot;symlink&quot;)
+</code></pre>
+<p>The bundled trainer is a module, so a scripted run is one command:</p>
+<pre><code class="language-bash">python -m granum.training.train --project-root ~/granum --project aerial \
+    --train-table URL --valid-table URL --run-name nightly \
+    --family yolo --version yolo26m.pt --epochs 30 --track-learning
+</code></pre>
+<h2 id="the-service-api">The service API</h2>
+<p>The dashboard talks to a local REST service, and so can you — <code>/api/projects</code>, <code>/api/images</code>,
+<code>/api/run/findings</code>, <code>/api/runs/compare</code> and the rest. It listens on <code>127.0.0.1</code> only, checks the <code>Host</code>
+header, and refuses cross-origin writes; it is for local tooling, not a shared backend.</p>
+<div class="admonition note">
+<p class="admonition-title">Where the full API reference lives</p>
+<p>This page is an orientation, not a reference. The complete Python and service documentation ships
+with the source — <code>docs/python-sdk.md</code>, <code>docs/service.md</code> and <code>docs/architecture.md</code> — and every
+public function carries a docstring that explains why it behaves as it does.</p>
+</div>
+        <div class="doc-steps"><a class="doc-step prev" href="/docs/guides/projects"><span>Previous</span>Manage projects</a><a class="doc-step next" href="/docs/reference/screens"><span>Next</span>Map of the app</a></div>
+      </article>
+      <aside class="doc-toc" aria-label="On this page"><p>On this page</p><ul><li><a href="#tables">Tables</a></li><li><a href="#runs-and-metrics">Runs and metrics</a></li><li><a href="#training-and-export">Training and export</a></li><li><a href="#the-service-api">The service API</a></li></ul></aside>
+    </main>
+  </div>
+
+  <footer class="doc-footer">
+    <div class="wrap">
+      <p>© Granum. Your data stays on your computer.</p>
+      <p><a href="/">Product</a><a href="/download">Download</a><a href="/privacy">Privacy</a><a href="/docs/help/troubleshooting">Support</a></p>
+    </div>
+  </footer>
+
+  <div class="doc-search" data-search-panel hidden>
+    <div class="doc-search-box" role="dialog" aria-modal="true" aria-label="Search documentation">
+      <input type="search" placeholder="Search the documentation" autocomplete="off" spellcheck="false" data-search-input>
+      <ul data-search-results></ul>
+      <p class="doc-search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move · <kbd>Enter</kbd> to open · <kbd>Esc</kbd> to close</p>
+    </div>
+  </div>
+
+  <script src="/docs/docs.js" defer></script>
+</body>
+</html>

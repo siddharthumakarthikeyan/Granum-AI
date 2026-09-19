@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Granum: the data workbench for computer vision</title>
+  <meta name="description" content="Granum checks your computer-vision datasets as you import them, gives your team one place to review and fix every label, and trains YOLO, RT-DETR and RF-DETR on versioned data. Runs on your computer.">
+  <meta name="theme-color" content="#ffffff">
+  <meta property="og:title" content="Granum: the data workbench for computer vision">
+  <meta property="og:description" content="Find what is wrong with your training data, fix it, and train on versioned, verified datasets. Runs on your computer.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="/assets/og.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <script>document.documentElement.classList.remove("no-js");</script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="/" aria-label="Granum home"><img src="/assets/lockup-ink.svg" alt="Granum" width="128" height="32"></a>
+      <nav class="nav" id="nav" aria-label="Main">
+        <a href="#tour">Product</a>
+        <a href="#trial">Free trial</a>
+        <a href="#plans">Pricing</a>
+        <a href="/docs">Docs</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+      <div class="header-actions">
+        <a class="btn primary small" href="/download">Download</a>
+        <button class="menu-button" type="button" aria-controls="nav" aria-expanded="false" aria-label="Menu">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero">
+      <div class="wrap">
+        <h1 class="display">Fix your training data before your model learns from it.</h1>
+        <p class="lead">Granum checks every image and label as you import, gives your team one place to review and correct them, and trains YOLO, RT-DETR and RF-DETR on versioned datasets. It runs on your computer, so your data stays with you.</p>
+        <div class="hero-actions">
+          <a class="btn primary large" href="/download">Start your free trial</a>
+          <a class="btn large" href="#tour">Take the product tour</a>
+        </div>
+        <div class="hero-meta">
+          <span><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 10.4l3.2 3.1L15 6.7"/></svg>Free for 7 days, no card</span>
+          <span><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 10.4l3.2 3.1L15 6.7"/></svg>Windows 10 and 11, Linux</span>
+          <span><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 10.4l3.2 3.1L15 6.7"/></svg>Works offline</span>
+        </div>
+        <div class="hero-shot">
+          <div class="shot">
+            <div class="shot-bar"><i></i><i></i><i></i><span>Granum: Images</span></div>
+            <img src="/assets/screens/images.webp" width="1600" height="1000" alt="The Images view: a grid of aerial photos with their labelled boxes, with filters by split, class and review status" fetchpriority="high">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="tour">
+      <div class="wrap">
+        <div class="section-head">
+          <p class="kicker">Product tour</p>
+          <h2 class="h2">One workbench for the whole loop, from raw labels to a trained model.</h2>
+          <p class="lead">Most model problems are data problems. Granum makes your data visible, reviewable and versioned, so every training run uses data you have checked.</p>
+        </div>
+
+        <div class="tabs" role="tablist" aria-label="Product tour">
+          <button class="tab" role="tab" id="tab-import" aria-controls="panel-import" aria-selected="true">Import checks</button>
+          <button class="tab" role="tab" id="tab-review" aria-controls="panel-review" aria-selected="false" tabindex="-1">Review and edit</button>
+          <button class="tab" role="tab" id="tab-versions" aria-controls="panel-versions" aria-selected="false" tabindex="-1">Dataset versions</button>
+          <button class="tab" role="tab" id="tab-train" aria-controls="panel-train" aria-selected="false" tabindex="-1">Training</button>
+          <button class="tab" role="tab" id="tab-learning" aria-controls="panel-learning" aria-selected="false" tabindex="-1">Per-image learning</button>
+        </div>
+
+        <div class="panel" role="tabpanel" id="panel-import" aria-labelledby="tab-import">
+          <div>
+            <h3>Catch problems when you import, not after training.</h3>
+            <p>Point Granum at a COCO dataset. Before anything is imported, it checks every image and every box and tells you what it found and how many images are affected.</p>
+            <ul class="ticks">
+              <li>The same image, or frames of one sequence, in more than one split</li>
+              <li>Boxes with no width or height, and categories that share a name</li>
+              <li>Ignore regions and crowd labels recognised, not trained on as objects</li>
+              <li>Train, validation and test splits resized with a drag</li>
+            </ul>
+          </div>
+          <div class="shot"><img src="/assets/screens/overview.webp" width="1600" height="1000" alt="Project overview listing import warnings: sequences shared across splits, byte-identical images across splits, zero-size boxes" loading="lazy"></div>
+        </div>
+
+        <div class="panel" role="tabpanel" id="panel-review" aria-labelledby="tab-review">
+          <div>
+            <h3>Review every image. Correct any label.</h3>
+            <p>Browse thousands of images with their labels, filter by class and status, and open any image full screen. Reviewers verify images, send them back for rework with a comment, or set them aside.</p>
+            <ul class="ticks">
+              <li>Draw and edit boxes, polygon masks and keypoints</li>
+              <li>Tools match the project type: detection, segmentation, keypoints or classification</li>
+              <li>Every save is a new version of the set. Nothing is overwritten.</li>
+            </ul>
+          </div>
+          <div class="shot"><img src="/assets/screens/editor.webp" width="1600" height="1000" alt="The annotation editor: an aerial street scene with coloured boxes on cars and people, and the object list" loading="lazy"></div>
+        </div>
+
+        <div class="panel" role="tabpanel" id="panel-versions" aria-labelledby="tab-versions">
+          <div>
+            <h3>Freeze what you train on, and see every augmentation first.</h3>
+            <p>Create a named dataset version from the whole dataset or only its verified images. Add augmented copies of the training set, previewed on your own images before you commit.</p>
+            <ul class="ticks">
+              <li>Flip, rotate, crop, shear, colour, blur, noise and cutout</li>
+              <li>Boxes, masks and keypoints move with the image</li>
+              <li>Validation and test sets are never augmented</li>
+            </ul>
+          </div>
+          <div class="shot"><img src="/assets/screens/augment.webp" width="1600" height="1000" alt="Create dataset dialog with augmentation cards, each showing the same photo flipped, rotated, cropped, recoloured or blurred" loading="lazy"></div>
+        </div>
+
+        <div class="panel" role="tabpanel" id="panel-train" aria-labelledby="tab-train">
+          <div>
+            <h3>Train on a version. Score on a held-out test set.</h3>
+            <p>Train YOLO, RT-DETR or RF-DETR on any dataset version. GPU support installs the first time you need it. Validation picks the best weights, and a separate test set is scored once, at the end.</p>
+            <ul class="ticks">
+              <li>Compare runs side by side on the same labels</li>
+              <li>All three model families scored the same way</li>
+              <li>Every run records exactly which data it trained on</li>
+            </ul>
+          </div>
+          <div class="shot"><img src="/assets/screens/datasets.webp" width="1600" height="1000" alt="Datasets page showing a dataset version with its train, valid and test sets and a Train button" loading="lazy"></div>
+        </div>
+
+        <div class="panel" role="tabpanel" id="panel-learning" aria-labelledby="tab-learning">
+          <div>
+            <h3>See which images the model never learned.</h3>
+            <p>Granum records the model's predictions on every image in each round. Images learned late, forgotten again or never learned point to labels worth a second look, and to classes that need more examples.</p>
+            <ul class="ticks">
+              <li>Every image sorted into learned early, late, unstable or never</li>
+              <li>Open any image to compare its labels with each round's predictions</li>
+              <li>Remove bad images into a new version, restorable at any time</li>
+            </ul>
+          </div>
+          <figure style="margin:0">
+            <div class="shot stage-chart" data-chart="/assets/illustrations/learning.svg">
+              <img src="/assets/illustrations/learning.svg" width="760" height="380" alt="Illustration: share of 1,000 training images learned by each epoch, split into learned early, mid-training, late, unstable, and never learned" loading="lazy">
+            </div>
+            <figcaption class="caption">Illustration with example numbers: when each training image was first learned, over 30 epochs.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="band">
+      <div class="wrap">
+        <div class="section-head">
+          <p class="kicker">Built for teams that own their data</p>
+          <h2 class="h2">Private, versioned and ready to use on day one.</h2>
+        </div>
+        <div class="features">
+          <div class="feature">
+            <div class="icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="10.5" width="15" height="10" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg></div>
+            <h3>Your data stays on your computer</h3>
+            <p>Images and labels are read where they are, and nothing is uploaded. The app contacts us only to sign in and renew its licence.</p>
+          </div>
+          <div class="feature">
+            <div class="icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><circle cx="17" cy="17" r="3.5"/></svg></div>
+            <h3>Six task types</h3>
+            <p>Object detection, instance, semantic and panoptic segmentation, keypoint detection and classification, in one project if you need.</p>
+          </div>
+          <div class="feature">
+            <div class="icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2.5"/><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="12" r="2.5"/><path d="M6 8.5v7M8.3 7.2 15.7 11M8.3 16.8l7.4-3.8"/></svg></div>
+            <h3>Versions, not overwrites</h3>
+            <p>Every edit, removal and review decision is recorded. Reopen or train on any earlier version of a set.</p>
+          </div>
+          <div class="feature">
+            <div class="icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-7 4 14 3-7h4"/></svg></div>
+            <h3>Three model families</h3>
+            <p>YOLO, RT-DETR and RF-DETR, all scored by the same evaluator, so runs compare fairly.</p>
+          </div>
+          <div class="feature">
+            <div class="icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 9a15 15 0 0 1 19 0M5.5 12.5a10 10 0 0 1 13 0M8.8 16a5 5 0 0 1 6.4 0"/><path d="M3 3l18 18"/></svg></div>
+            <h3>Works offline</h3>
+            <p>Sign in once, then work for up to 7 days without a connection between licence renewals.</p>
+          </div>
+          <div class="feature">
+            <div class="icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12.5" rx="2"/><path d="M8.5 20.5h7M12 16.5v4"/></svg></div>
+            <h3>A real desktop app</h3>
+            <p>One installer for Windows, one file for Linux. No Python, containers or setup.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="trial">
+      <div class="wrap">
+        <div class="section-head">
+          <p class="kicker">Free trial</p>
+          <h2 class="h2">Seven days with the full product. No card needed.</h2>
+          <p class="lead">The trial is tied to your email and your computer. When it ends, your projects stay readable and exportable.</p>
+        </div>
+        <ol class="steps">
+          <li><h3>Download</h3><p>Enter your email on the download page and choose Windows or Linux.</p></li>
+          <li><h3>Install</h3><p>Run the Windows installer, or make the Linux file executable and open it.</p></li>
+          <li><h3>Sign in</h3><p>Open <strong>Licence</strong> in Granum and enter the same email and the code we send you. Your 7 days start.</p></li>
+        </ol>
+      </div>
+    </section>
+
+    <section id="plans" class="band">
+      <div class="wrap">
+        <div class="section-head center">
+          <p class="kicker">Pricing</p>
+          <h2 class="h2">Simple pricing per computer.</h2>
+          <p class="lead">Every plan includes every feature and starts with a 7-day free trial. Move a plan to another computer whenever you need to.</p>
+        </div>
+        <div class="billing" role="group" aria-label="Billing period">
+          <button type="button" data-billing="monthly" aria-pressed="false">Monthly</button>
+          <button type="button" data-billing="yearly" aria-pressed="true">Yearly <span class="save">2 months free</span></button>
+        </div>
+        <div class="plans">
+          <div class="plan">
+            <h3>Single</h3>
+            <p class="for">For one person on one computer</p>
+            <div class="price"><span data-monthly="$39" data-yearly="$390">$390</span><small data-monthly="per month" data-yearly="per year">per year</small></div>
+            <p class="per" data-monthly="Billed monthly. Cancel any time." data-yearly="$32.50 a month, billed yearly.">$32.50 a month, billed yearly.</p>
+            <a class="btn primary" href="/quote?plan=Single">Buy Single</a>
+            <ul><li>1 computer</li><li>Up to 10 projects</li><li>Every feature, all six task types</li><li>YOLO, RT-DETR and RF-DETR training</li><li>Email support</li></ul>
+          </div>
+          <div class="plan featured">
+            <span class="badge">Best for teams</span>
+            <h3>Team</h3>
+            <p class="for">For a team sharing up to five computers</p>
+            <div class="price"><span data-monthly="$149" data-yearly="$1,490">$1,490</span><small data-monthly="per month" data-yearly="per year">per year</small></div>
+            <p class="per" data-monthly="Billed monthly. Cancel any time." data-yearly="$124.17 a month, billed yearly.">$124.17 a month, billed yearly.</p>
+            <a class="btn primary" href="/quote?plan=Team">Buy Team</a>
+            <ul><li>5 computers</li><li>Up to 50 projects</li><li>Everything in Single</li><li>Move computers in and out of the plan</li><li>Priority email support</li></ul>
+          </div>
+          <div class="plan">
+            <h3>Enterprise</h3>
+            <p class="for">For companies and larger teams</p>
+            <div class="price">Custom</div>
+            <p class="per">Yearly terms, priced to your team.</p>
+            <a class="btn" href="/quote?plan=Enterprise">Request a quote</a>
+            <ul><li>As many computers as you need</li><li>Unlimited projects</li><li>Invoice and purchase-order billing</li><li>Volume pricing</li><li>Help getting your first dataset in</li></ul>
+          </div>
+        </div>
+        <p class="plans-note">Prices in US dollars, excluding taxes. Not ready to buy? <a href="/download">Start the free trial</a>: 7 days, 1 computer, 1 project, no card. When a plan ends, Granum becomes read-only and nothing is deleted.</p>
+      </div>
+    </section>
+
+    <section id="faq">
+      <div class="wrap faq-layout">
+        <div>
+          <h2 class="h2">Frequently asked questions</h2>
+          <p class="lead">Can't find your answer? <a data-contact="Granum question" href="/download">Write to us</a> and we will reply.</p>
+        </div>
+        <div class="faq">
+          <details><summary>Does my data leave my computer?</summary><p>No. Granum reads your images and labels where they are and keeps its work beside them. The app contacts our licence server only to sign in and renew. It sends your email, an ID for the computer (a hash, not a hardware serial number) and the app version.</p></details>
+          <details><summary>What happens when the trial or a plan ends?</summary><p>Granum becomes read-only. You can open every project, look at images and runs, and export. Creating, editing, importing and training resume when you buy or renew a plan.</p></details>
+          <details><summary>Can I use it without internet?</summary><p>Yes. Sign in once, and the licence renews itself whenever the computer is online. It keeps working for up to 7 days without a connection.</p></details>
+          <details><summary>What do I need to train models?</summary><p>An NVIDIA GPU is strongly recommended. The training components (PyTorch with CUDA and the model libraries, a few gigabytes) download the first time you train. Everything else works without them.</p></details>
+          <details><summary>Which formats can I import?</summary><p>COCO datasets, the format Roboflow and most annotation tools export, with train, validation and test splits. You can also build projects from classes pulled out of your other projects.</p></details>
+          <details><summary>Why does Windows say it protected my PC?</summary><p>The installer is not yet signed with a commercial certificate, so Windows SmartScreen asks before running it. Choose <strong>More info</strong>, then <strong>Run anyway</strong>.</p></details>
+        </div>
+      </div>
+    </section>
+
+    <section class="closing on-dark">
+      <img class="mark-bg" src="/assets/mark.svg" alt="" width="360" height="360">
+      <div class="wrap">
+        <h2 class="h2">See your data the way your model does.</h2>
+        <p class="lead">Download Granum and try it free for 7 days on your own dataset.</p>
+        <div class="hero-actions">
+          <a class="btn primary large" href="/download">Download Granum</a>
+          <a class="btn large" href="#plans">See pricing</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <div class="footer-grid">
+        <div>
+          <img src="/assets/lockup-ink.svg" alt="Granum" width="112" height="28">
+          <p>The data workbench for computer-vision teams. Runs on your computer.</p>
+        </div>
+        <div>
+          <h4>Product</h4>
+          <ul><li><a href="/#tour">Product tour</a></li><li><a href="/#plans">Pricing</a></li><li><a href="/docs">Documentation</a></li><li><a href="/#faq">FAQ</a></li></ul>
+        </div>
+        <div>
+          <h4>Get started</h4>
+          <ul><li><a href="/download">Download</a></li><li><a href="/#trial">Free trial</a></li><li><a href="/docs/start/install">Install guide</a></li></ul>
+        </div>
+        <div>
+          <h4>Company</h4>
+          <ul><li><a href="/privacy">Privacy</a></li><li><a data-contact="Granum" href="/download" hidden>Contact</a></li></ul>
+        </div>
+      </div>
+      <div class="footer-base"><span>© <span data-year></span> Granum. All rights reserved.</span><span data-version></span></div>
+    </div>
+  </footer>
+  <script src="/site.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Troubleshooting · Granum documentation</title>
+  <meta name="description" content="The service, the window, training, imports and licences, when they do not behave.">
+  <meta name="theme-color" content="#ffffff">
+  <meta property="og:title" content="Troubleshooting · Granum documentation">
+  <meta property="og:description" content="The service, the window, training, imports and licences, when they do not behave.">
+  <meta property="og:type" content="article">
+  <meta property="og:image" content="/assets/og.jpg">
+  <link rel="canonical" href="https://granum.app/docs/help/troubleshooting">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/docs/docs.css">
+  <script>document.documentElement.classList.remove("no-js");</script>
+</head>
+<body class="doc-body">
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header doc-header">
+    <div class="wrap">
+      <a class="brand" href="/" aria-label="Granum home"><img src="/assets/lockup-ink.svg" alt="Granum" width="128" height="32"></a>
+      <span class="doc-badge"><a href="/docs">Docs</a></span>
+      <nav class="nav" id="nav" aria-label="Main">
+        <a href="/#tour">Product</a>
+        <a href="/#plans">Pricing</a>
+        <a href="/docs/help/faq">FAQ</a>
+      </nav>
+      <div class="header-actions">
+        <button class="doc-search-button" type="button" data-search aria-label="Search documentation">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3 3"/></svg>
+          <span>Search</span><kbd>/</kbd>
+        </button>
+        <a class="btn primary small" href="/download">Download</a>
+        <button class="menu-button" type="button" aria-controls="doc-sidebar" aria-expanded="false" aria-label="Menu" data-sidebar-toggle>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="doc-shell">
+    <div class="doc-sidebar" id="doc-sidebar">
+      <nav class="doc-nav" aria-label="Documentation">
+<a class="doc-nav-home" href="/docs">Start here</a>
+<div class="doc-nav-group"><p class="doc-nav-title">Getting started</p><ul>
+<li><a href="/docs/start/install">Install Granum</a></li>
+<li><a href="/docs/start/activate">Sign in and licences</a></li>
+<li><a href="/docs/start/first-project">Your first project</a></li>
+<li><a href="/docs/start/the-loop">Run the loop once</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Concepts</p><ul>
+<li><a href="/docs/concepts/model">How Granum is organised</a></li>
+<li><a href="/docs/concepts/projects">Projects and project types</a></li>
+<li><a href="/docs/concepts/versions">Versions and lineage</a></li>
+<li><a href="/docs/concepts/dataset-versions">Dataset versions</a></li>
+<li><a href="/docs/concepts/verification">Verification and decisions</a></li>
+<li><a href="/docs/concepts/identity">Image identity</a></li>
+<li><a href="/docs/concepts/runs">Runs and metrics</a></li>
+<li><a href="/docs/concepts/evidence">What the evidence is worth</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Guides</p><ul>
+<li><a href="/docs/guides/import">Import data</a></li>
+<li><a href="/docs/guides/pull-from-projects">Build from existing projects</a></li>
+<li><a href="/docs/guides/browse">Browse images</a></li>
+<li><a href="/docs/guides/review">Review and verify</a></li>
+<li><a href="/docs/guides/edit">Edit annotations</a></li>
+<li><a href="/docs/guides/isolate-remove">Isolate, remove and restore</a></li>
+<li><a href="/docs/guides/dataset-versions">Create a dataset version</a></li>
+<li><a href="/docs/guides/augmentation">Augmentation</a></li>
+<li><a href="/docs/guides/train">Train a model</a></li>
+<li><a href="/docs/guides/runs">Read a run</a></li>
+<li><a href="/docs/guides/learning">Per-image learning</a></li>
+<li><a href="/docs/guides/findings">Work the Findings queue</a></li>
+<li><a href="/docs/guides/compare">Compare two runs</a></li>
+<li><a href="/docs/guides/projects">Manage projects</a></li>
+<li><a href="/docs/guides/python">Use Granum from Python</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Reference</p><ul>
+<li><a href="/docs/reference/screens">Map of the app</a></li>
+<li><a href="/docs/reference/shortcuts">Keyboard shortcuts</a></li>
+<li><a href="/docs/reference/preflight">Import checks</a></li>
+<li><a href="/docs/reference/models">Models you can train</a></li>
+<li><a href="/docs/reference/files">Files and settings</a></li>
+<li><a href="/docs/reference/limits">Scale and limits</a></li>
+<li><a href="/docs/reference/glossary">Glossary</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Help</p><ul>
+<li><a href="/docs/help/troubleshooting" class="on" aria-current="page">Troubleshooting</a></li>
+<li><a href="/docs/help/faq">Frequently asked questions</a></li>
+<li><a href="/docs/help/privacy">Your data and privacy</a></li>
+</ul></div>
+</nav>
+    </div>
+    <main class="doc-main" id="main">
+      <article class="doc-article">
+        <nav class="doc-crumb" aria-label="Breadcrumb"><a href="/docs">Documentation</a><span aria-hidden="true">/</span><a href="/docs#help">Help</a></nav>
+        <h1>Troubleshooting</h1>
+        <p class="doc-summary">The service, the window, training, imports and licences, when they do not behave.</p>
+        <h2 id="the-dashboard-says-the-service-is-not-reachable">The dashboard says the service is not reachable</h2>
+<p>The app is two parts: a background service and a window. The window is telling you the service is not
+answering.</p>
+<pre><code class="language-bash">granum app status                  # is it running, on which port, with which project root?
+systemctl --user restart granum    # Linux
+tail -50 ~/.local/state/granum/service.log
+</code></pre>
+<p>On Windows, restart Granum from the Start menu; the service starts with it.</p>
+<p>If the port is taken by something else, change it: <code>granum app install --port 8100</code>.</p>
+<h2 id="the-window-opens-blank-or-not-at-all">The window opens blank, or not at all</h2>
+<p>Granum's window needs WebKitGTK on Linux. If it is missing the app falls back to your browser and says
+so; install it with <code>sudo apt install python3-gi gir1.2-webkit2-4.1</code>. You can always use the dashboard
+in a browser at <code>http://127.0.0.1:8000</code>, or <code>granum open --browser</code>.</p>
+<h2 id="import-cannot-see-my-folder">Import cannot see my folder</h2>
+<p>The service only reads under its configured data roots — your home folder by default. A dataset on
+another disk needs that path added:</p>
+<pre><code class="language-bash">granum service --data-root /mnt/datasets    # or set service.data-roots in the config
+</code></pre>
+<h2 id="preflight-is-very-slow">Preflight is very slow</h2>
+<p>It is decoding every image, which is the thorough setting. For a dataset you have imported before,
+choose <strong>Sample, 200 per set</strong>, or <strong>Annotations only</strong> when the images live on slow or remote storage.</p>
+<h2 id="training">Training</h2>
+<p><strong>"Training support is not installed"</strong> — the first Train dialog offers to install PyTorch; it needs the
+internet once and about 3 GB.</p>
+<p><strong>Out of memory</strong> — reduce the image size first, then the model size. RT-DETR large needs roughly 8 GB of
+graphics memory at batch 8.</p>
+<p><strong>"Another training job is running"</strong> — one job per machine. Wait, or cancel the other from the Runs
+screen.</p>
+<p><strong>The run finished but Findings is empty</strong> — three possible reasons, and the page says which: the run did
+not record predictions each round, it was cancelled before producing any, or the model never became
+competent on that set. The last is common on short schedules; train longer.</p>
+<p><strong>The run stopped when I restarted the service</strong> — training survives a restart on current versions, but
+check <code>granum app status</code> before restarting anything while a job is running.</p>
+<h2 id="licence">Licence</h2>
+<p><strong>"Read-only"</strong> — the plan ended, the trial ran out, or the offline lease expired. Open <strong>Licence</strong> and
+sign in again. Your data is untouched; only changes are refused.</p>
+<p><strong>"This licence is for another computer"</strong> — keys are issued per machine. Sign in on this machine to get
+its own, freeing a slot elsewhere with <strong>Sign out</strong> if the plan is full.</p>
+<p><strong>"The system clock is behind"</strong> — Granum counts offline time against the latest time it has seen.
+Correct the clock and it resumes.</p>
+<h2 id="images-do-not-appear">Images do not appear</h2>
+<p>Projects record absolute paths to your images. If the files moved, the dataset points at nothing. Move
+them back, or re-import from the new location. Granum never copies your images, which is why it cannot
+fix this for you.</p>
+<h2 id="still-stuck">Still stuck</h2>
+<p>Collect the version and the log before asking for help:</p>
+<pre><code class="language-bash">granum version
+granum app status
+tail -200 ~/.local/state/granum/service.log
+</code></pre>
+<p>The log holds paths and project names but no image content.</p>
+        <div class="doc-steps"><a class="doc-step prev" href="/docs/reference/glossary"><span>Previous</span>Glossary</a><a class="doc-step next" href="/docs/help/faq"><span>Next</span>Frequently asked questions</a></div>
+      </article>
+      <aside class="doc-toc" aria-label="On this page"><p>On this page</p><ul><li><a href="#the-dashboard-says-the-service-is-not-reachable">The dashboard says the service is not reachable</a></li><li><a href="#the-window-opens-blank-or-not-at-all">The window opens blank, or not at all</a></li><li><a href="#import-cannot-see-my-folder">Import cannot see my folder</a></li><li><a href="#preflight-is-very-slow">Preflight is very slow</a></li><li><a href="#training">Training</a></li><li><a href="#licence">Licence</a></li><li><a href="#images-do-not-appear">Images do not appear</a></li><li><a href="#still-stuck">Still stuck</a></li></ul></aside>
+    </main>
+  </div>
+
+  <footer class="doc-footer">
+    <div class="wrap">
+      <p>© Granum. Your data stays on your computer.</p>
+      <p><a href="/">Product</a><a href="/download">Download</a><a href="/privacy">Privacy</a><a href="/docs/help/troubleshooting">Support</a></p>
+    </div>
+  </footer>
+
+  <div class="doc-search" data-search-panel hidden>
+    <div class="doc-search-box" role="dialog" aria-modal="true" aria-label="Search documentation">
+      <input type="search" placeholder="Search the documentation" autocomplete="off" spellcheck="false" data-search-input>
+      <ul data-search-results></ul>
+      <p class="doc-search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move · <kbd>Enter</kbd> to open · <kbd>Esc</kbd> to close</p>
+    </div>
+  </div>
+
+  <script src="/docs/docs.js" defer></script>
+</body>
+</html>
