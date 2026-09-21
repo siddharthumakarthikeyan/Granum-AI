@@ -64,7 +64,7 @@ export function RemovedPage({ project, dataset }: { project: string; dataset: st
   return (
     <div className="page">
       <PageHeader
-        back={{ href: routeHref({ name: "datasets", project }), label: "Datasets" }}
+        back={{ href: routeHref({ name: "images", project, dataset }), label: "Images" }}
         title={`Removed from ${dataset}`}
         subtitle="Images taken out of the training or checking sets. Nothing here is deleted: put any image back and it returns to the newest version of the set it came from."
         actions={

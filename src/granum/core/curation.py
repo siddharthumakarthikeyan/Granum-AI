@@ -21,7 +21,7 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 
 from granum.core.config import Config, get_config
-from granum.core.layout import ROW_CACHE_FILENAME, ProjectLayout
+from granum.core.layout import ROW_CACHE_FILENAME, ProjectLayout, sanitize
 from granum.core.objects.base import write_object_payload
 from granum.core.objects.table import Table, _unique_url
 from granum.core.reviews import ReviewLog
@@ -36,6 +36,9 @@ ISOLATED_SET = "isolated"
 HOLDING_SETS = (REMOVED_SET, ISOLATED_SET)
 #: Columns the removed set adds to the rows it holds.
 REMOVED_COLUMNS = ("removed_from", "removed_from_version", "removed_reason", "removed_at")
+#: Producer op of the frozen copy of a set a dataset version was created from. These live
+#: outside the dataset's version history: they are never the newest version of a set.
+RELEASE_OP = "release"
 
 
 class CurationError(TableError):
@@ -81,6 +84,42 @@ def _write_version(
         parents=parents,
         producer={"op": op, "args": args},
         description=description,
+        arrow=arrow,
+    )
+    target.mkdir()
+    pq.write_table(arrow, (target / ROW_CACHE_FILENAME).path, filesystem=target.fs)
+    write_object_payload(target, table.to_dict())
+    return table
+
+
+def is_release(table: Table) -> bool:
+    return table.producer.get("op") == RELEASE_OP
+
+
+def write_release_set(source: Table, keep: Iterable[str], *, release_id: str, release_name: str) -> Table:
+    """A frozen copy of ``source`` holding only the images in ``keep``, for one dataset version.
+
+    Written under the project's ``releases`` folder, not the dataset's tables, and marked
+    with :data:`RELEASE_OP`, so it never becomes the working version of its set.
+    """
+    wanted = set(keep)
+    images = source.to_arrow().column(image_column(source)).to_pylist()
+    rows = [i for i, image in enumerate(images) if image in wanted]
+    layout = ProjectLayout(get_config().project_root)
+    folder = layout.project(source.project_name) / "releases" / sanitize(source.dataset_name) / release_id
+    target = _unique_url(folder, source.base_name)
+    arrow = source.to_arrow().take(pa.array(rows, type=pa.int64()))
+    table = Table(
+        url=target,
+        name=target.name,
+        base_name=source.base_name,
+        project_name=source.project_name,
+        dataset_name=source.dataset_name,
+        schema=source.schema,
+        row_count=arrow.num_rows,
+        parents=(source.url,),
+        producer={"op": RELEASE_OP, "args": {"release": release_id, "count": len(rows)}},
+        description=f"{release_name}: {_plain(len(rows), 'verified image')} of {source.name}",
         arrow=arrow,
     )
     target.mkdir()

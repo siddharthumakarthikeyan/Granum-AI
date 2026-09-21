@@ -191,6 +191,8 @@ export interface CommitPayload {
   values: Record<string, Record<string, unknown>>;
   new_columns: Record<string, [EditableKind, unknown]>;
   value_maps: Record<string, ValueMap>;
+  /** Geometry column -> {property: kind} to add to its instances. */
+  instance_properties?: Record<string, Record<string, string>>;
 }
 
 /** One sparse payload per Table touched. Only net changes are sent. */

@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 import { api, ServiceError } from "../api/client";
-import type { ImportResult, ImportSource, Job, PreflightReport } from "../api/types";
+import type { ImportResult, ImportSource, Job, PreflightReport, TaskId } from "../api/types";
 
 export type Step = "choose" | "checking" | "review" | "importing" | "done";
 export type MediaMode = "full" | "sample" | "none";
@@ -18,6 +18,12 @@ interface ImportState {
   choices: Record<string, string>;
   projectName: string;
   tableName: string;
+  /** Images wanted per split, once the user has moved the split slider. */
+  splitPlan: Record<string, number> | null;
+  /** Where the sources were pulled from, when they came from existing projects. */
+  pulled: { description: string; images: number } | null;
+  /** The project types chosen; empty until chosen. */
+  tasks: TaskId[];
   importJob: Job<ImportResult> | null;
   result: ImportResult | null;
   error: string | null;
@@ -27,11 +33,15 @@ interface ImportState {
   choose: (code: string, option: string) => void;
   setProjectName: (name: string) => void;
   setTableName: (name: string) => void;
+  setSplitPlan: (plan: Record<string, number> | null) => void;
+  setTasks: (tasks: TaskId[]) => void;
+  setPulled: (pulled: ImportState["pulled"]) => void;
   runPreflight: () => Promise<void>;
   cancel: () => Promise<void>;
   backToChoose: () => void;
   runImport: () => Promise<void>;
   reset: (projectName?: string) => void;
+  loadExample: () => Promise<void>;
 }
 
 const sleep = (ms: number) => new Promise((resolve) => window.setTimeout(resolve, ms));
@@ -55,6 +65,9 @@ export const useImport = create<ImportState>((set, get) => ({
   choices: {},
   projectName: "",
   tableName: "initial",
+  splitPlan: null,
+  tasks: [],
+  pulled: null,
   importJob: null,
   result: null,
   error: null,
@@ -64,10 +77,13 @@ export const useImport = create<ImportState>((set, get) => ({
   choose: (code, option) => set((state) => ({ choices: { ...state.choices, [code]: option } })),
   setProjectName: (projectName) => set({ projectName }),
   setTableName: (tableName) => set({ tableName }),
+  setSplitPlan: (splitPlan) => set({ splitPlan }),
+  setTasks: (tasks) => set({ tasks }),
+  setPulled: (pulled) => set({ pulled }),
 
   runPreflight: async () => {
     const { sources, media } = get();
-    set({ step: "checking", error: null, report: null, job: null, choices: {} });
+    set({ step: "checking", error: null, report: null, job: null, choices: {}, splitPlan: null });
     try {
       let job = await api.preflight(sources, media);
       set({ job });
@@ -104,8 +120,10 @@ export const useImport = create<ImportState>((set, get) => ({
   backToChoose: () => set({ step: "choose", report: null, job: null, error: null }),
 
   runImport: async () => {
-    const { job, choices, projectName, tableName } = get();
+    const { job, choices, projectName, tableName, splitPlan, report, tasks } = get();
     if (!job) return;
+    const original = Object.fromEntries((report?.summary.splits ?? []).map((s) => [s.split, s.images]));
+    const recut = splitPlan && Object.entries(splitPlan).some(([split, count]) => original[split] !== count);
     set({ step: "importing", error: null, importJob: null });
     try {
       let importJob = await api.commitImport({
@@ -113,6 +131,8 @@ export const useImport = create<ImportState>((set, get) => ({
         project_name: projectName.trim(),
         table_name: tableName.trim() || "initial",
         resolutions: choices,
+        tasks: tasks.length ? tasks : [report?.summary.task?.detected ?? "object_detection"],
+        ...(recut ? { split_plan: splitPlan } : {}),
       });
       set({ importJob });
       while (importJob.status === "running") {
@@ -130,9 +150,24 @@ export const useImport = create<ImportState>((set, get) => ({
     }
   },
 
+  loadExample: async () => {
+    set({ error: null });
+    try {
+      const example = await api.exampleDataset();
+      set((state) => ({
+        sources: example.sources,
+        pulled: { description: example.description, images: example.images },
+        projectName: state.projectName || example.project_name,
+        tasks: state.tasks.length ? state.tasks : example.tasks,
+      }));
+    } catch (error) {
+      set({ error: message(error) });
+    }
+  },
+
   reset: (projectName = "") =>
     set({
       step: "choose", sources: [], job: null, report: null, choices: {}, projectName,
-      tableName: "initial", importJob: null, result: null, error: null,
+      tableName: "initial", splitPlan: null, tasks: [], pulled: null, importJob: null, result: null, error: null,
     }),
 }));

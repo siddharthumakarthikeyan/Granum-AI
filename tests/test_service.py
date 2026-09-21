@@ -621,6 +621,52 @@ def test_ship_one_set_while_another_is_still_in_review(client, tmp_path):
     assert after["train"]["shipped"] and not after["valid"]["shipped"]
 
 
+def test_import_records_the_tasks(client, tmp_path):
+    api = client[0]
+    folder = _dataset(tmp_path)
+    job = api.post("/api/import/preflight", json={"sources": [{"split": "train", "annotations": str(folder / "_annotations.coco.json")}], "media": "none"}).json()
+    report = _wait(api, job)["result"]
+    assert report["summary"]["task"]["detected"] == "object_detection"
+    bad = api.post("/api/import/commit", json={"preflight_job": job["id"], "project_name": "shop", "tasks": ["painting"]})
+    assert bad.status_code == 400
+    chosen = ["instance_segmentation", "object_detection"]
+    done = _wait(api, api.post("/api/import/commit", json={"preflight_job": job["id"], "project_name": "shop", "tasks": chosen}).json())
+    assert done["result"]["tasks"] == ["object_detection", "instance_segmentation"]
+    tables = api.get("/api/projects/shop/tables").json()["tables"]
+    assert tables and all(t["tasks"] == ["object_detection", "instance_segmentation"] for t in tables)
+
+
+def test_create_dataset_versions_all_or_verified_only(client, tmp_path):
+    api = client[0]
+    folder = _dataset(tmp_path)
+    job = api.post("/api/import/preflight", json={"sources": [{"split": "train", "annotations": str(folder / "_annotations.coco.json")}], "media": "none"}).json()
+    _wait(api, job)
+    _wait(api, api.post("/api/import/commit", json={"preflight_job": job["id"], "project_name": "shop"}).json())
+    [dataset] = {t["dataset_name"] for t in api.get("/api/projects/shop/tables").json()["tables"]}
+    base = {"project": "shop", "dataset": dataset}
+    [train] = api.get("/api/qa", params=base).json()["sets"]
+    images = [i["image"] for i in train["images"]]
+
+    # Nothing verified: only the whole dataset can be taken.
+    assert api.post("/api/qa/release", json={**base, "name": "v0", "mode": "verified"}).status_code == 409
+    assert api.post("/api/qa/release", json={**base, "name": " ", "mode": "all"}).status_code == 400
+    whole = api.post("/api/qa/release", json={**base, "name": "Everything", "description": "first cut", "mode": "all"})
+    assert whole.status_code == 200, whole.text
+    assert whole.json()["release"]["sets"]["train"] == {"url": train["url"], "name": train["name"], "images": 2, "verified": 0}
+    assert api.post("/api/qa/release", json={**base, "name": "everything", "mode": "all"}).status_code == 409
+
+    # Verified only freezes a copy of the verified images; the working set is untouched.
+    api.post("/api/qa/status", json={**base, "samples": [images[0]], "status": "reviewed"})
+    done = api.post("/api/qa/release", json={**base, "name": "Clean", "mode": "verified"}).json()["release"]
+    frozen = done["sets"]["train"]
+    assert frozen["images"] == 1 and frozen["url"] != train["url"] and done["version"] == 2
+    [still] = api.get("/api/qa", params=base).json()["sets"]
+    assert still["url"] == train["url"] and len(still["images"]) == 2
+    listed = api.get("/api/releases", params={"project": "shop"}).json()["releases"]
+    assert [r["name"] for r in listed] == ["Clean", "Everything"] and listed[0]["dataset"] == dataset
+    assert set(api.get("/api/training/status", params={"project": "shop"}).json()["shipped"]) == {train["url"], frozen["url"]}
+
+
 def test_review_isolate_return_delete_and_edit_boxes(client, tmp_path):
     api = client[0]
     folder = _dataset(tmp_path)
@@ -695,3 +741,197 @@ def test_training_refuses_bad_requests_before_starting(client, monkeypatch):
     assert api.post("/api/training", json={**base, "rounds": 0}).status_code == 422
     assert api.post("/api/training", json={**base, "compare_with": "nope"}).status_code == 404
     assert api.post("/api/training", json={**base, "run_name": "../../x"}).status_code == 400
+    assert api.post("/api/training", json={**base, "test_table": str(child.url)}).status_code == 400
+    assert api.post("/api/training", json={**base, "test_table": "/etc"}).status_code == 403
+
+
+def test_pull_images_from_existing_projects_by_class(client, tmp_path):
+    import json as _json
+
+    from PIL import Image
+
+    api = client[0]
+    folder = tmp_path / "zoo" / "train"
+    folder.mkdir(parents=True)
+    for name in ("a.jpg", "b.jpg", "c.jpg"):
+        Image.new("RGB", (40, 30)).save(folder / name)
+    (folder / "_annotations.coco.json").write_text(_json.dumps({
+        "images": [{"id": i, "file_name": n, "width": 40, "height": 30} for i, n in enumerate(("a.jpg", "b.jpg", "c.jpg"), 1)],
+        "annotations": [{"id": 1, "image_id": 1, "category_id": 1, "bbox": [1, 1, 10, 10]},
+                        {"id": 2, "image_id": 1, "category_id": 2, "bbox": [5, 5, 10, 10]},
+                        {"id": 3, "image_id": 2, "category_id": 2, "bbox": [2, 2, 8, 8]}],
+        "categories": [{"id": 1, "name": "Cat"}, {"id": 2, "name": "dog"}],
+    }))
+    job = api.post("/api/import/preflight", json={"sources": [{"split": "train", "annotations": str(folder / "_annotations.coco.json")}], "media": "none"}).json()
+    _wait(api, job)
+    _wait(api, api.post("/api/import/commit", json={"preflight_job": job["id"], "project_name": "zoo"}).json())
+
+    library = api.get("/api/library").json()
+    zoo = next(p for p in library["projects"] if p["name"] == "zoo")
+    assert {c["key"]: c["images"] for c in zoo["classes"]} == {"cat": 1, "dog": 2}
+    assert any(c["key"] == "cat" and "zoo" in c["projects"] for c in library["classes"])
+
+    # Only images with a cat, and only their cat boxes.
+    pulled = api.post("/api/library/pull", json={"selection": {"zoo": ["cat"]}})
+    assert pulled.status_code == 200, pulled.text
+    body = pulled.json()
+    assert body["images"] == 1 and body["boxes"] == 1
+    [source] = body["sources"]
+    coco = _json.loads(open(source["annotations"]).read())
+    assert [c["name"] for c in coco["categories"]] == ["Cat"] and coco["images"][0]["file_name"] == "a.jpg"
+
+    # The pulled files go through preflight like any other source.
+    job = api.post("/api/import/preflight", json={"sources": [{"split": s["split"], "annotations": s["annotations"], "images": s["images"]} for s in body["sources"]], "media": "full"}).json()
+    report = _wait(api, job)
+    assert report["status"] == "done" and report["result"]["summary"]["images"] == 1
+
+    everything = api.post("/api/library/pull", json={"selection": {"zoo": ["dog"]}, "keep_other_labels": True}).json()
+    assert everything["images"] == 2 and everything["boxes"] == 3
+    assert api.post("/api/library/pull", json={"selection": {"zoo": ["zebra"]}}).status_code == 409
+    assert api.post("/api/library/pull", json={"selection": {"nope": []}}).status_code == 404
+    assert api.post("/api/library/pull", json={"selection": {}}).status_code == 422
+    # An empty class list takes every image of the project, unlabelled ones too.
+    assert api.post("/api/library/pull", json={"selection": {"zoo": []}}).json()["images"] == 3
+
+
+def test_editor_saves_masks_keypoints_and_new_classes_on_a_box_dataset(client, tmp_path):
+    import json as _json
+
+    api = client[0]
+    folder = _dataset(tmp_path)
+    job = api.post("/api/import/preflight", json={"sources": [{"split": "train", "annotations": str(folder / "_annotations.coco.json")}], "media": "none"}).json()
+    _wait(api, job)
+    _wait(api, api.post("/api/import/commit", json={"preflight_job": job["id"], "project_name": "shop"}).json())
+    [dataset] = {t["dataset_name"] for t in api.get("/api/projects/shop/tables").json()["tables"]}
+    [train] = api.get("/api/qa", params={"project": "shop", "dataset": dataset}).json()["sets"]
+    image = train["images"][0]["image"]
+    detail = api.get("/api/qa/image", params={"project": "shop", "dataset": dataset, "table": train["url"], "image": image}).json()
+    column = detail["box_column"]
+
+    # A mask and keypoints on a box-only dataset, drawn with a class that did not exist.
+    labels = {**detail["labels"], "9": "bottle"}
+    instance = {"vertices": [2, 2, 12, 12], "label": 9, "iscrowd": False, "area": 50.0,
+                "segmentation": _json.dumps([[2, 2, 12, 2, 12, 12]]),
+                "coco_extra": _json.dumps({"keypoints": [5, 5, 2], "num_keypoints": 1})}
+    value = {"width": detail["width"], "height": detail["height"], "instances": [*detail["boxes"], instance]}
+    refused = api.post("/api/table/commit", json={"url": detail["table"], "values": {column: {str(detail["row"]): value}}})
+    assert refused.status_code == 400 and "undeclared" in refused.text
+    saved = api.post("/api/table/commit", json={
+        "url": detail["table"], "values": {column: {str(detail["row"]): value}},
+        "value_maps": {column: labels}, "instance_properties": {column: {"segmentation": "string", "coco_extra": "string"}},
+    })
+    assert saved.status_code == 200, saved.text
+    after = api.get("/api/qa/image", params={"project": "shop", "dataset": dataset, "table": saved.json()["url"], "image": image}).json()
+    assert after["labels"]["9"] == "bottle"
+    drawn = after["boxes"][-1]
+    assert _json.loads(drawn["segmentation"]) == [[2, 2, 12, 2, 12, 12]] and _json.loads(drawn["coco_extra"])["keypoints"] == [5, 5, 2]
+    # Other instances gain the new properties, empty; a class in use cannot be removed.
+    assert after["boxes"][0]["segmentation"] is None
+    gone = api.post("/api/table/commit", json={"url": saved.json()["url"], "value_maps": {column: detail["labels"]}})
+    assert gone.status_code == 400 and "removed class" in gone.text
+
+
+def test_projects_summary_for_the_projects_page(client, tmp_path):
+    api = client[0]
+    folder = _dataset(tmp_path)
+    job = api.post("/api/import/preflight", json={"sources": [{"split": "train", "annotations": str(folder / "_annotations.coco.json")}], "media": "none"}).json()
+    _wait(api, job)
+    _wait(api, api.post("/api/import/commit", json={"preflight_job": job["id"], "project_name": "shop", "tasks": ["object_detection"]}).json())
+    [dataset] = {t["dataset_name"] for t in api.get("/api/projects/shop/tables").json()["tables"]}
+    [train] = api.get("/api/qa", params={"project": "shop", "dataset": dataset}).json()["sets"]
+    api.post("/api/qa/status", json={"project": "shop", "dataset": dataset, "samples": [train["images"][0]["image"]], "status": "reviewed"})
+    api.post("/api/qa/release", json={"project": "shop", "dataset": dataset, "name": "v1", "mode": "all"})
+    projects = {p["name"]: p for p in api.get("/api/projects/summary").json()["projects"]}
+    shop = projects["shop"]
+    assert shop["tasks"] == ["object_detection"] and shop["images"] == 2 and shop["verified"] == 1
+    assert shop["versions"] == 1 and shop["classes"] == 1 and shop["sets"] == ["train"]
+    assert len(shop["covers"]) == 2 and shop["updated"]
+
+
+def test_dataset_version_with_augmented_train_copies(client, tmp_path):
+    import json as _json
+    from pathlib import Path as _Path
+
+    api = client[0]
+    folder = _dataset(tmp_path)
+    job = api.post("/api/import/preflight", json={"sources": [{"split": "train", "annotations": str(folder / "_annotations.coco.json")}], "media": "none"}).json()
+    _wait(api, job)
+    _wait(api, api.post("/api/import/commit", json={"preflight_job": job["id"], "project_name": "aug", "tasks": ["object_detection"]}).json())
+    [dataset] = {t["dataset_name"] for t in api.get("/api/projects/aug/tables").json()["tables"]}
+    recipe = {"copies": 3, "flip": {"horizontal": True}, "rotation": {"min": -10, "max": 10}, "brightness": {"min": -20, "max": 20}}
+
+    shown = api.post("/api/augment/examples", json={"project": "aug", "dataset": dataset, "items": {
+        "rotation:min": {"recipe": {"rotation": {"min": -10, "max": 10}}, "at": "min"},
+        "flip": {"recipe": {"flip": {"horizontal": True}}},
+    }})
+    assert shown.status_code == 200, shown.text
+    shown = shown.json()
+    assert set(shown["items"]) == {"rotation:min", "flip"} and shown["original"]["boxes"]
+    assert shown["set"] == "train" and shown["bytes_per_image"] > 0
+    assert shown["items"]["flip"]["image"].startswith("data:image/jpeg;base64,")
+    # The flip is certain at a fixed end: the kept box mirrors across the 40 px wide image.
+    [box] = [b["box"] for b in shown["original"]["boxes"] if b["box"][2] - b["box"][0] >= 1]
+    assert [b["box"] for b in shown["items"]["flip"]["boxes"]] == [[40 - box[2], box[1], 40 - box[0], box[3]]]
+    again = api.post("/api/augment/examples", json={"project": "aug", "dataset": dataset, "row": shown["row"], "items": {}}).json()
+    assert again["row"] == shown["row"] and again["items"] == {}
+
+    bad = api.post("/api/qa/release", json={"project": "aug", "dataset": dataset, "name": "bad", "augmentation": {"copies": 3, "rotation": {"min": 9, "max": 1}}})
+    assert bad.status_code == 400 and "min" in bad.text
+
+    started = api.post("/api/qa/release", json={"project": "aug", "dataset": dataset, "name": "augmented", "mode": "all", "augmentation": recipe})
+    assert started.status_code == 200, started.text
+    done = _wait(api, started.json()["job"])
+    assert done["status"] == "done", done
+    release = done["result"]["release"]
+    assert release["augmentation"] == {"copies": 3, "flip": {"horizontal": True}, "rotation": {"min": -10.0, "max": 10.0}, "brightness": {"min": -20.0, "max": 20.0}}
+    train = release["sets"]["train"]
+    assert train["originals"] == 2 and train["augmented"] == 6 and train["images"] == 8
+
+    rows = api.get("/api/table/rows", params={"url": train["url"], "limit": 20}).json()["rows"]
+    new = [r for r in rows if "/releases/" in r["image"]]
+    assert len(new) == 6 and all(_Path(r["image"]).is_file() for r in new)
+    assert len({r["image_id"] for r in rows}) == 8
+    assert {r["augmented_from"] for r in new} == {r["image"] for r in rows if r["augmented_from"] is None}
+    # The version is listed for training; the augmented copy never becomes the working set.
+    assert any(r["name"] == "augmented" for r in api.get("/api/releases", params={"project": "aug"}).json()["releases"])
+    [working] = api.get("/api/qa", params={"project": "aug", "dataset": dataset}).json()["sets"]
+    assert len(working["images"]) == 2
+    assert _json.loads(_Path(train["url"], "object.granum.json").read_text())["producer"]["args"]["augmented"] == 6
+
+
+def test_deleting_a_dataset_version_removes_only_its_own_files(client, tmp_path):
+    from pathlib import Path as _Path
+
+    api = client[0]
+    folder = _dataset(tmp_path)
+    job = api.post("/api/import/preflight", json={"sources": [{"split": "train", "annotations": str(folder / "_annotations.coco.json")}], "media": "none"}).json()
+    _wait(api, job)
+    _wait(api, api.post("/api/import/commit", json={"preflight_job": job["id"], "project_name": "del", "tasks": ["object_detection"]}).json())
+    [dataset] = {t["dataset_name"] for t in api.get("/api/projects/del/tables").json()["tables"]}
+    plain = api.post("/api/qa/release", json={"project": "del", "dataset": dataset, "name": "plain", "mode": "all"}).json()["release"]
+    started = api.post("/api/qa/release", json={"project": "del", "dataset": dataset, "name": "augmented", "mode": "all",
+                                                "augmentation": {"copies": 2, "flip": {"horizontal": True}}}).json()
+    augmented = _wait(api, started["job"])["result"]["release"]
+    augmented_dir = _Path(augmented["sets"]["train"]["url"]).parent
+    assert augmented_dir.is_dir()
+
+    usage = api.get("/api/releases/usage", params={"project": "del", "dataset": dataset, "release_id": augmented["id"]}).json()
+    assert usage["files"] >= 4 and usage["bytes"] > 0 and usage["runs"] == []
+
+    gone = api.post("/api/releases/delete", json={"project": "del", "dataset": dataset, "release_id": augmented["id"]})
+    assert gone.status_code == 200, gone.text
+    assert not augmented_dir.exists()
+    names = [r["name"] for r in api.get("/api/releases", params={"project": "del"}).json()["releases"]]
+    assert names == ["plain"]
+    assert api.post("/api/releases/delete", json={"project": "del", "dataset": dataset, "release_id": augmented["id"]}).status_code == 404
+
+    # A version that only pointed at the dataset's own sets leaves them in place.
+    train_url = plain["sets"]["train"]["url"]
+    assert api.post("/api/releases/delete", json={"project": "del", "dataset": dataset, "release_id": plain["id"]}).status_code == 200
+    assert _Path(train_url).is_dir()
+    assert len(api.get("/api/qa", params={"project": "del", "dataset": dataset}).json()["sets"][0]["images"]) == 2
+
+    # Numbers are never reused, names are.
+    again = api.post("/api/qa/release", json={"project": "del", "dataset": dataset, "name": "plain", "mode": "all"})
+    assert again.status_code == 200 and again.json()["release"]["version"] == 3
+    assert api.get("/api/releases/usage", params={"project": "del", "dataset": dataset, "release_id": "../x"}).status_code in (400, 404)

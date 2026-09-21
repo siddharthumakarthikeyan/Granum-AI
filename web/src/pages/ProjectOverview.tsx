@@ -25,6 +25,7 @@ const DYNAMICS = [
   { id: "late", label: "Late", color: "var(--learn-late)" },
   { id: "forgotten", label: "Unstable", color: "var(--amber)" },
   { id: "never", label: "Not learned", color: "var(--pink)" },
+  { id: "insufficient", label: "Too few observations", color: "var(--learn-insufficient)" },
 ] as const;
 
 export function ProjectOverview({ project }: { project: string }) {
@@ -112,7 +113,7 @@ export function ProjectOverview({ project }: { project: string }) {
           <BigNumber value={formatNumber(boxes)} label="boxes" />
           <BigNumber value={best ? (metric(best, "map50") ?? 0).toFixed(3) : "—"} label="best mAP50" accent />
           <div className="lab-banner-actions">
-            <a className="button" href={routeHref({ name: "import", project })}><Icon name="import" />Import</a>
+            <a className="button" href={routeHref({ name: "import", project })}><Icon name="import" />Add data</a>
             <button className="button primary" onClick={() => setTrainPreset({})} disabled={job?.status === "running" || live.length === 0}>
               <Icon name="runs" />Train model
             </button>
@@ -133,7 +134,7 @@ export function ProjectOverview({ project }: { project: string }) {
         {datasets.length === 0 && runs.length === 0 && !loading && (
           <EmptyState
             title="No data yet"
-            action={<a className="button primary" href={routeHref({ name: "import", project })}><Icon name="import" />Import a COCO dataset</a>}
+            action={<a className="button primary" href={routeHref({ name: "import", project })}><Icon name="import" />Add data</a>}
           >
             <p>Import annotations and images to start. Preflight validates everything before it is written.</p>
           </EmptyState>
@@ -203,7 +204,7 @@ export function ProjectOverview({ project }: { project: string }) {
             <section className="section">
               <div className="section-head">
                 <h2 className="section-title">Datasets</h2>
-                <a href={routeHref({ name: "datasets", project })} className="section-link">All versions</a>
+                <a href={routeHref({ name: "datasets", project })} className="section-link">Dataset versions</a>
               </div>
               <div className="data-table-wrap">
                 <table className="data-table">
@@ -222,7 +223,7 @@ export function ProjectOverview({ project }: { project: string }) {
                       const liveSets = dataset.splits.filter((s) => !HOLDING_SETS.includes(s.name));
                       const newest = dataset.revisions.map((r) => r.entry.created).sort().at(-1);
                       return (
-                        <tr key={dataset.name} className="clickable" onClick={() => navigate({ name: "datasets", project })}>
+                        <tr key={dataset.name} className="clickable" onClick={() => navigate({ name: "images", project, dataset: dataset.name })}>
                           <td><span className="cell-title">{dataset.name}</span></td>
                           <td>
                             <span className="set-pills">
@@ -404,6 +405,7 @@ function DynamicsCard({ project, run, split }: { project: string; run?: ObjectEn
       <div className="dyn-bars">
         {DYNAMICS.map((c) => {
           const n = split.counts[c.id] ?? 0;
+          if (c.id === "insufficient" && !n) return null;
           return (
             <div key={c.id} className="dyn-row">
               <span>{c.label}</span>

@@ -8,6 +8,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from granum.core.config import Config, set_config  # noqa: E402
 from granum.core.url import _clear_url_aliases  # noqa: E402
+from granum.licensing import Licensing, set_licensing  # noqa: E402
 
 
 @pytest.fixture(autouse=True)
@@ -23,7 +24,10 @@ def isolated_project(tmp_path, monkeypatch):
         use_env=False,
     )
     set_config(config)
+    # Tests run with no licence limits; tests of licensing make their own Licensing.
+    set_licensing(Licensing.open())
     yield root
+    set_licensing(None)
     set_config(None)
     _clear_url_aliases()
 

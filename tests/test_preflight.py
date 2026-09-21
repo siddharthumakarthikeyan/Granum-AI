@@ -191,3 +191,98 @@ def test_splits_become_tables_of_one_dataset(dataset, isolated_project):
     assert tables["train"].name == "train" and tables["valid"].name == "valid"
     revision = tables["train"].set_weights({0: 0.0})
     assert revision.base_name == "train"
+
+
+def test_split_plan_moves_images_between_splits(dataset, isolated_project):
+    """Re-cutting the splits keeps every image, and keeps each table self-consistent.
+
+    The fixture's splits both number their images from 0, so anything that moves collides
+    with an id already in its new home -- the case that must be renumbered.
+    """
+    report = run_preflight(dataset, media="full")
+    plain = import_coco(report, project_name="before")
+    sizes = {t["split"]: t["rows"] for t in plain.tables}
+    assert sizes == {"train": 4, "valid": 2}
+
+    result = import_coco(report, project_name="after", split_plan={"train": 2, "valid": 4})
+    tables = {t["split"]: Table.from_url(t["url"]) for t in result.tables}
+    assert (len(tables["train"]), len(tables["valid"])) == (2, 4)
+    assert result.effects["images_moved_between_splits"] == 2
+
+    # Nothing is lost, duplicated, or pointed at the wrong folder.
+    moved = {row["image"] for row in tables["valid"]}
+    every = {row["image"] for table in tables.values() for row in table}
+    assert len(every) == 6
+    assert sum(1 for image in moved if "/train/" in image) == 2
+    for table in tables.values():
+        ids = [row["image_id"] for row in table]
+        assert len(set(ids)) == len(ids)
+        instances = [i for row in table for i in row["bbs"]["instances"]]
+        annotation_ids = [i["annotation_id"] for i in instances if i["annotation_id"] is not None]
+        assert len(set(annotation_ids)) == len(annotation_ids)
+
+
+def test_split_plan_is_validated(dataset, isolated_project):
+    report = run_preflight(dataset, media="full")  # the missing image is excluded, leaving 6
+    with pytest.raises(PreflightError, match="no split named"):
+        import_coco(report, project_name="p", split_plan={"holdout": 2})
+    with pytest.raises(PreflightError, match="at least one split"):
+        import_coco(report, project_name="p", split_plan={"train": 0, "valid": 0})
+
+
+def test_split_plan_counts_are_read_as_proportions(dataset, isolated_project):
+    """The dashboard counts images in the annotation files; exclusions mean fewer arrive."""
+    report = run_preflight(dataset, media="full")
+    # 5 + 2 in the files, but the missing image is excluded: a 5/2 plan over 6 images.
+    result = import_coco(report, project_name="p", split_plan={"train": 5, "valid": 2})
+    assert {t["split"]: t["rows"] for t in result.tables} == {"train": 4, "valid": 2}
+
+
+
+def test_generated_example_imports_and_does_not_use_up_a_plan():
+    """The example project: preflight finds its planted problems, and a one-project plan
+    still has room for a real project afterwards."""
+    import time
+
+    from fastapi.testclient import TestClient
+
+    import granum
+    from granum.core.index import Index
+    from granum.core.layout import ProjectLayout
+    from granum.importing.example import counted_projects
+    from granum.licensing import Licensing, set_licensing
+    from granum.service.app import create_app
+
+    class OneProject(Licensing):
+        def status(self, *, fresh=False):
+            return {**super().status(fresh=fresh), "max_projects": 1}
+
+    set_licensing(OneProject.open())
+    root = granum.get_config().project_root
+    index = Index([root])
+    api = TestClient(create_app(index=index, config=granum.get_config(), allowed_hosts=["testserver"], serve_dashboard=False))
+
+    def run(path, body):
+        response = api.post(path, json=body)
+        assert response.status_code == 200, response.text
+        job = response.json()
+        while job["status"] == "running":
+            time.sleep(0.05)
+            job = api.get(f"/api/jobs/{job['id']}").json()
+        assert job["status"] == "done", job
+        return job
+
+    example = api.post("/api/examples/shapes").json()
+    assert [s["split"] for s in example["sources"]] == ["train", "valid", "test"] and example["images"] == 120
+    preflight = run("/api/import/preflight", {"sources": example["sources"], "media": "full"})
+    codes = {f["code"] for f in preflight["result"]["findings"]}
+    assert {"annotations.zero_area", "media.identical_files"} <= codes
+    done = run("/api/import/commit", {"preflight_job": preflight["id"], "project_name": "shapes-example", "tasks": ["object_detection"]})
+    assert sum(t["rows"] for t in done["result"]["tables"]) == 120
+    assert (root / "projects" / "shapes-example" / "example.json").exists()
+
+    # The example does not count: a real project still fits in a one-project plan.
+    assert counted_projects(ProjectLayout(root)) == []
+    granum.init("real-project", "first")
+    assert counted_projects(ProjectLayout(root)) == ["real-project"]
+    set_licensing(Licensing.open())

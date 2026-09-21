@@ -31,6 +31,12 @@ export function RunsPage({ project }: { project: string }) {
   const training = runs.some((r) => r.status === "running") || job?.status === "running";
   const ordered = [...runs].sort((a, b) => b.created.localeCompare(a.created));
   const latestCompared = ordered.find((r) => r.parameters?.compare_map50_this !== undefined);
+  const testScore = (run: ObjectEntry): number | null => {
+    const value = run.parameters?.test_map50;
+    return typeof value === "number" && Number.isFinite(value) ? value : null;
+  };
+  const tested = runs.some((r) => testScore(r) !== null);
+  const bestTest = Math.max(...runs.map((r) => testScore(r) ?? -Infinity));
 
   useEffect(() => {
     if (!training) return;
@@ -48,9 +54,16 @@ export function RunsPage({ project }: { project: string }) {
         context={project}
         subtitle={plural(runs.length, "run")}
         actions={
-          <button className="button primary" onClick={() => setDialogOpen(true)} disabled={job?.status === "running"}>
-            <Icon name="runs" />Train model
-          </button>
+          <>
+            {runs.length > 1 && (
+              <a className="button" href={routeHref({ name: "compare", project })}>
+                <Icon name="swap" />Compare runs
+              </a>
+            )}
+            <button className="button primary" onClick={() => setDialogOpen(true)} disabled={job?.status === "running"}>
+              <Icon name="runs" />Train model
+            </button>
+          </>
         }
       />
       {job && <TrainingProgressCard project={project} job={job} onCancel={() => void cancel()} onDismiss={dismiss} />}
@@ -77,9 +90,10 @@ granum.collect_metrics(table, collectors, predictor=predictor,
                   <th>Run</th>
                   <th>Status</th>
                   <th>Model</th>
-                  <th>Train / validation data</th>
+                  <th>Train / validation{tested ? " / test" : ""} data</th>
                   <th className="num">Epochs</th>
                   {SCORES.map((s) => <th key={s.key} className="num">{s.label}</th>)}
+                  {tested && <th className="num" title="mAP50 of the finished model on the held-out test set">Test mAP50</th>}
                   <th>Created</th>
                   <th />
                 </tr>
@@ -98,6 +112,7 @@ granum.collect_metrics(table, collectors, predictor=predictor,
                       <td className="cell-mono data-versions">
                         {p.train_version ? String(p.train_version) : "—"}
                         {p.valid_version ? <span className="cell-sub">{String(p.valid_version)}</span> : null}
+                        {p.test_version ? <span className="cell-sub">{String(p.test_version)}</span> : null}
                       </td>
                       <td className="num">{run.epochs ?? "—"}</td>
                       {SCORES.map(({ key }) => {
@@ -108,8 +123,26 @@ granum.collect_metrics(table, collectors, predictor=predictor,
                           </td>
                         );
                       })}
+                      {tested && (() => {
+                        const value = testScore(run);
+                        return (
+                          <td className={`num${value !== null && value === bestTest && runs.length > 1 ? " value-best" : ""}`}>
+                            {value !== null ? value.toFixed(3) : "—"}
+                          </td>
+                        );
+                      })()}
                       <td className="muted">{formatWhen(run.created)}</td>
                       <td className="actions" onClick={(event) => event.stopPropagation()}>
+                        {(() => {
+                          // Against the run before it: the question a new run raises.
+                          const earlier = ordered[ordered.indexOf(run) + 1];
+                          return earlier ? (
+                            <a className="button" href={routeHref({ name: "compare", project, baseline: earlier.url, candidate: run.url })}
+                               title={`Compare with ${earlier.name}`}>
+                              Compare
+                            </a>
+                          ) : null;
+                        })()}
                         {p.tracks_learning === true && (
                           <a className="button" href={routeHref({ name: "learning", project, url: run.url })} title="How each image was learned, epoch by epoch">
                             Samples

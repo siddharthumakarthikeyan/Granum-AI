@@ -52,7 +52,7 @@ export function DeleteProjectDialog({ project, onClose }: { project: ProjectSumm
       </p>
       <ul className="delete-list">
         <li>{plural(project.tables, "dataset version")} and {plural(project.runs, "training run")}</li>
-        <li>Reviews, comments, shipments and import reports</li>
+        <li>Reviews, comments, dataset versions and import reports</li>
         <li>Model weights saved by this project's training runs</li>
       </ul>
       <p className="muted small">Your original image and annotation files are not deleted.</p>

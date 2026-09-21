@@ -33,6 +33,7 @@ dependencies = [
     "typer>=0.9",
     "pyyaml>=5.4",
     "numpy>=1.23",
+    "cryptography>=41",
 ]
 
 [project.optional-dependencies]

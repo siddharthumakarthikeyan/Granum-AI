@@ -9,6 +9,7 @@ const PATHS: Record<string, ReactNode> = {
   overview: <><rect x="3" y="3" width="7" height="8" rx="1.5" /><rect x="14" y="3" width="7" height="5" rx="1.5" /><rect x="14" y="12" width="7" height="9" rx="1.5" /><rect x="3" y="15" width="7" height="6" rx="1.5" /></>,
   datasets: <><path d="M12 3 3 7.5l9 4.5 9-4.5L12 3Z" /><path d="m3 12 9 4.5 9-4.5" /><path d="m3 16.5 9 4.5 9-4.5" /></>,
   runs: <path d="M3 12h4l3-8 4 16 3-8h4" />,
+  findings: <><path d="M10 4H5a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h4" strokeDasharray="2.5 2" /><circle cx="15" cy="11" r="5" /><path d="m18.6 14.6 3.4 3.4" /></>,
   import: <><path d="M12 3v12" /><path d="m7 10 5 5 5-5" /><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" /></>,
   folder: <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z" />,
   file: <><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5Z" /><path d="M14 3v5h5" /></>,
@@ -32,6 +33,8 @@ const PATHS: Record<string, ReactNode> = {
   fit: <><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" /></>,
   target: <><circle cx="12" cy="12" r="7" /><path d="M12 2v4M12 18v4M2 12h4M18 12h4" /></>,
   list: <path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01" />,
+  grid: <><rect x="3" y="3" width="7.5" height="7.5" rx="1.5" /><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5" /><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5" /><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5" /></>,
+  search: <><circle cx="11" cy="11" r="6.5" /><path d="m20 20-4.2-4.2" /></>,
   pencil: <><path d="M4 20h4L19 9l-4-4L4 16v4Z" /><path d="m13.5 6.5 4 4" /></>,
   review: <><path d="M9 4H6a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-3" /><rect x="9" y="2.5" width="6" height="3.5" rx="1" /><path d="m8.5 13.5 2.5 2.5 4.5-5" /></>,
   ship: <><path d="M3 15h18l-2.5 5h-13L3 15Z" /><path d="M6 15V9h12v6" /><path d="M12 9V3M9 6h6" /></>,
@@ -39,6 +42,10 @@ const PATHS: Record<string, ReactNode> = {
   trash: <><path d="M4 7h16" /><path d="M9 7V4.5h6V7" /><path d="M6 7l1 13h10l1-13" /></>,
   isolate: <><rect x="3" y="3" width="18" height="18" rx="2" strokeDasharray="3 3" /><rect x="8" y="8" width="8" height="8" rx="1" /></>,
   layers: <><path d="M12 3 3 8l9 5 9-5-9-5Z" /><path d="m3 13 9 5 9-5" /></>,
+  images: <><rect x="3" y="5" width="18" height="14" rx="2" /><circle cx="8.5" cy="10" r="1.5" /><path d="m4 17 5-4.5 3.5 3L16 12l4 4" /></>,
+  boxes: <><rect x="3" y="4" width="18" height="16" rx="2" /><rect x="6.5" y="7.5" width="6" height="5" rx="1" /><rect x="13" y="13" width="5" height="4" rx="1" /></>,
+  down: <path d="M12 5v14M5 12l7 7 7-7" />,
+  swap: <><path d="M7 4v13M4 14l3 3 3-3" /><path d="M17 20V7M14 10l3-3 3 3" /></>,
 };
 
 export function Icon({ name, size = 16, className }: { name: keyof typeof PATHS | string; size?: number; className?: string }) {

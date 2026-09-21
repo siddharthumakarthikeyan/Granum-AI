@@ -4,12 +4,12 @@
  * components start it, follow its progress, and explain the result in plain terms.
  */
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { api } from "../api/client";
-import type { Job, ModelFamily, ObjectEntry, TrainingResult, TrainingStatus } from "../api/types";
+import type { Job, ModelFamily, ObjectEntry, Release, TrainingResult, TrainingStatus } from "../api/types";
 import { Modal } from "../components/Modal";
 import { Icon, Progress, formatNumber } from "../components/ui";
-import { HOLDING_SETS, groupDatasets, splitOfTable } from "../pages/datasets";
+import { tasksLabel, trainsOnBoxes } from "../importing/tasks";
 import { routeHref } from "../router";
 import { useStore } from "../store/store";
 
@@ -17,6 +17,8 @@ const EPOCH_PRESETS = [12, 30, 60, 100];
 const IMAGE_SIZES = [640, 960, 1280];
 
 export interface TrainPreset {
+  /** A dataset version id to start on. */
+  release?: string;
   trainUrl?: string;
   compareWith?: string;
 }
@@ -27,27 +29,13 @@ export function TrainDialog({ project, preset, onClose, onStarted }: {
   onClose: () => void;
   onStarted: (job: Job<TrainingResult>) => void;
 }) {
-  const tables = useStore((s) => s.tables);
   const runs = useStore((s) => s.runs);
-  const datasets = useMemo(() => groupDatasets(tables), [tables]);
-  const pick = (pattern: RegExp) => {
-    for (const dataset of datasets) {
-      const split = dataset.splits.find((s) => pattern.test(s.name));
-      if (split) return split.latest.url;
-    }
-    return "";
-  };
-  const presetSplit = preset?.trainUrl ? splitOfTable(datasets, preset.trainUrl) : null;
-  const checkDefault = () => {
-    // Check against the validation set of the same dataset as the training choice.
-    const home = presetSplit?.dataset ?? datasets.find((d) => d.splits.some((s) => /^train/i.test(s.name)));
-    const own = home?.splits.find((s) => /^(valid|val)/i.test(s.name)) ?? home?.splits.find((s) => /^test/i.test(s.name));
-    return own?.latest.url ?? pick(/^(valid|val|test)/i);
-  };
-
   const finished = [...runs].filter((r) => r.status !== "running").sort((a, b) => b.created.localeCompare(a.created));
-  const [trainUrl, setTrainUrl] = useState(preset?.trainUrl ?? (pick(/^train/i) || datasets[0]?.latest.url || ""));
-  const [validUrl, setValidUrl] = useState(checkDefault);
+  const [releases, setReleases] = useState<Release[] | null>(null);
+  const [releaseId, setReleaseId] = useState("");
+  const [trainSet, setTrainSet] = useState("");
+  const [validSet, setValidSet] = useState("");
+  const [testSet, setTestSet] = useState("");
   const [rounds, setRounds] = useState(12);
   const [familyId, setFamilyId] = useState("yolo");
   const [versionId, setVersionId] = useState("yolo26n.pt");
@@ -62,24 +50,35 @@ export function TrainDialog({ project, preset, onClose, onStarted }: {
     api.trainingStatus(project).then(setStatus).catch((e: Error) => setError(e.message));
   }, [project]);
 
-  // Only shipped versions can be trained on: once they are known, move the choices onto them.
-  const shipped = useMemo(() => new Set(status?.shipped ?? []), [status]);
+  /** Train on the train set, check on valid (else test) and hold out test, when a version has them. */
+  const chooseRelease = useCallback((release: Release | undefined) => {
+    setReleaseId(release?.id ?? "");
+    const sets = Object.keys(release?.sets ?? {});
+    const train = sets.find((n) => /^train/i.test(n)) ?? sets[0] ?? "";
+    const valid = sets.find((n) => /^(valid|val)/i.test(n)) ?? sets.find((n) => /^test/i.test(n)) ?? sets.find((n) => n !== train) ?? "";
+    const test = sets.find((n) => /^test/i.test(n) && n !== valid && n !== train) ?? "";
+    setTrainSet(train);
+    setValidSet(valid);
+    setTestSet(test);
+  }, []);
+
+  // Only dataset versions can be trained on; start on the one asked for, else the newest.
   useEffect(() => {
-    if (!status) return;
-    const first = (pattern: RegExp) => {
-      for (const dataset of datasets) {
-        for (const split of dataset.splits) {
-          if (!pattern.test(split.name)) continue;
-          const found = [...split.revisions].reverse().find((r) => shipped.has(r.entry.url));
-          if (found) return found.entry.url;
-        }
-      }
-      return "";
-    };
-    if (!shipped.has(trainUrl)) setTrainUrl(first(/^train/i) || first(/./));
-    if (!shipped.has(validUrl)) setValidUrl(first(/^(valid|val)/i) || first(/^test/i));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status]);
+    api.releases(project)
+      .then(({ releases }) => {
+        setReleases(releases);
+        const wanted = releases.find((r) => r.id === preset?.release)
+          ?? releases.find((r) => preset?.trainUrl && Object.values(r.sets).some((s) => s.url === preset.trainUrl))
+          ?? releases[0];
+        chooseRelease(wanted);
+      })
+      .catch((e: Error) => setError(e.message));
+  }, [project, preset?.release, preset?.trainUrl, chooseRelease]);
+
+  const release = releases?.find((r) => r.id === releaseId);
+  const trainUrl = release?.sets[trainSet]?.url ?? "";
+  const validUrl = release?.sets[validSet]?.url ?? "";
+  const testUrl = testSet ? release?.sets[testSet]?.url ?? "" : "";
 
   const families = status?.families ?? [];
   const family = families.find((f) => f.id === familyId);
@@ -88,13 +87,11 @@ export function TrainDialog({ project, preset, onClose, onStarted }: {
     setVersionId(next.versions[0]?.id ?? "");
   };
 
-  const train = splitOfTable(datasets, trainUrl);
-  const valid = splitOfTable(datasets, validUrl);
   const problem =
-    status && shipped.size === 0 ? "No dataset has been shipped yet."
-      : !train || !valid ? "Choose training and validation data."
-      : trainUrl === validUrl || (train.dataset.name === valid.dataset.name && train.split.name === valid.split.name)
-        ? "Training and validation data must come from different sets."
+    releases && releases.length === 0 ? "No dataset version yet."
+      : !trainUrl || !validUrl ? "Choose training and validation sets."
+      : trainSet === validSet ? "Training and validation data must come from different sets."
+      : testSet && (testSet === trainSet || testSet === validSet) ? "The test set must differ from the training and validation sets."
         : family && !family.installed ? `${family.name} is not installed (${family.install_hint}).`
           : !Number.isInteger(rounds) || rounds < 1 || rounds > 300 ? "Epochs must be between 1 and 300."
             : null;
@@ -104,7 +101,7 @@ export function TrainDialog({ project, preset, onClose, onStarted }: {
     setError(null);
     try {
       const job = await api.startTraining({
-        project, train_table: trainUrl, valid_table: validUrl, rounds,
+        project, train_table: trainUrl, valid_table: validUrl, test_table: testUrl || null, rounds,
         family: familyId, version: versionId,
         image_size: family?.supports_closer ? imageSize : 640,
         track_learning: trackLearning,
@@ -118,17 +115,9 @@ export function TrainDialog({ project, preset, onClose, onStarted }: {
     }
   };
 
-  const versionOptions = datasets.flatMap((dataset) =>
-    dataset.splits.filter((split) => !HOLDING_SETS.includes(split.name) && split.revisions.some((r) => shipped.has(r.entry.url))).map((split) => (
-      <optgroup key={`${dataset.name}/${split.name}`} label={`${dataset.name} / ${split.name}`}>
-        {[...split.revisions].reverse().filter(({ entry }) => shipped.has(entry.url)).map(({ entry }) => (
-          <option key={entry.url} value={entry.url}>
-            {entry.name}{entry.url === split.latest.url ? " (newest)" : ""}, {formatNumber(entry.row_count)} images
-          </option>
-        ))}
-      </optgroup>
-    )),
-  );
+  const setOptions = Object.entries(release?.sets ?? {}).map(([name, set]) => (
+    <option key={name} value={name}>{name}, {formatNumber(set.images)} images</option>
+  ));
 
   return (
     <Modal
@@ -165,28 +154,57 @@ export function TrainDialog({ project, preset, onClose, onStarted }: {
 
       <div className="form-section">
         <h3>Data</h3>
-        <div className="field-pair">
+        <label className="field">
+          <span>Dataset version</span>
+          <div className="select-wrap">
+            <select value={releaseId} disabled={!releases?.length} onChange={(e) => chooseRelease(releases?.find((r) => r.id === e.target.value))}>
+              {(releases ?? []).map((r) => (
+                <option key={r.id} value={r.id}>
+                  v{r.version} · {r.name}{r.name.includes(r.dataset) ? "" : ` (${r.dataset})`} · {formatNumber(Object.values(r.sets).reduce((n, s) => n + s.images, 0))} images{r.mode === "verified" ? ", verified only" : ""}
+                </option>
+              ))}
+            </select>
+          </div>
+        </label>
+        <div className="field-pair field-trio">
           <label className="field">
-            <span>Train</span>
+            <span>Train on</span>
             <div className="select-wrap">
-              <select value={trainUrl} onChange={(e) => setTrainUrl(e.target.value)}>{versionOptions}</select>
+              <select value={trainSet} disabled={!release} onChange={(e) => setTrainSet(e.target.value)}>{setOptions}</select>
             </div>
           </label>
           <label className="field">
-            <span>Validation</span>
+            <span>Validate on</span>
             <div className="select-wrap">
-              <select value={validUrl} onChange={(e) => setValidUrl(e.target.value)}>{versionOptions}</select>
+              <select value={validSet} disabled={!release} onChange={(e) => setValidSet(e.target.value)}>{setOptions}</select>
+            </div>
+          </label>
+          <label className="field">
+            <span>Test on</span>
+            <div className="select-wrap">
+              <select value={testSet} disabled={!release} onChange={(e) => setTestSet(e.target.value)}>
+                <option value="">None</option>
+                {setOptions}
+              </select>
             </div>
           </label>
         </div>
-        {status && shipped.size === 0 ? (
+        <p className="faint small">Validation picks the best weights. The test set is held out and scored once, on the final model.</p>
+        {releases && releases.length === 0 ? (
           <p className="form-error">
-            Only shipped datasets can be trained on. <a href={routeHref({ name: "review", project })} onClick={onClose}>Review and ship a dataset</a> first.
+            Training uses dataset versions only. <a href={routeHref({ name: "images", project })} onClick={onClose}>Create a dataset</a> from Images first.
           </p>
         ) : (
-          problem && train && valid && <p className="form-error">{problem}</p>
+          problem && release && <p className="form-error">{problem}</p>
         )}
-        {status && shipped.size > 0 && <p className="faint small">Showing shipped versions only.</p>}
+        {release && !trainsOnBoxes(release.tasks) && (
+          <p className="small warn-text">
+            {release.name} is labelled for {tasksLabel(release.tasks).toLowerCase()}. These models are box detectors and train on its boxes only.
+          </p>
+        )}
+        {release?.mode === "all" && Object.values(release.sets).some((s) => (s.verified ?? s.images) < s.images) && (
+          <p className="faint small">This version includes unverified images.</p>
+        )}
       </div>
 
       <div className="form-section">

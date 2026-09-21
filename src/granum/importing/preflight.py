@@ -921,9 +921,12 @@ def _summarize(report: PreflightReport) -> dict[str, Any]:
         {"id": cid, "name": name, "boxes": {split: usage[split][cid] for split in usage}}
         for cid, name in sorted(names.items())
     ]
+    from granum.importing.tasks import detect_task
+
     return {
         "images": sum(s["images"] for s in splits),
         "boxes": sum(s["boxes"] for s in splits),
         "splits": splits,
         "classes": classes,
+        "task": detect_task(report.parsed.values()),
     }

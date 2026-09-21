@@ -3,25 +3,24 @@
  * Boxes: drag on the image to draw one · click a box to select it · Delete removes it.
  * Edits save as one new version of the set when you leave the image (or press Ctrl+S).
  *
- * Keys: ← → images · A reviewed (and next) · R rework · U unreviewed · I isolate ·
+ * Keys: ← → images · A verify (and next) · R rework · U unverify · I isolate ·
  * B show boxes · Delete remove box · Esc deselect, then close.
  */
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { api } from "../api/client";
-import type { QaBox, QaEvent, QaImage, QaImageDetail, QaSet, QaState, QaStatus } from "../api/types";
+import type { QaBox, QaEvent, QaImage, QaImageDetail, QaState, QaStatus } from "../api/types";
 import { Icon, formatNumber, formatWhen, plural } from "../components/ui";
-import { STATUS_LABEL, statusOf, type MoveAction } from "./ReviewPage";
-
-const CLASS_HUES = ["#22d3ee", "#f472b6", "#fbbf24", "#a78bfa", "#5fc7a0", "#fb923c", "#60a5fa", "#e879f9"];
+import { CROWD_COLOR, labelColor } from "../images/labelColors";
+import { STATUS_LABEL, statusOf, type MoveAction } from "./status";
 /** Drags shorter than this, in image pixels, are clicks rather than new boxes. */
 const MIN_SIDE = 3;
 
 interface Props {
   project: string;
   dataset: string;
-  set: QaSet;
-  items: QaImage[];
+  /** Each image with the set it is in and that set's version it was loaded from. */
+  items: (QaImage & { set: string; table: string })[];
   index: number;
   statuses: Record<string, QaState>;
   author: string;
@@ -43,12 +42,11 @@ interface Edits {
 const NO_EDITS: Edits = { added: 0, removed: 0, relabelled: 0 };
 
 function colorFor(box: QaBox): string {
-  if (box.iscrowd) return "#6b7786";
-  return CLASS_HUES[Math.abs(box.label ?? 0) % CLASS_HUES.length]!;
+  return box.iscrowd ? CROWD_COLOR : labelColor(box.label ?? 0);
 }
 
 export function ImageInspector(props: Props) {
-  const { project, dataset, set, items, index, statuses, author, isolated, onIndex, onDecide, onMove, onSaved, onComment, onClose } = props;
+  const { project, dataset, items, index, statuses, author, isolated, onIndex, onDecide, onMove, onSaved, onComment, onClose } = props;
   const item = items[index]!;
   const [detail, setDetail] = useState<QaImageDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -74,7 +72,7 @@ export function ImageInspector(props: Props) {
     setError(null);
     setNeedsNote(false);
     setConfirmDelete(false);
-    api.qaImage(project, dataset, set.url, item.image)
+    api.qaImage(project, dataset, item.table, item.image)
       .then((next) => {
         if (!alive) return;
         setDetail(next);
@@ -86,7 +84,7 @@ export function ImageInspector(props: Props) {
     return () => {
       alive = false;
     };
-  }, [project, dataset, set.url, item.image]);
+  }, [project, dataset, item.table, item.image]);
 
   const labels = detail?.labels ?? {};
   const labelIds = useMemo(() => Object.keys(labels).map(Number).sort((a, b) => a - b), [labels]);
@@ -148,7 +146,7 @@ export function ImageInspector(props: Props) {
 
   // -- review actions ---------------------------------------------------------
   const reloadThread = async () => {
-    const next = await api.qaImage(project, dataset, set.url, item.image);
+    const next = await api.qaImage(project, dataset, item.table, item.image);
     setDetail((was) => (was ? { ...was, thread: next.thread } : next));
     onComment(item.image, next.thread.filter((e) => e.comment).length);
   };
@@ -183,7 +181,7 @@ export function ImageInspector(props: Props) {
     if (!text) return;
     setBusy(true);
     try {
-      const done = await api.addQaComment({ project, dataset, sample: item.image, comment: text, author, table: set.url });
+      const done = await api.addQaComment({ project, dataset, sample: item.image, comment: text, author, table: item.table });
       setDetail((was) => was && { ...was, thread: done.thread });
       onComment(item.image, done.thread.filter((e) => e.comment).length);
       setDraft("");
@@ -403,7 +401,7 @@ export function ImageInspector(props: Props) {
       <aside className="qa-side">
         <div className="qa-side-head">
           <span className={`qa-chip ${status}`}>{STATUS_LABEL[status]}</span>
-          <span className="muted small">{isolated ? `isolated from ${item.from ?? "?"}` : set.set} · row {formatNumber(item.row)}</span>
+          <span className="muted small">{isolated ? `isolated from ${item.from ?? "?"}` : item.set} · row {formatNumber(item.row)}</span>
           <span className="spacer" />
           <button className="icon-button" onClick={() => void close()} aria-label="Close"><Icon name="close" /></button>
         </div>
@@ -411,13 +409,13 @@ export function ImageInspector(props: Props) {
         <div className="qa-side-section">
           <div className="qa-status-buttons">
             <button className={`button${status === "reviewed" ? " on-reviewed" : ""}`} onClick={() => void decide("reviewed")} disabled={busy}>
-              <Icon name="check" />Reviewed <kbd>A</kbd>
+              <Icon name="check" />Verify <kbd>A</kbd>
             </button>
             <button className={`button${status === "rework" ? " on-rework" : ""}`} onClick={() => void decide("rework")} disabled={busy}>
               <Icon name="pencil" />Rework <kbd>R</kbd>
             </button>
-            <button className="button subtle" onClick={() => void decide("unreviewed")} disabled={busy || status === "unreviewed"} title="Back to unreviewed, e.g. after fixing the labels">
-              Unreviewed <kbd>U</kbd>
+            <button className="button subtle" onClick={() => void decide("unreviewed")} disabled={busy || status === "unreviewed"} title="Back to unverified, e.g. after fixing the labels">
+              Unverify <kbd>U</kbd>
             </button>
           </div>
           {statuses[item.image]?.author && status !== "unreviewed" && (
@@ -429,14 +427,14 @@ export function ImageInspector(props: Props) {
                 <Icon name="back" />Return to {item.from ?? "set"}
               </button>
             ) : (
-              <button className="button" onClick={() => void moveImage("isolate")} disabled={busy} title="Set aside so the rest can ship; return it later">
+              <button className="button" onClick={() => void moveImage("isolate")} disabled={busy} title="Set aside, out of new dataset versions; return it later">
                 <Icon name="isolate" />Isolate <kbd>I</kbd>
               </button>
             )}
             {confirmDelete ? (
               <button className="button danger-button" onClick={() => void moveImage("delete")} disabled={busy}>Confirm delete</button>
             ) : (
-              <button className="button danger-button" onClick={() => setConfirmDelete(true)} disabled={busy} title="Move to the removed set; recoverable from Datasets">
+              <button className="button danger-button" onClick={() => setConfirmDelete(true)} disabled={busy} title="Move to the removed set; recoverable from Removed on the Images tab">
                 <Icon name="trash" />Delete
               </button>
             )}
@@ -496,7 +494,7 @@ export function ImageInspector(props: Props) {
             maxLength={4000}
           />
           <div className="qa-compose-bar">
-            <span className="faint small">{author ? `as ${author}` : "Set your name in the header"}</span>
+            <span className="faint small">{author ? `as ${author}` : "Set your name under Review in the ribbon"}</span>
             <span className="spacer" />
             <button className="button" onClick={() => void comment()} disabled={busy || !draft.trim()}>Comment</button>
           </div>
@@ -507,7 +505,7 @@ export function ImageInspector(props: Props) {
   );
 }
 
-function ThreadItem({ event }: { event: QaEvent }) {
+export function ThreadItem({ event }: { event: QaEvent }) {
   return (
     <li className={`qa-event${event.status ? ` status-${event.status}` : ""}`}>
       <div className="qa-event-head small">

@@ -29,8 +29,12 @@ scratch/
 data/
 datasets/
 
+# Local licence-server database (customer records and issued keys)
+licence-server.sqlite3
+
 # Internal business documents (kept local, never pushed)
 docs/ceo-product-and-go-to-market-strategy.md
+docs/competitor-feature-map.md
 docs/product-capability-blueprint.md
 
 # Editors and OS

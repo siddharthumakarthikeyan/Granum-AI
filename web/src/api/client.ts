@@ -4,9 +4,9 @@
  * message rather than a different unhandled shape at each call site.
  */
 
-import type {
-  BrowseResult, Health, QaEvent, QaVersionCounts, QaImageDetail, QaOverview, QaState, QaStatus, Shipment, ImageRounds, LearningReport, RemovedImage, VersionRef, ReviewEvent, TrainingResult, TrainingStatus, ImportResult, ImportSource, ImportSummary, Job, LineageGraph,
-  ObjectEntry, PreflightReport, ProjectSummary, CommitResult, RowPage, RunMetadata, TableMetadata,
+import type { AugmentExample, AugmentRecipe, LicenceStatus,
+  BrowseResult, ComparisonReport, EmbeddingReport, EmbeddingStatus, ExampleDataset, FindingsReport, Health, QaEvent, QaVersionCounts, QaImageDetail, QaOverview, QaState, QaStatus, Release, TaskId, LibraryClass, LibraryProject, PullResult, ImageBoxes, ImageRounds, ImagesOverview, LearningReport, RemovedImage, VersionRef, ReviewEvent, TrainingResult, TrainingStatus, ImportResult, ImportSource, ImportSummary, Job, LineageGraph,
+  ObjectEntry, PreflightReport, ProjectCard, ProjectSummary, CommitResult, RowPage, RunMetadata, TableMetadata,
 } from "./types";
 import type { CommitPayload } from "../store/editing";
 
@@ -47,10 +47,14 @@ async function request<T>(
   if (!response.ok) {
     let detail = response.statusText;
     try {
-      detail = (await response.json()).detail ?? detail;
+      const body = (await response.json()).detail ?? detail;
+      // Some answers carry {message, code}: the message is what people read.
+      detail = typeof body === "object" && body !== null && "message" in body ? String(body.message) : body;
     } catch {
       /* keep statusText */
     }
+    // Refused by the licence: say so wherever the user is, and show the licence's new state.
+    if (response.status === 402) window.dispatchEvent(new CustomEvent("granum:licence", { detail }));
     throw new ServiceError(detail, response.status);
   }
   return (await response.json()) as T;
@@ -58,6 +62,14 @@ async function request<T>(
 
 export const api = {
   health: () => request<Health>("/api/health"),
+
+  licence: () => request<LicenceStatus>("/api/licence"),
+  installLicence: (key: string) => request<LicenceStatus>("/api/licence/install", undefined, { key }),
+  removeLicence: () => request<LicenceStatus>("/api/licence/remove", undefined, {}),
+  licenceCode: (email: string) => request<{ sent: boolean; minutes: number; dev_code?: string }>("/api/licence/code", undefined, { email }),
+  licenceActivate: (email: string, code: string) => request<LicenceStatus>("/api/licence/activate", undefined, { email, code }),
+  licenceRenew: () => request<LicenceStatus>("/api/licence/renew", undefined, {}),
+  licenceSignOut: () => request<LicenceStatus>("/api/licence/sign-out", undefined, {}),
 
   renameProject: (name: string, newName: string) =>
     request<{ name: string; files_updated: number }>(`/api/projects/${encodeURIComponent(name)}/rename`, undefined, { new_name: newName }),
@@ -67,6 +79,9 @@ export const api = {
 
   projects: () =>
     request<{ projects: ProjectSummary[] }>("/api/projects").then((r) => r.projects),
+
+  projectCards: () =>
+    request<{ projects: ProjectCard[] }>("/api/projects/summary").then((r) => r.projects),
 
   tables: (project: string) =>
     request<{ tables: ObjectEntry[] }>(`/api/projects/${encodeURIComponent(project)}/tables`)
@@ -112,6 +127,13 @@ export const api = {
 
   qa: (project: string, dataset: string) => request<QaOverview>("/api/qa", { project, dataset }),
 
+  images: (project: string, dataset: string) => request<ImagesOverview>("/api/images", { project, dataset }),
+
+  /** Box geometry for the images on screen, addressed by table and row. */
+  imageBoxes: (project: string, dataset: string, items: { table: string; row: number }[]) =>
+    request<{ boxes: Record<string, ImageBoxes> }>("/api/images/boxes", undefined, { project, dataset, items })
+      .then((r) => r.boxes),
+
   qaImage: (project: string, dataset: string, table: string, image: string) =>
     request<QaImageDetail>("/api/qa/image", { project, dataset, table, image }),
 
@@ -133,8 +155,56 @@ export const api = {
   qaVersion: (project: string, dataset: string, table: string) =>
     request<QaVersionCounts>("/api/qa/version", { project, dataset, table }),
 
-  ship: (payload: { project: string; dataset: string; author?: string; note?: string; sets?: Record<string, string> }) =>
-    request<{ shipment: Shipment }>("/api/qa/ship", undefined, payload),
+  /** Without augmentation the version is made at once; with it, a job whose result is `{ release }`. */
+  createRelease: (payload: {
+    project: string; dataset: string; name: string; description: string; mode: "all" | "verified"; author?: string;
+    augmentation?: AugmentRecipe | null;
+  }) => request<{ release: Release; job?: undefined } | { job: Job<{ release: Release }>; release?: undefined }>("/api/qa/release", undefined, payload),
+
+  releaseUsage: (project: string, dataset: string, releaseId: string) =>
+    request<{ files: number; bytes: number; runs: string[] }>("/api/releases/usage", { project, dataset, release_id: releaseId }),
+
+  deleteRelease: (payload: { project: string; dataset: string; release_id: string; author?: string }) =>
+    request<{ deleted: string; name: string; files: number; bytes: number; runs: string[] }>("/api/releases/delete", undefined, payload),
+
+  augmentExamples: (payload: {
+    project: string; dataset: string; items: Record<string, { recipe: Partial<AugmentRecipe>; at: "min" | "max" }>;
+    row?: number | null; size?: number;
+  }) => request<{ set: string; row: number; source: string; original: AugmentExample; items: Record<string, AugmentExample>; bytes_per_image: number }>(
+    "/api/augment/examples", undefined, payload,
+  ),
+
+
+  runFindings: (url: string) => request<FindingsReport>("/api/run/findings", { url }),
+
+  /** Two runs side by side. Refused reports come back with `interpretation.kind === "blocked"`. */
+  compareRuns: (baseline: string, candidate: string, split?: string, limit = 400) =>
+    request<ComparisonReport>("/api/runs/compare", { baseline, candidate, limit, ...(split ? { split } : {}) }),
+
+  /** The same report as a file, with every image in it. Followed by the browser, not fetched here. */
+  comparisonFileUrl: (baseline: string, candidate: string, split?: string): string => {
+    const params = new URLSearchParams({ baseline, candidate, download: "true" });
+    if (split) params.set("split", split);
+    return `/api/runs/compare?${params.toString()}`;
+  },
+  exampleDataset: () => request<ExampleDataset>("/api/examples/shapes", undefined, {}),
+  library: () => request<{ projects: LibraryProject[]; classes: LibraryClass[] }>("/api/library"),
+
+  pullFromProjects: (payload: { selection: Record<string, string[]>; keep_other_labels: boolean }) =>
+    request<PullResult>("/api/library/pull", undefined, payload),
+
+  releases: (project: string) => request<{ releases: Release[] }>("/api/releases", { project }),
+
+  embeddings: (project: string, dataset: string) =>
+    request<EmbeddingStatus>("/api/embeddings", { project, dataset }),
+
+  /** Embedding a set is a job: seconds on a small dataset, minutes on a large one. */
+  computeEmbeddings: (payload: { project: string; dataset: string; embedder?: string }) =>
+    request<Job<{ status: EmbeddingStatus["status"]; unreadable: number }>>("/api/embeddings", undefined, payload),
+
+  /** The neighbour graph: a second or so the first time, then served from the service's cache. */
+  embeddingReport: (project: string, dataset: string, limit = 5000) =>
+    request<EmbeddingReport>("/api/embeddings/report", { project, dataset, limit }),
 
   installTraining: () => request<Job<{ installed: string }>>("/api/training/install", undefined, {}),
 
@@ -142,7 +212,7 @@ export const api = {
     request<TrainingStatus>("/api/training/status", { project }),
 
   startTraining: (payload: {
-    project: string; train_table: string; valid_table: string; rounds: number;
+    project: string; train_table: string; valid_table: string; test_table?: string | null; rounds: number;
     family: string; version: string; image_size: number; track_learning: boolean;
     compare_with?: string | null;
   }) => request<Job<TrainingResult>>("/api/training", undefined, payload),
@@ -172,7 +242,7 @@ export const api = {
 
   commitImport: (payload: {
     preflight_job: string; project_name: string; resolutions: Record<string, string>;
-    table_name?: string; description?: string;
+    table_name?: string; description?: string; split_plan?: Record<string, number> | null; tasks?: TaskId[];
   }) => request<Job<ImportResult>>("/api/import/commit", undefined, payload),
 
   job: <T>(id: string) => request<Job<T>>(`/api/jobs/${encodeURIComponent(id)}`),

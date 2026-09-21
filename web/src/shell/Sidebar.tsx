@@ -1,31 +1,44 @@
 /** Left navigation: which project, which part of it, and whether the service is healthy. */
 
+import { useEffect, useState } from "react";
+import { api } from "../api/client";
 import { Icon, Mark, formatNumber } from "../components/ui";
 import { navigate, routeHref, routeProject, type Route } from "../router";
 import { useStore } from "../store/store";
 
 const SECTIONS = [
   { name: "overview", label: "Overview", icon: "overview" },
+  { name: "images", label: "Images", icon: "images" },
   { name: "datasets", label: "Datasets", icon: "datasets" },
-  { name: "review", label: "Review", icon: "review" },
   { name: "runs", label: "Runs", icon: "runs" },
+  { name: "findings", label: "Findings", icon: "findings" },
 ] as const;
 
 function sectionOf(route: Route): string {
   if (route.name === "table" || route.name === "report") return "datasets";
-  if (route.name === "run" || route.name === "learning") return "runs";
-  if (route.name === "removed") return "datasets";
+  if (route.name === "run" || route.name === "learning" || route.name === "compare") return "runs";
+  if (route.name === "removed") return "images";
   return route.name;
 }
 
 export function Sidebar({ route }: { route: Route }) {
   const projects = useStore((s) => s.projects);
   const health = useStore((s) => s.health);
+  const licence = useStore((s) => s.licence);
   const tables = useStore((s) => s.tables);
   const runs = useStore((s) => s.runs);
   const project = routeProject(route);
   const active = sectionOf(route);
-  const datasetCount = new Set(tables.map((t) => t.dataset_name)).size;
+  // Datasets are the dataset versions made for training; creating one refreshes the tables.
+  const [datasetCount, setDatasetCount] = useState<number | null>(null);
+  useEffect(() => {
+    if (!project) return;
+    let alive = true;
+    api.releases(project).then(({ releases }) => alive && setDatasetCount(releases.length)).catch(() => undefined);
+    return () => {
+      alive = false;
+    };
+  }, [project, tables]);
 
   return (
     <nav className="sidebar" aria-label="Main">
@@ -81,16 +94,25 @@ export function Sidebar({ route }: { route: Route }) {
           <li>
             <a
               className={route.name === "import" ? "active" : ""}
-              href={routeHref({ name: "import", project: project ?? undefined })}
+              href={routeHref({ name: "import" })}
             >
-              <Icon name="import" />
-              <span>Import data</span>
+              <Icon name="plus" />
+              <span>Create project</span>
             </a>
           </li>
         </ul>
       </div>
 
       <div className="sidebar-spacer" />
+
+      <a className={`sidebar-licence${route.name === "licence" ? " active" : ""}${licence && licence.mode !== "full" ? " off" : ""}`} href={routeHref({ name: "licence" })}>
+        <Icon name="shield" size={15} />
+        <span>Licence</span>
+        <span className="sidebar-licence-state">
+          {!licence ? "" : licence.mode !== "full" ? "Read-only"
+            : licence.state === "unrestricted" ? "" : licence.days_left != null ? `${Math.floor(licence.days_left)} d left` : "Active"}
+        </span>
+      </a>
 
       <div className="sidebar-status" title={health ? `Scan roots:\n${health.roots.join("\n")}\n\nImport folders:\n${health.data_roots.join("\n")}` : undefined}>
         <span className={`status-dot${health ? " ok" : ""}`} />

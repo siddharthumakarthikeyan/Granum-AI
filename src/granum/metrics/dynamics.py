@@ -206,6 +206,7 @@ def image_learning(
     score: str = "f1",
     good: float = 0.5,
     unstable_forgetting: int = 2,
+    min_observations: int = 3,
 ) -> dict[tuple[Any, int], dict[str, Any]]:
     """How each image was learned over training, from a per-image score per epoch.
 
@@ -218,6 +219,9 @@ def image_learning(
                    times or more
     ``never``      never good
     ``empty``      nothing labelled and nothing predicted in any observation
+    ``insufficient``  too few observations to say: fewer than ``min_observations``, or fewer
+                   than half as many as the best-observed image (sparse or partial collection).
+                   Never counted as learned or not learned.
 
     Observations of one epoch recorded twice count once. ``learned_epoch`` is retrospective:
     later observations decide it.
@@ -259,6 +263,13 @@ def image_learning(
             "category": "empty" if empty else None,
         }
 
+    most = max((len(s["epochs"]) for s in out.values()), default=0)
+    for stats in out.values():
+        seen = len(stats["epochs"])
+        stats["observations"] = seen
+        if stats["category"] is None and (seen < min_observations or seen * 2 < most):
+            stats["category"] = "insufficient"
+
     learned_epochs = sorted(
         s["learned_epoch"] for s in out.values()
         if s["learned_epoch"] is not None and s["category"] is None and s["forgetting_events"] < unstable_forgetting
@@ -267,7 +278,8 @@ def image_learning(
         (float(np.percentile(learned_epochs, 25)), float(np.percentile(learned_epochs, 75))) if learned_epochs else (0.0, 0.0)
     )
     for stats in out.values():
-        if stats["category"] == "empty":
+        stats["early_before"], stats["late_after"] = early_cut, late_cut
+        if stats["category"] in ("empty", "insufficient"):
             continue
         if stats["learned_epoch"] is None:
             stats["category"] = "forgotten" if stats["first_good_epoch"] is not None else "never"
@@ -283,7 +295,6 @@ def image_learning(
             stats["category"] = "late"
         else:
             stats["category"] = "steady"
-        stats["early_before"], stats["late_after"] = early_cut, late_cut
     return out
 
 

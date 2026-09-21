@@ -30,6 +30,7 @@ const CATEGORIES: CategoryInfo[] = [
   { id: "late", label: "Late", color: "var(--learn-late)", explain: (s) => `Learned from epoch ${epochOf(s.late_after)} onward. Hard samples or label noise.` },
   { id: "forgotten", label: "Unstable", color: "var(--warn)", explain: () => "Reached the threshold, then dropped below it again. Often inconsistent labels." },
   { id: "never", label: "Not learned", color: "var(--block)", explain: () => "Never reached the threshold. Check for missing or wrong labels first." },
+  { id: "insufficient", label: "Too few observations", color: "var(--learn-insufficient)", explain: () => "Seen in fewer than 3 rounds, or in under half the rounds other images were. No verdict." },
   { id: "empty", label: "Empty", color: "var(--learn-empty)", explain: () => "No labels and no predictions." },
 ];
 const INFO = new Map(CATEGORIES.map((c) => [c.id, c]));
@@ -198,7 +199,7 @@ export function LearningPage({ project, url }: { project: string; url: string })
       )}
 
       {split && split.epochs.length < 3 && (
-        <p className="notice">Only {plural(split.epochs.length, "epoch")} recorded; early and late categories need more epochs to mean much.</p>
+        <p className="notice">Only {plural(split.epochs.length, "epoch")} recorded. Images need at least 3 observations before they are called learned or not learned.</p>
       )}
 
       {split && (
@@ -361,8 +362,9 @@ function LearnedByEpoch({ split }: { split: LearningSplit }) {
   const [at, setAt] = useState<number | null>(null);
   const epochs = split.epochs;
   if (epochs.length < 2) return null;
-  const total = split.images.filter((i) => i.category !== "empty").length || 1;
-  const values = epochs.map((e) => split.images.filter((i) => i.learned_epoch !== null && i.learned_epoch <= e && i.category !== "forgotten").length);
+  const judged = split.images.filter((i) => i.category !== "empty" && i.category !== "insufficient");
+  const total = judged.length || 1;
+  const values = epochs.map((e) => judged.filter((i) => i.learned_epoch !== null && i.learned_epoch <= e && i.category !== "forgotten").length);
   // The axis follows the data: a weak run's curve stays readable instead of hugging zero.
   const top = Math.min(1, Math.max(0.1, Math.ceil(((Math.max(...values) / total) * 1.15) * 10) / 10));
   const W = 640, H = 168, L = 40, R = 12, T = 12, B = 24;
@@ -375,7 +377,7 @@ function LearnedByEpoch({ split }: { split: LearningSplit }) {
     <figure className="panel-card learned-by-epoch">
       <figcaption>
         <span className="strong">Learned by epoch</span>
-        <span className="faint small">{at !== null ? `Epoch ${epochs[at]! + 1}: ${formatNumber(values[at]!)} of ${formatNumber(total)} (${((values[at]! / total) * 100).toFixed(1)}%)` : `Share of ${formatNumber(total)} non-empty samples, axis 0–${Math.round(top * 100)}%`}</span>
+        <span className="faint small">{at !== null ? `Epoch ${epochs[at]! + 1}: ${formatNumber(values[at]!)} of ${formatNumber(total)} (${((values[at]! / total) * 100).toFixed(1)}%)` : `Share of ${formatNumber(total)} judged samples, axis 0–${Math.round(top * 100)}%`}</span>
       </figcaption>
       <svg
         viewBox={`0 0 ${W} ${H}`}

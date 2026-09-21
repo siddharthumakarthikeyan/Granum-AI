@@ -81,6 +81,7 @@ def table_from_coco_data(
     *,
     source: Url | str,
     image_folder: Url | str | None = None,
+    image_folders: dict[int, Url | str] | None = None,
     project_name: str = "default",
     dataset_name: str | None = None,
     table_name: str = "initial",
@@ -95,6 +96,9 @@ def table_from_coco_data(
     ``source`` is where the document came from, recorded for export and provenance.
     ``extra_columns`` adds hidden-by-default string columns, one value per image in
     ``coco["images"]`` order; ``producer_args`` is merged into the recorded producer.
+
+    ``image_folders`` overrides ``image_folder`` for particular image ids, for a table
+    whose images were gathered from more than one folder (a re-cut split, say).
     """
     source = Url(source)
     for key in ("images", "annotations", "categories"):
@@ -154,7 +158,8 @@ def table_from_coco_data(
                 extra = {k: v for k, v in annotation.items() if k not in _ANNOTATION_KNOWN}
                 instance["coco_extra"] = json.dumps(extra, separators=(",", ":")) if extra else None
             instances.append(instance)
-        images.append(str(folder / image["file_name"]))
+        home = Url(image_folders[image_id]) if image_folders and image_id in image_folders else folder
+        images.append(str(home / image["file_name"]))
         image_ids.append(image_id)
         boxes.append({"width": float(image["width"]), "height": float(image["height"]), "instances": instances})
         extras.append(json.dumps({k: v for k, v in image.items() if k not in _IMAGE_KNOWN}, separators=(",", ":")))

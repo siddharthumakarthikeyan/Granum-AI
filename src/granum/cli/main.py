@@ -9,11 +9,16 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import typer
 
 from granum.core.config import OPTIONS, Config, Tier, set_config
 from granum.core.url import Url, get_registered_url_aliases, get_url_alias_origins
+
+if TYPE_CHECKING:
+    from granum.core.index import Index
+    from granum.licensing import Licensing
 
 app = typer.Typer(
     name="granum",
@@ -144,6 +149,7 @@ def service(
             err=True,
         )
     hosts = list(allow_host) + ([] if loopback or host in {"0.0.0.0", "::"} else [host])
+    licensing = _service_licensing(index, str(config.get("licence.server") or ""))
     application = create_app(
         index=index,
         config=config,
@@ -151,6 +157,7 @@ def service(
         allowed_hosts=hosts,
         allowed_origins=list(allow_origin) or None,
         data_roots=list(data_root) or None,
+        licensing=licensing,
     )
     shown = "127.0.0.1" if host in {"0.0.0.0", "::"} else host
     address = f"http://{shown}:{port}"
@@ -171,6 +178,7 @@ def service(
     try:
         uvicorn.run(application, host=host, port=port, log_level="warning")
     finally:
+        licensing.stop()
         index.stop()
 
 
@@ -551,3 +559,29 @@ def config_project_root(
 
 if __name__ == "__main__":
     app()
+
+
+def _service_licensing(index: Index, server_url: str) -> Licensing:
+    """This computer's licence, beating in the background while the service runs.
+
+    The newest object in the projects is a clock mark: a clock behind it was turned back.
+    """
+    from granum.licensing import Licensing, set_licensing
+    from granum.licensing.token import parse_time
+
+    def latest_seen() -> float | None:
+        times = [parse_time(e.created) for e in index.entries() if getattr(e, "created", None)]
+        return max((t for t in times if t), default=None)
+
+    server = None
+    if server_url:
+        from granum.licensing.client import LicenceServer
+
+        server = LicenceServer(server_url)
+    licensing = Licensing(latest_seen=latest_seen, server=server)
+    set_licensing(licensing)
+    licensing.start()
+    status = licensing.status()
+    if status["mode"] != "full":
+        typer.echo(f"granum: read-only. {status['reason']}", err=True)
+    return licensing

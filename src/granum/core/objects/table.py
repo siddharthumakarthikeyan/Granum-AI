@@ -528,6 +528,7 @@ class Table(GranumObject):
         values: dict[str, dict[int, Any]] | None = None,
         new_columns: dict[str, tuple[str, Any]] | None = None,
         value_maps: dict[str, dict[int, Any]] | None = None,
+        instance_properties: dict[str, dict[str, str]] | None = None,
         table_name: str | None = None,
         description: str = "",
     ) -> Table:
@@ -539,19 +540,22 @@ class Table(GranumObject):
 
         - ``new_columns``: ``{name: (kind, default)}`` with kind one of
           ``bool``, ``string``, ``float32``, ``int32``. Created writable.
-        - ``value_maps``: ``{column: full value map}`` for categorical columns.
+        - ``value_maps``: ``{column: full value map}`` for categorical and geometry columns.
+        - ``instance_properties``: ``{geometry column: {name: kind}}``, properties to add to
+          its instances (a mask drawn on a box-only dataset needs ``segmentation``).
         - ``values``: ``{column: {row: value}}``, applied last, so a cell may use a class
           or column created in the same call.
 
         Only writable columns can be edited. The sparse edit set is recorded in the
         revision's ``producer`` so what changed stays inspectable without diffing.
         """
-        from granum.core.schemas import _coerce_value_map
+        from granum.core.schemas import Geometry2DSchema, _coerce_value_map
 
         values = {c: dict(cells) for c, cells in (values or {}).items() if cells}
         new_columns = dict(new_columns or {})
         value_maps = dict(value_maps or {})
-        if not (values or new_columns or value_maps):
+        instance_properties = {c: dict(p) for c, p in (instance_properties or {}).items() if p}
+        if not (values or new_columns or value_maps or instance_properties):
             raise TableError("nothing to commit: no edits were given")
 
         schema = self.schema
@@ -568,8 +572,39 @@ class Table(GranumObject):
             schema = schema.with_column(name, column_schema)
             data[name] = [column_schema.to_storage(default)] * self.row_count
 
+        for column, added in instance_properties.items():
+            current = schema[column]
+            if not isinstance(current, Geometry2DSchema):
+                raise TableError(f"column {column!r} is not a geometry column; it has no instance properties")
+            merged = {**current.instance_properties}
+            for name, kind in added.items():
+                if merged.get(name, kind) != kind:
+                    raise TableError(f"{column!r} already has instance property {name!r} as {merged[name]}")
+                merged[name] = kind
+            try:
+                replacement = type(current)(
+                    value_map=current.value_map, instance_properties=merged, description=current.description,
+                    writable=current.writable, default_visible=current.default_visible, number_role=current.number_role,
+                )
+            except SchemaError as exc:
+                raise TableError(str(exc)) from exc
+            schema = schema.with_column(column, replacement)
+            # Stored instances gain the new properties, empty.
+            data[column] = [
+                {**cell, "instances": [{**{n: None for n in added}, **i} for i in cell.get("instances") or []]}
+                if isinstance(cell, dict) else cell
+                for cell in data[column]
+            ]
+
         for column, value_map in value_maps.items():
             current = schema[column]
+            if isinstance(current, Geometry2DSchema):
+                schema = schema.with_column(column, type(current)(
+                    value_map=_coerce_value_map(value_map), instance_properties=current.instance_properties,
+                    description=current.description, writable=current.writable,
+                    default_visible=current.default_visible, number_role=current.number_role,
+                ))
+                continue
             if not isinstance(current, CategoricalLabelSchema):
                 raise TableError(f"column {column!r} is not categorical; it has no classes")
             replacement = type(current)(
@@ -600,7 +635,11 @@ class Table(GranumObject):
         # A class may only be removed once no row uses it.
         for column in value_maps:
             known = set(schema[column].value_map)  # type: ignore[attr-defined]
-            used = {v for v in data[column] if v is not None}
+            if isinstance(schema[column], Geometry2DSchema):
+                used = {i.get("label") for cell in data[column] if isinstance(cell, dict)
+                        for i in cell.get("instances") or [] if i.get("label") is not None}
+            else:
+                used = {v for v in data[column] if v is not None}
             orphaned = sorted(used - known)
             if orphaned:
                 raise TableError(
@@ -612,6 +651,7 @@ class Table(GranumObject):
             "cells": {column: len(cells) for column, cells in values.items()},
             "columns_added": sorted(new_columns),
             "value_maps": sorted(value_maps),
+            "instance_properties": {c: sorted(p) for c, p in instance_properties.items()},
         }
         sparse = {
             "values": {c: {str(i): v for i, v in cells.items()} for c, cells in values.items()},

@@ -81,7 +81,7 @@ export function RenameProjectDialog({ project, onClose }: { project: string; onC
         />
       </label>
       {problem && !unchanged ? <p className="form-error">{problem}</p> : (
-        <p className="muted small rename-note">Datasets, versions, runs, reviews and shipments move with the project. Image files are not affected.</p>
+        <p className="muted small rename-note">Datasets, versions, runs, reviews and dataset versions move with the project. Image files are not affected.</p>
       )}
       {error && <p className="form-error">{error}</p>}
     </Modal>

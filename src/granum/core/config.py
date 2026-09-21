@@ -120,6 +120,12 @@ OPTIONS: dict[str, Option] = {
         ),
         Option("log-file", "", "Log file path for the Granum logger.", "GRANUM_LOG_FILE"),
         Option(
+            "licence.server",
+            "",
+            "Address of the Granum licence server that starts trials, activates plans and renews keys.",
+            "GRANUM_LICENCE_SERVER",
+        ),
+        Option(
             "display-progress",
             True,
             "Whether to display progress bars.",

@@ -7,7 +7,7 @@
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { api } from "../api/client";
-import type { ImageRound, ImageRounds } from "../api/types";
+import type { ImageRound, ImageRounds, LearningCategory } from "../api/types";
 import { BoxShapes } from "../boxes/BoxOverlay";
 import { ROLE_NAMES, ROLE_STYLE, type BoxRole, type DrawnBox } from "../boxes/model";
 import { Icon, formatNumber, plural } from "../components/ui";
@@ -16,6 +16,8 @@ import { REMOVE_REASONS, type Decisions } from "./decisions";
 export interface ViewerItem {
   example_id: number;
   image: string | null;
+  /** The run-wide learning category, when known; "insufficient" withholds a verdict. */
+  category?: LearningCategory;
 }
 
 interface Props {
@@ -240,6 +242,24 @@ export function ImageViewer({ project, runUrl, table, dataset, setName, items, i
     if (labelled === 0 && last && last.fp === 0) {
       return { tone: "pass", title: "Empty, correctly", detail: "No labels and no predictions in the last epoch." };
     }
+    if (item?.category === "insufficient" || rounds.length < 3) {
+      return {
+        tone: "neutral",
+        title: "Too few observations",
+        detail: `Seen in ${plural(rounds.length, "epoch")}. An image needs at least 3 observations, in at least half the recorded epochs, before it is called learned or not learned.`,
+      };
+    }
+    // The page's category is run-wide; the verdict must not contradict it.
+    const drops = rounds.filter((r, i) => i > 0 && rounds[i - 1]!.f1 >= good && r.f1 < good).length;
+    if (item?.category === "forgotten") {
+      return {
+        tone: "warn",
+        title: "Unstable",
+        detail: data.learned_from !== null
+          ? `Dropped below F1 ${good} ${plural(drops, "time")} before holding from ${roundName(data.learned_from)}.`
+          : `Dropped below F1 ${good} ${plural(drops, "time")}; ended at ${last?.f1.toFixed(2)}.`,
+      };
+    }
     if (data.perfect_from !== null) {
       return {
         tone: "pass",
@@ -268,7 +288,14 @@ export function ImageViewer({ project, runUrl, table, dataset, setName, items, i
         ? `Best F1 ${(Math.floor(best.f1 * 100) / 100).toFixed(2)} in ${roundName(best.epoch)}, threshold ${good}.`
         : "No epochs recorded for this image.",
     };
-  }, [data, rounds, labelled, good]);
+  }, [data, rounds, labelled, good, item?.category]);
+
+  // Keep the selected round visible in a long strip (60 epochs do not fit).
+  const stripRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const cell = stripRef.current?.querySelector<HTMLElement>(".round-cell.on");
+    cell?.scrollIntoView({ block: "nearest", inline: "nearest" });
+  }, [roundAt, data]);
 
   const hasAnyBoxes = rounds.some((r) => r.boxes !== null);
   const scale = fit * view.zoom;
@@ -400,17 +427,19 @@ export function ImageViewer({ project, runUrl, table, dataset, setName, items, i
                 </button>
                 <button className="icon-button" onClick={() => stepRound(1)} disabled={roundAt === rounds.length - 1} aria-label="Next round (])" title="Next round (])">›</button>
               </div>
-              <div className="round-strip" role="listbox" aria-label="Rounds">
+              <div ref={stripRef} className="round-strip" role="listbox" aria-label="Rounds" style={{ "--good": good } as React.CSSProperties}>
                 {rounds.map((r, i) => {
                   const perfect = isPerfect(r, labelled);
+                  // Forgotten: at or above the threshold in the previous observation, below it now.
+                  const dropped = i > 0 && rounds[i - 1]!.f1 >= good && r.f1 < good;
                   return (
                     <button
                       key={r.epoch}
                       role="option"
                       aria-selected={i === roundAt}
-                      className={`round-cell${i === roundAt ? " on" : ""}${perfect ? " perfect" : r.f1 >= good ? " good" : ""}`}
+                      className={`round-cell${i === roundAt ? " on" : ""}${perfect ? " perfect" : r.f1 >= good ? " good" : ""}${dropped ? " dropped" : ""}`}
                       onClick={() => { setPlaying(false); setRoundAt(i); }}
-                      title={`Round ${r.epoch + 1}: score ${r.f1.toFixed(2)}, found ${r.tp} of ${labelled}, ${r.fp} extra${perfect ? ", perfect" : ""}`}
+                      title={`Round ${r.epoch + 1}: score ${r.f1.toFixed(2)}, found ${r.tp} of ${labelled}, ${r.fp} extra${perfect ? ", perfect" : ""}${dropped ? ", dropped below the threshold" : ""}`}
                     >
                       <span className="round-bar"><span style={{ height: `${Math.max(4, r.f1 * 100)}%` }} /></span>
                       <span className="round-number">{perfect ? <Icon name="check" size={11} /> : r.epoch + 1}</span>
@@ -418,6 +447,10 @@ export function ImageViewer({ project, runUrl, table, dataset, setName, items, i
                   );
                 })}
               </div>
+              <p className="round-key faint small">
+                <span className="key-threshold" /> F1 threshold {good}
+                {rounds.some((r, i) => i > 0 && rounds[i - 1]!.f1 >= good && r.f1 < good) && <><span className="key-dropped" /> dropped below it</>}
+              </p>
               {round && (
                 <dl className="round-stats">
                   <div><dt>F1, {roundName(round.epoch)}</dt><dd>{round.f1.toFixed(2)}</dd></div>

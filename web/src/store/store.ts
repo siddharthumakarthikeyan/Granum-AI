@@ -8,7 +8,7 @@
 import { create } from "zustand";
 import { api } from "../api/client";
 import type {
-  ColumnInfo, Health, ImportSummary, ObjectEntry, ProjectSummary, Row, RowPage, RunMetadata,
+  ColumnInfo, Health, LicenceStatus, ImportSummary, ObjectEntry, ProjectSummary, Row, RowPage, RunMetadata,
 } from "../api/types";
 import {
   loadFavourites, restoreFavourites, toggleFavourite as toggleStoredFavourite,
@@ -91,6 +91,9 @@ interface State extends EditActions, BoxActions, BoxState {
   imports: ImportSummary[];
   lineageEdges: { from: string; to: string }[];
   health: Health | null;
+  /** What the licence allows; null until loaded. */
+  licence: LicenceStatus | null;
+  refreshLicence: () => Promise<void>;
   /** The project whose lists are loaded, so revisiting it does not refetch. */
   loadedProject: string | null;
 
@@ -212,6 +215,7 @@ export const useStore = create<State>((set, get) => ({
   imports: [],
   lineageEdges: [],
   health: null,
+  licence: null,
   loadedProject: null,
 
   sourceUrl: null,
@@ -253,8 +257,8 @@ export const useStore = create<State>((set, get) => ({
     set({ loading: true, error: null });
     try {
       const health = await api.health();
-      const projects = await api.projects();
-      set({ projects, health, serviceOk: true, loading: false });
+      const [projects, licence] = await Promise.all([api.projects(), api.licence().catch(() => null)]);
+      set({ projects, health, licence, serviceOk: true, loading: false });
     } catch (error) {
       set({
         error: error instanceof Error ? error.message : String(error),
@@ -286,10 +290,18 @@ export const useStore = create<State>((set, get) => ({
 
   refreshProjects: async () => {
     try {
-      const [projects, health] = await Promise.all([api.projects(), api.health()]);
-      set({ projects, health });
+      const [projects, health, licence] = await Promise.all([api.projects(), api.health(), api.licence()]);
+      set({ projects, health, licence });
     } catch {
       // the list is refreshed opportunistically
+    }
+  },
+
+  refreshLicence: async () => {
+    try {
+      set({ licence: await api.licence() });
+    } catch {
+      // shown again on the next refresh
     }
   },
 
@@ -787,3 +799,8 @@ useStore.subscribe((state, previous) => {
 });
 
 if (typeof window !== "undefined") window.addEventListener("pagehide", flushDrafts);
+
+// A request refused by the licence means its state changed: show the new one.
+if (typeof window !== "undefined") {
+  window.addEventListener("granum:licence", () => void useStore.getState().refreshLicence());
+}

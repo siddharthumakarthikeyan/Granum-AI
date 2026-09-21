@@ -177,3 +177,24 @@ def test_image_learning_counts_final_round_learners_as_late():
     category = {k[1]: v["category"] for k, v in image_learning(records).items()}
     assert category[0] == "early"
     assert category[5] == "late"
+
+
+def test_image_learning_withholds_a_verdict_on_too_few_observations():
+    from granum.metrics.dynamics import image_learning
+
+    records = []
+    seen = {0: range(10), 1: range(10), 2: [0, 9], 3: [6, 7, 8, 9], 4: [5, 6, 7, 8, 9]}
+    for example, epochs in seen.items():
+        for epoch in epochs:
+            records.append({"_src": "t", "example_id": example, "epoch": epoch, "tp": 1, "fp": 0, "fn": 0, "f1": 1.0})
+    stats = image_learning(records)
+    category = {k[1]: v["category"] for k, v in stats.items()}
+    assert category[0] == category[1] == "early"
+    assert category[2] == "insufficient"  # fewer than three observations
+    assert category[3] == "insufficient"  # four of the ten rounds others were seen in
+    assert category[4] != "insufficient"  # half the rounds is enough
+    assert stats[("t", 3)]["observations"] == 4
+
+    # A run with only two rounds: nothing can be judged.
+    short = [{"_src": "t", "example_id": 0, "epoch": e, "tp": 1, "fp": 0, "fn": 0, "f1": 0.0} for e in range(2)]
+    assert image_learning(short)[("t", 0)]["category"] == "insufficient"

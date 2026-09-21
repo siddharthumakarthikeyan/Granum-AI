@@ -25,6 +25,7 @@ from granum.importing.preflight import (
     PreflightReport,
     categories_of,
 )
+from granum.importing.tasks import DEFAULT_TASK, normalize_tasks
 
 GROUP_COLUMNS = {
     "images.export_copies": "source_image",
@@ -46,12 +47,14 @@ class ImportResult:
     report_url: str
     verdict: str
     warnings_accepted: list[str] = field(default_factory=list)
+    tasks: list[str] = field(default_factory=lambda: [DEFAULT_TASK])
 
     def to_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
             "project_name": self.project_name,
             "tables": self.tables,
+            "tasks": self.tasks,
             "resolutions": self.resolutions,
             "effects": self.effects,
             "report_url": self.report_url,
@@ -92,6 +95,8 @@ def import_coco(
     dataset_name: str | None = None,
     description: str = "",
     splits: list[str] | None = None,
+    split_plan: dict[str, int] | None = None,
+    tasks: list[str] | None = None,
     progress: Progress | None = None,
     config: Config | None = None,
 ) -> ImportResult:
@@ -103,6 +108,13 @@ def import_coco(
 
     ``splits`` limits which splits are written -- preflight all of them together, so
     leakage between splits is found, even when only one is new.
+
+    ``split_plan`` re-cuts the splits: it maps each split to how many images it should
+    end up with, and images move between splits to meet it (see ``plan_splits``). Every
+    image is still imported; only which table it lands in changes.
+
+    ``tasks`` are what the labels are for (see ``granum.importing.tasks``); by default the
+    task preflight detected. They are recorded in every table's producer.
     """
     if not report.parsed:
         raise PreflightError("this report has no readable annotation files to import")
@@ -112,6 +124,11 @@ def import_coco(
     progress = progress or (lambda phase, done, total: None)
     config = config or get_config()
     chosen = resolve_options(report, resolutions)
+    detected = report.summary.get("task", {}).get("detected", DEFAULT_TASK)
+    try:
+        tasks = normalize_tasks(tasks) or [detected]
+    except ValueError as exc:
+        raise PreflightError(str(exc)) from exc
     import_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S") + "-" + uuid4().hex[:6]
     effects: Counter[str] = Counter()
 
@@ -182,6 +199,7 @@ def import_coco(
     report_dir = ProjectLayout(config.project_root).project(project_name) / "imports"
     report_url = report_dir / f"{import_id}.json"
     provenance = {
+        "tasks": tasks,
         "preflight": {
             "import_id": import_id,
             "version": PREFLIGHT_VERSION,
@@ -194,29 +212,65 @@ def import_coco(
         }
     }
 
-    for position, (split, data) in enumerate(writing):
-        progress(f"Writing {split}", position, len(writing))
+    # Which source images each written split gets. Without a plan every split keeps its
+    # own, which is the same walk as before; with one, images move between splits.
+    included = {
+        split: [int(i["id"]) for i in data.images if int(i["id"]) not in excluded_images[split]]
+        for split, data in writing
+    }
+    for split, data in writing:
+        for image_id in excluded_images[split]:
+            effects["images_excluded"] += 1
+            effects["boxes_excluded_with_images"] += len(data.annotations_by_image.get(image_id, []))
+    if split_plan is None:
+        assignment = {split: [(split, image_id) for image_id in ids] for split, ids in included.items()}
+    else:
+        assignment = plan_splits(included, split_plan)
+        moved = sum(1 for split, members in assignment.items() for source, _ in members if source != split)
+        if moved:
+            effects["images_moved_between_splits"] = moved
+
+    by_split = dict(writing)
+    for position, split in enumerate(included):
+        members = assignment.get(split, [])
+        progress(f"Writing {split}", position, len(included))
+        data = by_split[split]
         images, annotations = [], []
         columns: dict[str, list[Any]] = {name: [] for name in group_columns}
-        used_ids = {a.get("id") for anns in data.annotations_by_image.values() for a in anns if isinstance(a.get("id"), int)}
-        next_id = max(used_ids, default=0) + 1
+        folders: dict[int, Any] = {}
+        # An image that moved brings its own id, which may already be taken in the split
+        # it lands in; renumbering keeps each written table self-consistent.
+        mixed = len({source for source, _ in members}) > 1
+        next_image_id = 1
+        next_id = 1 + max(
+            (a.get("id")
+             for source in {source for source, _ in members}
+             for anns in report.parsed[source].annotations_by_image.values()
+             for a in anns if isinstance(a.get("id"), int)),
+            default=0,
+        )
         seen_ids: set[int] = set()
-        for image in data.images:
-            image_id = int(image["id"])
-            if image_id in excluded_images[split]:
-                effects["images_excluded"] += 1
-                effects["boxes_excluded_with_images"] += len(data.annotations_by_image.get(image_id, []))
-                continue
+        for source, image_id in members:
+            source_data = report.parsed[source]
+            image = dict(source_data.image_by_id[image_id])
+            written_id = image_id
+            if mixed:
+                written_id = next_image_id
+                next_image_id += 1
+                image["id"] = written_id
             images.append(image)
-            groups = report.groups.get(split, {}).get(image_id, {})
+            folders[written_id] = source_data.source.image_folder
+            groups = report.groups.get(source, {}).get(image_id, {})
             for name in group_columns:
                 columns[name].append(groups.get(name))
             width, height = _num(image.get("width")), _num(image.get("height"))
-            for annotation in data.annotations_by_image.get(image_id, []):
+            for annotation in source_data.annotations_by_image.get(image_id, []):
                 kept = _clean_annotation(annotation, names, chosen, remap, ignore_ids, removed, width, height, effects)
                 if kept is None:
                     continue
-                if chosen.get("annotations.duplicate_id") == "renumber" and kept.get("id") in seen_ids:
+                kept["image_id"] = written_id
+                renumber = chosen.get("annotations.duplicate_id") == "renumber" or mixed
+                if renumber and kept.get("id") in seen_ids:
                     kept["id"] = next_id
                     next_id += 1
                     effects["annotation_ids_renumbered"] += 1
@@ -230,6 +284,7 @@ def import_coco(
             document,
             source=data.source.annotations,
             image_folder=data.source.image_folder,
+            image_folders=folders if mixed else None,
             project_name=project_name,
             dataset_name=dataset_name,
             table_name=split,
@@ -252,11 +307,65 @@ def import_coco(
         effects=dict(effects),
         report_url=str(report_url),
         verdict=report.verdict,
+        tasks=tasks,
         warnings_accepted=[f.code for f in report.findings if f.severity == "warn"],
     )
     report_dir.mkdir()
     report_url.write_text(json.dumps({"report": report.to_dict(), "import": result.to_dict()}, indent=1))
     return result
+
+
+def plan_splits(
+    available: dict[str, list[int]],
+    targets: dict[str, int],
+) -> dict[str, list[tuple[str, int]]]:
+    """Decide which source image ends up in which split, given wanted sizes per split.
+
+    ``available`` maps each split to the image ids it holds, in file order; ``targets``
+    to how many images it should end up with. Images stay where they are wherever the
+    target allows, so a plan that matches the source is a no-op and a small change moves
+    few images. Splits are filled in order, drawing from the surplus of the others, and
+    every image lands somewhere, so nothing is silently dropped.
+
+    The targets are read as proportions when they do not add up to the number of images
+    actually available -- the caller counts what the annotation files hold, while excluded
+    images mean rather fewer arrive here. A 140/30/30 plan over 194 images cuts the same
+    way it would over 200.
+    """
+    unknown = set(targets) - set(available)
+    if unknown:
+        raise PreflightError(f"no split named {sorted(unknown)} in this report")
+    total = sum(len(ids) for ids in available.values())
+    wanted = {split: max(0, int(targets.get(split, len(available[split])))) for split in available}
+    asked = sum(wanted.values())
+    if asked <= 0:
+        raise PreflightError("a split plan must give at least one split some images")
+    if asked != total:
+        # Largest remainder, so the rescaled counts still add up to exactly `total`.
+        exact = {split: count * total / asked for split, count in wanted.items()}
+        wanted = {split: int(value) for split, value in exact.items()}
+        short = total - sum(wanted.values())
+        for split in sorted(exact, key=lambda s: (exact[s] - wanted[s], s), reverse=True)[:short]:
+            wanted[split] += 1
+
+    order = sorted(available)
+    kept: dict[str, list[tuple[str, int]]] = {}
+    surplus: list[tuple[str, int]] = []
+    for split in order:
+        keep = min(len(available[split]), wanted[split])
+        kept[split] = [(split, image_id) for image_id in available[split][:keep]]
+        surplus.extend((split, image_id) for image_id in available[split][keep:])
+
+    at = 0
+    for split in order:
+        need = wanted[split] - len(kept[split])
+        if need > 0:
+            kept[split].extend(surplus[at:at + need])
+            at += need
+    # Whatever the targets left over stays in the dataset rather than disappearing.
+    if at < len(surplus):
+        kept[order[-1]].extend(surplus[at:])
+    return kept
 
 
 def suggest_dataset_name(report: PreflightReport, fallback: str = "dataset") -> str:

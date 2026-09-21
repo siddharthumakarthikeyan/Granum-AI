@@ -25,6 +25,23 @@ from granum.core.schemas.geometry import BoundingBoxes2DSchema
 from granum.metrics.detection import DetectionMetricsCollector
 
 EVAL_CONFIDENCE = 0.01
+#: Bumped when a change here would make new scores incomparable with recorded ones.
+SCORER_VERSION = "granum-detection-1"
+
+
+def evaluator_policy(*, operating_confidence: float = 0.25, iou_threshold: float = 0.5) -> dict[str, Any]:
+    """The scoring rules, as a run records them.
+
+    Two runs' scores are the same kind of number only if this matches on both sides, so it
+    is recorded with the run rather than assumed later (see
+    :func:`granum.metrics.comparison.compatibility_checks`).
+    """
+    return {
+        "scorer": SCORER_VERSION,
+        "operating_confidence": operating_confidence,
+        "match_iou": iou_threshold,
+        "min_confidence": EVAL_CONFIDENCE,
+    }
 
 
 def average_precision(scores: list[float], hits: list[bool], positives: int) -> float:

@@ -1,122 +1,159 @@
-/** Datasets, their sets, and each set's version history. */
+/** Datasets: the dataset versions created from the Images tab. Training uses these only. */
 
-import { useState } from "react";
-import { EmptyState, Icon, ImageStrip, PageHeader, VerdictBadge, formatNumber, formatWhen, plural } from "../components/ui";
+import { useCallback, useEffect, useState } from "react";
+import { api } from "../api/client";
+import type { Release } from "../api/types";
+import { EmptyState, Icon, ImageStrip, PageHeader, formatNumber, formatWhen, plural } from "../components/ui";
+import { tasksLabel } from "../importing/tasks";
+import { TrainDialog } from "../training/Training";
 import { navigate, routeHref } from "../router";
+import { recipeSummary } from "../images/AugmentationPanel";
+import { DeleteReleaseDialog } from "./DeleteReleaseDialog";
 import { useStore } from "../store/store";
-import { HOLDING_SETS, REMOVED_SET, describeOp, groupDatasets, type Dataset, type Revision } from "./datasets";
-
-/** The revision stack: one plate per version, the newest on top. */
-export function RevisionStack({ revisions, latestUrl, max = 4 }: { revisions: Revision[]; latestUrl: string; max?: number }) {
-  const shown = revisions.slice(-max);
-  return (
-    <div className="revision-stack" aria-hidden="true">
-      {shown.map((revision, i) => (
-        <span
-          key={revision.entry.url}
-          className={`plate${revision.entry.url === latestUrl ? " latest" : ""}${revision.depth === 0 ? " root" : ""}`}
-          style={{ bottom: i * 5, zIndex: i }}
-        />
-      ))}
-    </div>
-  );
-}
+import { groupDatasets } from "./datasets";
 
 export function DatasetsPage({ project }: { project: string }) {
   const tables = useStore((s) => s.tables);
   const loading = useStore((s) => s.loading);
   const datasets = groupDatasets(tables);
+  const [releases, setReleases] = useState<Release[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [training, setTraining] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<Release | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  const load = useCallback(() => {
+    api.releases(project).then(({ releases }) => setReleases(releases)).catch((e: Error) => setError(e.message));
+  }, [project]);
+  useEffect(load, [load, tables]);
 
   return (
     <div className="page">
       <PageHeader
         title="Datasets"
         context={project}
-        subtitle={`${plural(datasets.length, "dataset")}, ${plural(tables.length, "version")}`}
-        actions={<a className="button" href={routeHref({ name: "import", project })}><Icon name="import" />Import</a>}
+        subtitle={releases ? plural(releases.length, "dataset version") : undefined}
       />
+      {error && <p className="form-error">{error}</p>}
+      {notice && <div className="toast" role="status">{notice}</div>}
+
+      {datasets.length > 0 && (
+        <section className="release-section" aria-label="Dataset versions">
+          {releases && releases.length === 0 && (
+            <p className="muted release-empty">
+              No dataset version yet. Review images, then use <a href={routeHref({ name: "images", project })}>Create dataset</a> on the Images tab.
+            </p>
+          )}
+          {releases?.map((release) => (
+            <ReleaseRibbon key={`${release.dataset}/${release.id}`} project={project} release={release}
+              onTrain={() => setTraining(release.id)} onDelete={() => setDeleting(release)} />
+          ))}
+        </section>
+      )}
+
       {datasets.length === 0 && !loading && (
         <EmptyState
           title="No datasets"
-          action={<a className="button primary" href={routeHref({ name: "import", project })}><Icon name="import" />Import a COCO dataset</a>}
+          action={<a className="button primary" href={routeHref({ name: "import", project })}><Icon name="import" />Add data</a>}
         >
           <p>Datasets written by training scripts with the Granum SDK also appear here.</p>
         </EmptyState>
       )}
-      {datasets.map((dataset) => <DatasetPanel key={dataset.name} project={project} dataset={dataset} />)}
+
+      {deleting && (
+        <DeleteReleaseDialog
+          project={project}
+          release={deleting}
+          onClose={() => setDeleting(null)}
+          onDeleted={() => {
+            setNotice(`Deleted ${deleting.name}`);
+            window.setTimeout(() => setNotice(null), 4000);
+            setDeleting(null);
+            load();
+          }}
+        />
+      )}
+
+      {training && (
+        <TrainDialog
+          project={project}
+          preset={{ release: training }}
+          onClose={() => setTraining(null)}
+          onStarted={() => navigate({ name: "runs", project })}
+        />
+      )}
     </div>
   );
 }
 
-/** One dataset; its sets (train, valid, test, removed) are views of it, chosen with a toggle. */
-function DatasetPanel({ project, dataset }: { project: string; dataset: Dataset }) {
-  const live = dataset.splits.filter((s) => !HOLDING_SETS.includes(s.name));
-  const [chosen, setChosen] = useState(() => (live.find((s) => /^train/i.test(s.name)) ?? dataset.splits[0])!.name);
-  const split = dataset.splits.find((s) => s.name === chosen) ?? dataset.splits[0]!;
-  const removed = split.name === REMOVED_SET;
-  const images = live.reduce((n, s) => n + s.latest.row_count, 0);
-  const boxes = live.reduce((n, s) => n + (s.latest.box_count ?? 0), 0);
-  const classes = Math.max(0, ...live.map((s) => s.latest.class_count ?? 0));
-  const imported = split.revisions.find((r) => r.entry.preflight)?.entry.preflight;
-  const history = [...split.revisions].reverse();
+/** One dataset version, laid out like a working dataset: its sets, a strip of images, the
+ * facts of how it was made, and a way to train on it. */
+function ReleaseRibbon({ project, release, onTrain, onDelete }: { project: string; release: Release; onTrain: () => void; onDelete: () => void }) {
+  const sets = Object.entries(release.sets);
+  const [chosen, setChosen] = useState(() => (sets.find(([name]) => /^train/i.test(name)) ?? sets[0])?.[0] ?? "");
+  const current = release.sets[chosen] ?? sets[0]?.[1];
+  const images = sets.reduce((n, [, s]) => n + s.images, 0);
+  const verifiedOf = (set: { images: number; verified?: number }) => set.verified ?? set.images;
+  const verified = sets.reduce((n, [, s]) => n + verifiedOf(s), 0);
+  const unverified = images - verified;
+  const heading = `release-${release.dataset}-${release.id}`;
 
   return (
-    <section className="dataset-panel" aria-labelledby={`dataset-${dataset.name}`}>
+    <section className="dataset-panel release-panel" aria-labelledby={heading}>
       <header className="dataset-panel-head">
+        <span className="release-version tabular" title={`Version ${release.version} of ${release.dataset}`}>v{release.version}</span>
         <div className="dataset-panel-title">
-          <h2 id={`dataset-${dataset.name}`}>{dataset.name}</h2>
-          <span className="muted small">{formatNumber(images)} images, {formatNumber(boxes)} boxes, {plural(classes, "class", "classes")}</span>
+          <h2 id={heading}>{release.name}</h2>
+          <span className="muted small">
+            {tasksLabel(release.tasks)} · {formatNumber(images)} images from {release.dataset}
+            {release.note ? ` · ${release.note}` : ""}
+          </span>
         </div>
         <span className="spacer" />
         <div className="segmented split-toggle" role="tablist" aria-label="Set">
-          {dataset.splits.map((s) => (
-            <button
-              key={s.name}
-              role="tab"
-              aria-selected={s.name === split.name}
-              className={s.name === split.name ? "on" : ""}
-              onClick={() => setChosen(s.name)}
-            >
-              {s.name}
-              <span className="split-toggle-count">{formatNumber(s.latest.row_count)}</span>
+          {sets.map(([name, set]) => (
+            <button key={name} role="tab" aria-selected={name === chosen} className={name === chosen ? "on" : ""} onClick={() => setChosen(name)}>
+              {name}
+              <span className="split-toggle-count">{formatNumber(set.images)}</span>
             </button>
           ))}
         </div>
-        {removed ? (
-          <a className="button primary" href={routeHref({ name: "removed", project, dataset: dataset.name })}>Review removed</a>
-        ) : (
-          <a className="button primary" href={routeHref({ name: "table", project, url: split.latest.url })}>Open {split.name}</a>
-        )}
+        <button className="button primary" onClick={onTrain}><Icon name="runs" size={15} />Train</button>
+        <button className="icon-button release-delete" onClick={onDelete} title={`Delete ${release.name}`} aria-label={`Delete ${release.name}`}>
+          <Icon name="trash" size={15} />
+        </button>
       </header>
 
-      {!removed && (
-        <ImageStrip
-          key={split.latest.url}
-          url={split.latest.url}
-          project={project}
-          dataset={dataset.name}
-          count={12}
-          height={96}
-          onOpen={() => navigate({ name: "table", project, url: split.latest.url })}
-        />
+      {current && (
+        <ImageStrip key={current.url} url={current.url} project={project} dataset={release.dataset} count={12} height={96} />
       )}
 
-      <dl className="split-facts">
-        <div><dt>Newest version</dt><dd className="mono">{split.latest.name}</dd></div>
-        <div><dt>Images</dt><dd>{formatNumber(split.latest.row_count)}</dd></div>
-        <div><dt>Boxes</dt><dd>{split.latest.box_count !== undefined ? formatNumber(split.latest.box_count) : "—"}</dd></div>
-        <div><dt>Versions</dt><dd>{split.revisions.length}</dd></div>
-        <div><dt>Last change</dt><dd>{describeOp(split.latest.op)}, {formatWhen(split.latest.created)}</dd></div>
+      <dl className={`split-facts${release.augmentation ? " with-augmentation" : ""}`}>
+        <div><dt>Version</dt><dd>v{release.version}</dd></div>
+        <div><dt>Images</dt><dd>{formatNumber(images)}</dd></div>
+        <div><dt>Verified</dt><dd>{formatNumber(verified)}</dd></div>
         <div>
-          <dt>Preflight</dt>
+          <dt>Contents</dt>
           <dd>
-            {imported ? (
-              <a href={routeHref({ name: "report", project, id: imported.import_id })}>
-                <VerdictBadge verdict={imported.verdict} label={imported.verdict === "pass" ? "Passed" : plural(imported.warnings, "warning")} />
-              </a>
-            ) : "—"}
+            {release.mode === "verified" ? (
+              <span className="qa-chip reviewed">Verified only</span>
+            ) : unverified > 0 ? (
+              <span className="qa-chip rework">{formatNumber(unverified)} unverified</span>
+            ) : (
+              <span className="qa-chip reviewed">All verified</span>
+            )}
           </dd>
         </div>
+        {release.augmentation && (
+          <div>
+            <dt>Augmentation</dt>
+            <dd title={recipeSummary(release.augmentation).detail}>
+              {release.augmentation.copies}× · {recipeSummary(release.augmentation).names}
+            </dd>
+          </div>
+        )}
+        <div><dt>Created</dt><dd>{formatWhen(release.time)}</dd></div>
+        <div><dt>By</dt><dd>{release.author || "—"}</dd></div>
       </dl>
 
       <div className="table-scroll">
@@ -124,32 +161,32 @@ function DatasetPanel({ project, dataset }: { project: string; dataset: Dataset 
           <thead>
             <tr>
               <th style={{ width: 34 }} />
-              <th>Version</th>
-              <th>Change</th>
+              <th>Set</th>
+              <th>Set version</th>
               <th className="num">Images</th>
-              <th className="num">Δ</th>
-              <th>Created</th>
+              <th className="num">Verified</th>
+              <th className="num">Unverified</th>
             </tr>
           </thead>
           <tbody>
-            {history.map((revision, i) => {
-              const entry = revision.entry;
-              const previous = history[i + 1]?.entry;
-              const delta = previous ? entry.row_count - previous.row_count : null;
-              const latest = entry.url === split.latest.url;
+            {sets.map(([name, set]) => {
+              const left = set.images - verifiedOf(set);
               return (
                 <tr
-                  key={entry.url}
-                  className={removed ? "" : "clickable"}
-                  onClick={() => !removed && navigate({ name: "table", project, url: entry.url })}
-                  title={entry.url}
+                  key={name}
+                  className={`clickable${name === chosen ? " selected" : ""}`}
+                  onClick={() => navigate({ name: "table", project, url: set.url })}
+                  title={set.url}
                 >
-                  <td><span className={`version-dot${latest ? " latest" : ""}`} /></td>
-                  <td className="cell-mono">{entry.name}{latest && <span className="tag">newest</span>}</td>
-                  <td className="muted version-change">{describeOp(entry.op)}{entry.description && entry.op !== "from_coco" ? `: ${entry.description}` : ""}</td>
-                  <td className="num">{formatNumber(entry.row_count)}</td>
-                  <td className={`num ${delta && delta < 0 ? "delta-down" : delta ? "delta-up" : "faint"}`}>{delta ? `${delta > 0 ? "+" : ""}${formatNumber(delta)}` : "—"}</td>
-                  <td className="muted">{formatWhen(entry.created)}</td>
+                  <td><span className={`version-dot${name === chosen ? " latest" : ""}`} /></td>
+                  <td>{name}</td>
+                  <td className="cell-mono">{set.name}</td>
+                  <td className="num">
+                    {formatNumber(set.images)}
+                    {set.augmented ? <span className="cell-sub">{formatNumber(set.originals ?? 0)} + {formatNumber(set.augmented)} augmented</span> : null}
+                  </td>
+                  <td className="num">{formatNumber(verifiedOf(set))}</td>
+                  <td className={`num${left ? " warn-text" : " faint"}`}>{left ? formatNumber(left) : "—"}</td>
                 </tr>
               );
             })}

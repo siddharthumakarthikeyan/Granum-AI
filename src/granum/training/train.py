@@ -27,6 +27,9 @@ from typing import Any
 
 from granum.training.models import version_ids
 
+#: Batch size per family when the caller does not choose one.
+DEFAULT_BATCH = {"yolo": 16, "rtdetr": 8, "rfdetr": 4}
+
 
 def phase(text: str) -> None:
     print(f"GRANUM_PHASE {text}", flush=True)
@@ -121,7 +124,7 @@ def train_ultralytics(args: argparse.Namespace, train: Any, valid: Any, work: Pa
     model.add_callback("on_train_batch_end", on_batch_end)
     model.add_callback("on_train_epoch_start", on_epoch_start)
     model.add_callback("on_fit_epoch_end", on_epoch_end)
-    batch = args.batch or (8 if args.family == "rtdetr" else 16)
+    batch = args.batch or DEFAULT_BATCH[args.family]
     model.train(
         data=str(data_yaml), epochs=args.epochs, imgsz=args.imgsz, batch=batch, seed=0, deterministic=True,
         project=str(work / "runs"), name=args.run_name, exist_ok=True, verbose=False, plots=False, workers=4,
@@ -220,7 +223,8 @@ def train_rfdetr(args: argparse.Namespace, train: Any, valid: Any, work: Path) -
     rf_training.build_trainer = build_trainer
     try:
         model.train(
-            dataset_dir=str(dataset_dir), epochs=args.epochs, batch_size=args.batch or 4, grad_accum_steps=4,
+            dataset_dir=str(dataset_dir), epochs=args.epochs, batch_size=args.batch or DEFAULT_BATCH["rfdetr"],
+            grad_accum_steps=4,
             output_dir=str(output_dir), seed=0,
         )
     finally:
@@ -232,11 +236,25 @@ def train_rfdetr(args: argparse.Namespace, train: Any, valid: Any, work: Path) -
 
 
 def run_parameters(args: argparse.Namespace, train: Any, valid: Any) -> dict[str, Any]:
+    from granum.training.evaluate import evaluator_policy
+
     return {
         "framework": args.family,
         "version": args.version,
+        # The recipe and the rules the scores were computed under: a later comparison needs
+        # both to say whether two runs' numbers are the same kind of number.
+        "epochs": args.epochs,
+        "imgsz": args.imgsz,
+        "batch": args.batch or DEFAULT_BATCH.get(args.family, 16),
+        "seed": 0,
+        "evaluator": evaluator_policy(),
+        # The exact tables, so a dataset version can tell which runs used it.
+        "train_table": str(train.url),
+        "valid_table": str(valid.url),
+        **({"test_table": str(args.test.url)} if getattr(args, "test", None) is not None else {}),
         "train_version": f"{train.dataset_name}/{train.name}",
         "valid_version": f"{valid.dataset_name}/{valid.name}",
+        **({"test_version": f"{args.test.dataset_name}/{args.test.name}"} if getattr(args, "test", None) is not None else {}),
         "tracks_learning": bool(args.track_learning),
         **({"compared_with": args.compare_with} if args.compare_with else {}),
     }
@@ -248,6 +266,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--project", required=True)
     parser.add_argument("--train-table", required=True)
     parser.add_argument("--valid-table", required=True)
+    parser.add_argument("--test-table", default=None, help="held-out set, scored once with the finished model")
     parser.add_argument("--run-name", required=True)
     parser.add_argument("--family", choices=["yolo", "rtdetr", "rfdetr"], default="yolo")
     parser.add_argument("--version", default="yolo26n.pt")
@@ -270,6 +289,7 @@ def main(argv: list[str] | None = None) -> int:
     work = Path(args.work_dir) if args.work_dir else root.parent / "granum-training"
     train = Table.from_url(args.train_table)
     valid = Table.from_url(args.valid_table)
+    args.test = Table.from_url(args.test_table) if args.test_table else None
 
     trainer = train_rfdetr if args.family == "rfdetr" else train_ultralytics
     run, best = trainer(args, train, valid, work)
@@ -285,6 +305,18 @@ def main(argv: list[str] | None = None) -> int:
         **{f"score_{k}": round(v, 4) for k, v in scores.items() if k != "images"},
     })
     print(f"score on {valid.name}: mAP50 {scores['map50']:.4f}  recall {scores['recall']:.3f}  precision {scores['precision']:.3f}", flush=True)
+
+    if args.test is not None:
+        # The only time the model sees these images: nothing was chosen by them.
+        phase("Scoring on the test set")
+        test = args.test
+        tested = score_detector(predictor_for(args.family, args.version, best, test, imgsz=args.imgsz, conf=0.01), test)
+        run.set_parameters({
+            "test_labels": f"{test.dataset_name}/{test.name}",
+            **{f"test_{k}": round(v, 4) for k, v in tested.items() if k != "images"},
+            "test_images": int(tested.get("images", 0)),
+        })
+        print(f"score on {test.name} (test): mAP50 {tested['map50']:.4f}  recall {tested['recall']:.3f}  precision {tested['precision']:.3f}", flush=True)
 
     if args.compare_with:
         phase("Scoring the earlier run the same way")

@@ -360,6 +360,22 @@ def set_active_run(run: Run | None) -> None:
     _ACTIVE_RUN = run
 
 
+def _check_licence(layout: ProjectLayout, project_name: str) -> None:
+    """Runs change data, so the licence must allow writing; a new project must fit the plan."""
+    from granum.licensing import LicenceError, get_licensing
+
+    licensing = get_licensing()
+    try:
+        if layout.project(project_name).exists():
+            licensing.require_write("start a run")
+        else:
+            from granum.importing.example import counted_projects
+
+            licensing.require_new_project(len(counted_projects(layout)))
+    except LicenceError as exc:
+        raise RunError(str(exc)) from exc
+
+
 def init(
     project_name: str = "default",
     run_name: str | None = None,
@@ -381,6 +397,7 @@ def init(
 
     config = config or get_config()
     layout = ProjectLayout(config.project_root)
+    _check_licence(layout, project_name)
     base = run_name or f"run-{utcnow().replace(':', '-')}"
     target = layout.run(project_name, base)
 

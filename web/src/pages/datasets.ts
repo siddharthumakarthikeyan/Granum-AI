@@ -34,6 +34,7 @@ const OP_LABELS: Record<string, string> = {
   subset: "Part of the data taken",
   join_tables: "Combined with other data",
   squash: "History flattened",
+  release: "Frozen for a dataset version",
   set_value_map: "Labels changed",
   add_value_map_item: "Label added",
   set_value_map_item: "Label renamed",
@@ -49,8 +50,10 @@ const SPLIT_ORDER = ["train", "valid", "val", "validation", "test", "isolated", 
 
 /** The set holding images taken out of the others: never trained or checked on. */
 export const REMOVED_SET = "removed";
-/** Images set aside during review so the rest can ship; they return to their set later. */
+/** Images set aside during review, left out of new dataset versions until returned. */
 export const ISOLATED_SET = "isolated";
+/** Producer op of a set copy frozen for a dataset version (granum.core.curation.RELEASE_OP). */
+export const RELEASE_OP = "release";
 /** Sets holding images taken out of the others. */
 export const HOLDING_SETS: readonly string[] = [REMOVED_SET, ISOLATED_SET];
 
@@ -68,7 +71,9 @@ export interface Split {
 }
 
 /** One dataset: its sets (train, valid, test), each a chain of versions. */
-export function groupDatasets(tables: ObjectEntry[]): Dataset[] {
+export function groupDatasets(all: ObjectEntry[]): Dataset[] {
+  // Frozen copies made for a dataset version are not versions of their set.
+  const tables = all.filter((t) => t.op !== RELEASE_OP);
   const byUrl = new Map(tables.map((t) => [t.url, t]));
   const depth = new Map<string, number>();
   const depthOf = (entry: ObjectEntry, guard = 0): number => {
