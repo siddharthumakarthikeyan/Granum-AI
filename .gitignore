@@ -22,7 +22,7 @@ web/node_modules/
 *.pt
 *.pth
 *.onnx
-runs/
+/runs/
 
 # Local data, projects and scratch work
 scratch/
@@ -35,6 +35,8 @@ licence-server.sqlite3
 # Internal business documents (kept local, never pushed)
 docs/ceo-product-and-go-to-market-strategy.md
 docs/competitor-feature-map.md
+docs/competitor-feature-inventory.md
+docs/competitor-gap-closure.md
 docs/product-capability-blueprint.md
 
 # Editors and OS

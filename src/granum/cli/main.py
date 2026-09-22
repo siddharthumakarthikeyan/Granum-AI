@@ -557,10 +557,6 @@ def config_project_root(
     typer.echo(f"project-root-url set to {Url(path)} in {target} ({CONFIG_FILENAME})")
 
 
-if __name__ == "__main__":
-    app()
-
-
 def _service_licensing(index: Index, server_url: str) -> Licensing:
     """This computer's licence, beating in the background while the service runs.
 
@@ -585,3 +581,7 @@ def _service_licensing(index: Index, server_url: str) -> Licensing:
     if status["mode"] != "full":
         typer.echo(f"granum: read-only. {status['reason']}", err=True)
     return licensing
+
+
+if __name__ == "__main__":
+    app()

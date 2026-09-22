@@ -326,6 +326,8 @@ fieldset.panel-card { margin: 0; min-width: 0; }
 .detected-sets { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
 .detected-sets label { display: grid; grid-template-columns: 16px 90px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 4px 2px; cursor: pointer; }
 .detected-sets label.added .strong { color: var(--pass); }
+/* A folder that is not COCO says so beside its path: it is converted before it is checked. */
+.detected-format { margin: 0 7px 0 0; font-family: var(--sans); }
 .split-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 .split-list li { display: grid; grid-template-columns: 110px minmax(0, 1fr) 28px; gap: 10px; align-items: center; }
 .split-name { font-weight: 600; }
@@ -335,6 +337,7 @@ fieldset.panel-card { margin: 0; min-width: 0; }
   border: 1px solid transparent; cursor: pointer;
 }
 .radio-row + .radio-row { margin-top: 2px; }
+.radio-row.disabled { opacity: .5; cursor: default; }
 .radio-row:hover, .option:hover { background: var(--panel-2); }
 .radio-row.checked, .option.checked { border-color: var(--border-2); background: var(--panel-2); }
 .radio-row input, .option input { margin: 3px 0 0; accent-color: var(--text); }
@@ -1820,6 +1823,12 @@ button.image-card-frame { width: 100%; padding: 0; border: 0; border-radius: 0; 
   font-size: 11px; font-weight: 500; line-height: 18px;
   background: rgba(12, 13, 16, .82); color: var(--pass);
 }
+.similar-keep.alone { color: var(--warn); }
+/* The number a tile was listed for, where the marks on a gallery thumbnail sit. */
+.similar-note {
+  position: absolute; right: 6px; bottom: 6px; padding: 0 5px; border-radius: 3px;
+  font-size: 11px; line-height: 17px; background: rgba(12, 13, 16, .82); color: var(--text-2);
+}
 .set-chip { flex: 0 0 auto; padding: 0 5px; border-radius: 3px; font-size: 11px; line-height: 16px; background: var(--panel-3); color: var(--text-2); }
 
 /* What the graph found, on the thumbnail itself: the gallery keeps the marks after the
@@ -1832,9 +1841,86 @@ button.image-card-frame { width: 100%; padding: 0; border: 0; border-radius: 0; 
 .image-mark.export { color: var(--text-3); }
 .image-mark.leak { color: var(--warn); }
 .images-table .image-marks { position: static; margin-left: 6px; vertical-align: 1px; }
+/* How alike this image is to the one the gallery is compared against. */
+.image-mark.alike { color: var(--info); }
+/* Boxes a model drew and nobody has checked. The count is on the thumbnail because the
+   difference between "labelled" and "drafted" decides whether a set is ready to train on. */
+.image-draft {
+  position: absolute; left: 6px; bottom: 6px; display: inline-flex; align-items: center; gap: 3px;
+  padding: 0 5px; border-radius: 3px; font-size: 11px; line-height: 17px;
+  background: rgba(12, 13, 16, .82); color: var(--edited);
+}
+
+/* The one thing a thumbnail offers besides opening it: what else looks like this? It sits
+   outside the frame, because the frame is itself a button and one cannot hold another, and
+   it appears on hover so that a wall of thumbnails stays a wall of thumbnails. */
+.image-action {
+  position: absolute; top: 5px; right: 5px; display: grid; place-items: center;
+  width: 22px; height: 22px; padding: 0; border: 0; border-radius: 3px;
+  background: rgba(12, 13, 16, .82); color: var(--text-2); cursor: pointer; opacity: 0;
+}
+.image-card:hover .image-action, .similar-tile:hover .image-action, .image-action:focus-visible { opacity: 1; }
+.image-action:hover { color: var(--text); background: rgba(12, 13, 16, .95); }
+
+/* Compared against one image: it stays on screen above its own neighbours, because the
+   answer only means anything beside the question. */
+.like-bar { gap: 10px; }
+.like-thumb { flex: 0 0 auto; width: 54px; height: 40px; object-fit: cover; border-radius: 3px; background: #0a0c10; }
+.like-what { display: flex; flex-direction: column; gap: 1px; min-width: 0; max-width: 340px; }
+
+/* Outliers are single images rather than groups, so they take the gallery's own grid. */
+.outlier-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(176px, 1fr)); gap: 8px; }
+.outlier-grid .similar-tile { width: auto; }
 
 .tag.warn { color: var(--warn); background: var(--warn-wash); }
 .tag.block { color: var(--block); background: var(--block-wash); }
+
+/* ---------- images tab: the counts panel ---------- */
+
+/* It sits beside the gallery and scrolls with the page: a reader compares a bar with the
+   images it counts, so pinning it to the viewport would only take room from them. */
+.stats-panel {
+  position: sticky; top: 12px; align-self: start; max-height: calc(100vh - 24px); overflow-y: auto;
+  background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius-m);
+}
+.stats-panel .qa-side-section:last-child { border-bottom: 0; }
+.stats-panel .qa-side-title .faint { margin-left: auto; font-weight: 400; }
+.stat-bars { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.stat-bar {
+  display: grid; grid-template-columns: auto minmax(0, 88px) 1fr auto; align-items: center; gap: 7px;
+  width: 100%; height: 22px; padding: 0 5px; border: 1px solid transparent; border-radius: 3px;
+  background: none; color: var(--text-2); text-align: left; font: inherit; font-size: 12.5px;
+}
+.stat-bar:not(span) { cursor: pointer; }
+.stat-bar:not(span):hover { background: var(--panel-2); color: var(--text); }
+.stat-bar.on { background: var(--panel-3); border-color: var(--corner); color: var(--text); }
+.stat-bar .class-swatch { grid-column: 1; }
+.stat-bar > .truncate { grid-column: 2; }
+.stat-bar-track { grid-column: 3; height: 6px; border-radius: 2px; background: var(--panel-3); overflow: hidden; }
+.stat-bar-fill { display: block; height: 100%; background: var(--accent-dim); }
+.stat-bar.on .stat-bar-fill, .stat-bar:hover .stat-bar-fill { background: var(--accent); }
+.stats-note { margin: 8px 0 0; }
+
+/* ---------- images tab: patches ---------- */
+
+/* One tile per labelled object. The grid is fixed-width columns rather than stretching
+   ones: a patch that changed size with the window would stop being comparable with the
+   patch above it, which is the whole reason for looking at them in a wall. */
+.patches-view { display: flex; flex-direction: column; gap: 10px; }
+.ribbon.patches-bar { margin: 0; align-items: center; gap: 10px; }
+.ribbon.patches-bar .spacer { flex: 1 1 auto; }
+.patches-grid { display: grid; gap: 6px; justify-content: start; }
+.patch-tile {
+  display: flex; flex-direction: column; padding: 0; overflow: hidden; cursor: zoom-in; text-align: left;
+  background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius-s); color: inherit;
+}
+.patch-tile:hover { border-color: var(--border-2); }
+.patch-tile-image { position: relative; display: block; background-color: #0a0c10; background-repeat: no-repeat; }
+.patch-tile-image svg { position: absolute; inset: 0; }
+.patch-tile-foot { display: flex; align-items: center; gap: 5px; padding: 3px 6px; min-width: 0; color: var(--text-2); }
+.patch-tile-foot .truncate { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.patch-tile-open { opacity: 0; flex: none; }
+.patch-tile:hover .patch-tile-open { opacity: .7; }
 
 /* ---------- images tab: full-screen viewer ---------- */
 .image-viewer-canvas { flex: 1; min-height: 0; display: grid; place-items: center; padding: 12px; overflow: hidden; }
@@ -2292,7 +2378,114 @@ button.image-card-frame { width: 100%; padding: 0; border: 0; border-radius: 0; 
 
 .empty-actions { display: inline-flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 
+/* ---------- dataset health ---------- */
+
+.health-page { display: flex; flex-direction: column; gap: 12px; max-width: 1100px; }
+.health-verdict { display: flex; flex-direction: row; align-items: center; gap: 12px; padding: 12px 14px; }
+.health-verdict .spacer { flex: 1 1 auto; }
+.health-verdict-text, .health-check-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.health-sets { display: flex; gap: 6px; flex-wrap: wrap; }
+.health-dot { flex: 0 0 auto; width: 9px; height: 9px; border-radius: 50%; margin-top: 4px; background: var(--text-3); }
+.health-dot.good { background: var(--pass); }
+.health-dot.warn { background: var(--warn); }
+.health-dot.bad { background: var(--block); }
+.health-checks { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.health-check {
+  display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px;
+  background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius-m);
+}
+.health-check.bad { border-color: rgba(236, 111, 139, .4); }
+.health-check.warn { border-color: rgba(227, 170, 74, .3); }
+.health-check .spacer { flex: 1 1 auto; }
+.health-check-text .muted { max-width: 90ch; }
+.health-rows { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 4px; }
+.health-class { padding: 0 6px; border-radius: 3px; background: var(--panel-2); color: var(--text-2); font-size: 11.5px; line-height: 18px; }
+.health-class.thin { color: var(--warn); }
+.health-policy { margin: 2px 0 0; max-width: 90ch; }
+
+/* ---------- evaluation: what a run gets wrong ---------- */
+
+.evaluation-page { display: flex; flex-direction: column; gap: 18px; }
+.eval-section { display: flex; flex-direction: column; gap: 8px; }
+.eval-section .card-title { display: flex; align-items: center; gap: 8px; margin: 0; }
+.eval-close { margin-left: auto; }
+.eval-headline { display: flex; flex-direction: row; align-items: center; flex-wrap: wrap; gap: 28px; padding: 12px 14px; }
+.eval-headline .spacer { flex: 1 1 auto; }
+.eval-figure { display: flex; flex-direction: column; gap: 1px; }
+.eval-figure-value { font: 600 21px/1.1 var(--display); }
+.eval-threshold { display: flex; align-items: flex-end; gap: 10px; min-width: 240px; }
+.eval-threshold input[type="range"] { width: 180px; }
+
+/* The matrix reads down the diagonal: the right answers are solid, everything else is a
+   shade of how often it happens, so a bad pair is visible before it is read. */
+.matrix-table th.matrix-corner { font-weight: 400; color: var(--text-3); white-space: nowrap; }
+.matrix-table th.matrix-head { text-align: left; white-space: nowrap; color: var(--text-2); font-weight: 500; }
+.matrix-table td, .matrix-table th { padding: 3px 8px; }
+.matrix-edge { color: var(--text-3); }
+.matrix-cell {
+  min-width: 46px; padding: 1px 6px; border: 1px solid transparent; border-radius: 3px;
+  background: var(--accent-wash); color: var(--text); font: inherit; font-variant-numeric: tabular-nums; cursor: pointer;
+}
+.matrix-cell.right { background: var(--panel-3); color: var(--text-2); }
+.matrix-cell.missed, .matrix-cell.spurious { background: transparent; color: var(--warn); }
+.matrix-cell:hover { border-color: var(--border-2); }
+.matrix-cell.on { border-color: var(--accent); outline: 1px solid var(--accent); }
+
+.eval-examples { display: grid; grid-template-columns: repeat(auto-fill, minmax(116px, 1fr)); gap: 6px; }
+.eval-example {
+  display: flex; flex-direction: column; overflow: hidden; text-decoration: none; color: inherit;
+  background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius-s);
+}
+.eval-example:hover { border-color: var(--border-2); }
+.eval-example svg { display: block; width: 100%; aspect-ratio: 1; background: #0a0c10; }
+.eval-example-foot { padding: 2px 6px; font-size: 11px; color: var(--text-3); font-variant-numeric: tabular-nums; }
+
+.eval-curve { display: flex; flex-direction: column; gap: 6px; }
+.eval-curve svg { width: 100%; max-width: 760px; background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius-m); }
+.eval-axis { fill: var(--text-3); font-size: 10px; }
+.eval-legend { display: flex; align-items: center; gap: 14px; font-size: 12px; color: var(--text-2); }
+.eval-legend .swatch { display: inline-block; width: 10px; height: 3px; border-radius: 2px; margin-right: 5px; vertical-align: 2px; }
+
 /* ---------- findings ---------- */
+
+/* A check states what it is before it states what it found: one pass is weaker evidence
+   than a run's worth of rounds, and a reader deciding how hard to look needs that first. */
+.screening-note { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; margin: 4px 0 10px; }
+.screening-note p { margin: 0; max-width: 100ch; }
+.screening-swaps { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+.swap-chip {
+  display: inline-flex; align-items: center; gap: 5px; padding: 1px 7px; border-radius: 3px;
+  background: var(--panel-2); color: var(--text-2); font-size: 12px;
+}
+.swap-chip .count { color: var(--text-3); font-variant-numeric: tabular-nums; }
+.findings-runs-link { margin-left: 8px; }
+.runs-checks { margin: 10px 2px 0; }
+
+/* Tags and saved views: a word somebody put on an image, and a question worth returning to. */
+.image-tags { display: inline-flex; align-items: center; gap: 3px; flex: 0 0 auto; color: var(--cyan); font-size: 11px; }
+.views-menu, .tag-menu { min-width: 260px; }
+.views-name { display: flex; gap: 6px; padding: 6px 8px; border-bottom: 1px solid var(--border); }
+.views-name input { flex: 1; min-width: 0; padding: 3px 7px; background: var(--bg); color: var(--text); border: 1px solid var(--border-2); border-radius: 3px; font: 12.5px var(--sans); }
+.views-row { display: flex; align-items: center; gap: 4px; padding: 0 6px 0 8px; }
+.views-open { flex: 1; min-width: 0; padding: 3px 0; background: none; border: 0; color: var(--text-2); text-align: left; cursor: pointer; font: inherit; font-size: 12.5px; }
+.views-open:hover { color: var(--text); }
+/* How much of this image's labelling to trust, beside how sure the model was of the one
+   finding shown: two different facts, so they are not run together into one number. */
+.finding-trust { margin-left: 6px; padding-left: 6px; border-left: 1px solid var(--border-2); color: var(--text-3); }
+
+/* Starting a check: a dataset version, the sets of it to read, and which model reads them. */
+.screen-form { display: flex; flex-direction: column; gap: 14px; }
+.screen-form p { margin: 0; max-width: 72ch; }
+.screen-sets { display: flex; flex-direction: column; gap: 6px; }
+.screen-sets p { margin: 0; }
+.field-label { font-size: 12px; color: var(--text-2); font-weight: 500; }
+.screen-progress { display: flex; flex-direction: column; gap: 8px; }
+
+/* The folder an export was written to: long, worth reading in full, worth copying. */
+.export-path {
+  margin: 0; padding: 8px 10px; background: var(--panel); border: 1px solid var(--border-2);
+  border-radius: var(--radius-s); word-break: break-all; user-select: all; color: var(--text-2);
+}
 
 .findings-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 4px 0 10px; }
 .findings-rules button { display: inline-flex; align-items: center; gap: 6px; }

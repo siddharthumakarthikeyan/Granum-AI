@@ -13,10 +13,14 @@ export const RULE = new Map(RULES.map((r) => [r.id, r]));
 
 const range = (c: [number, number] | null) => (c ? (c[0] === c[1] ? c[0].toFixed(2) : `${c[0].toFixed(2)}–${c[1].toFixed(2)}`) : "");
 
-/** One sentence of evidence, in the reviewer's terms. */
+/** One sentence of evidence, in the reviewer's terms.
+ *
+ * A check saw each image once, so there is nothing to count: "in one pass" is the whole
+ * claim, and dressing it up as "1 of 1 epochs" would read as more than it is.
+ */
 export function evidence(f: Finding, classes: Record<string, string>): string {
   const name = (label: number | null | undefined) => (label === null || label === undefined ? "object" : classes[String(label)] ?? `class ${label}`);
-  const seen = `${f.rounds} of ${f.window} epochs`;
+  const seen = f.window === 1 ? "one pass" : `${f.rounds} of ${f.window} epochs`;
   switch (f.rule) {
     case "missing_label":
       return `The model predicts ${name(f.predicted_label)} here in ${seen} (confidence ${range(f.confidence)}), and nothing is labelled here.`;
@@ -31,12 +35,12 @@ export function evidence(f: Finding, classes: Record<string, string>): string {
 
 /** Whether the model stopped showing it: it may have learned the label as it is. */
 export function faded(f: Finding): string | null {
-  return f.in_last_round ? null : `Last seen in epoch ${f.last_epoch + 1}.`;
+  return f.in_last_round || f.last_epoch === null ? null : `Last seen in epoch ${f.last_epoch + 1}.`;
 }
 
 /** What is saved with a decision, so the log says which finding it answered. */
 export function decisionReason(version: string, f: Finding | undefined, note: string): string {
-  const what = f ? `${RULE.get(f.rule)!.label} (${f.rounds}/${f.window} epochs)` : "finding";
+  const what = f ? `${RULE.get(f.rule)!.label} (${f.window === 1 ? "one pass" : `${f.rounds}/${f.window} epochs`})` : "finding";
   return `${version}: ${what}. ${note}`.trim();
 }
 

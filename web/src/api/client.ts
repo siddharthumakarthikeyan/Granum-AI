@@ -5,8 +5,8 @@
  */
 
 import type { AugmentExample, AugmentRecipe, LicenceStatus,
-  BrowseResult, ComparisonReport, EmbeddingReport, EmbeddingStatus, ExampleDataset, FindingsReport, Health, QaEvent, QaVersionCounts, QaImageDetail, QaOverview, QaState, QaStatus, Release, TaskId, LibraryClass, LibraryProject, PullResult, ImageBoxes, ImageRounds, ImagesOverview, LearningReport, RemovedImage, VersionRef, ReviewEvent, TrainingResult, TrainingStatus, ImportResult, ImportSource, ImportSummary, Job, LineageGraph,
-  ObjectEntry, PreflightReport, ProjectCard, ProjectSummary, CommitResult, RowPage, RunMetadata, TableMetadata,
+  BrowseResult, ComparisonReport, DatasetHealth, EmbeddingReport, EmbeddingScores, EmbeddingStatus, EvaluationExample, EvaluationReport, ExampleDataset, ExportResult, FindingsReport, FormatsReport, Health, QaEvent, QaVersionCounts, QaImageDetail, QaOverview, QaState, QaStatus, Release, TaskId, LibraryClass, LibraryProject, PullResult, ImageBoxes, ImageRounds, ImagesOverview, LearningReport, RemovedImage, VersionRef, ReviewEvent, TrainingResult, TrainingStatus, ImportResult, ImportSource, ImportSummary, Job, LineageGraph,
+  ModelOptions, ObjectEntry, PreflightReport, PrelabelResult, TagOverview, ProjectCard, ProjectSummary, CommitResult, RowPage, RunMetadata, SavedView, ScreeningOptions, SimilarImages, TableMetadata,
 } from "./types";
 import type { CommitPayload } from "../store/editing";
 
@@ -56,6 +56,29 @@ async function request<T>(
     // Refused by the licence: say so wherever the user is, and show the licence's new state.
     if (response.status === 402) window.dispatchEvent(new CustomEvent("granum:licence", { detail }));
     throw new ServiceError(detail, response.status);
+  }
+  return (await response.json()) as T;
+}
+
+/** A request with a method the plain helper does not cover, e.g. deleting a saved view. */
+async function requestMethod<T>(method: string, path: string, params?: Record<string, string | number>): Promise<T> {
+  const url = new URL(`${BASE}${path}`, window.location.origin);
+  for (const [key, value] of Object.entries(params ?? {})) url.searchParams.set(key, String(value));
+  let response: Response;
+  try {
+    response = await fetch(url.toString(), { method });
+  } catch {
+    throw new ServiceError("Cannot reach the Granum service. Start it with `granum service`.", 0);
+  }
+  if (!response.ok) {
+    let detail = response.statusText;
+    try {
+      detail = (await response.json()).detail ?? detail;
+    } catch {
+      /* keep statusText */
+    }
+    if (response.status === 402) window.dispatchEvent(new CustomEvent("granum:licence", { detail }));
+    throw new ServiceError(typeof detail === "string" ? detail : String(detail), response.status);
   }
   return (await response.json()) as T;
 }
@@ -202,9 +225,75 @@ export const api = {
   computeEmbeddings: (payload: { project: string; dataset: string; embedder?: string }) =>
     request<Job<{ status: EmbeddingStatus["status"]; unreadable: number }>>("/api/embeddings", undefined, payload),
 
+  /** One run read class by class: confusion, per-class scores and a threshold sweep. */
+  evaluation: (url: string, split?: string, confidence = 0.25) =>
+    request<EvaluationReport>("/api/run/evaluation", { url, confidence, ...(split ? { split } : {}) }),
+
+  /** The objects behind one cell of the confusion matrix. */
+  evaluationExamples: (params: {
+    url: string; split?: string; truth?: number; predicted?: number; confidence?: number; limit?: number;
+  }) => request<{ classes: Record<string, string>; examples: EvaluationExample[]; dataset: string | null; project: string }>(
+    "/api/run/evaluation/examples",
+    Object.fromEntries(Object.entries(params).filter(([, v]) => v !== undefined)) as Record<string, string | number>,
+  ),
+
   /** The neighbour graph: a second or so the first time, then served from the service's cache. */
   embeddingReport: (project: string, dataset: string, limit = 5000) =>
     request<EmbeddingReport>("/api/embeddings/report", { project, dataset, limit }),
+
+  /** Uniqueness per image, for ordering a gallery by how unlike the rest each image is. */
+  embeddingScores: (project: string, dataset: string) =>
+    request<EmbeddingScores>("/api/embeddings/scores", { project, dataset }),
+
+  /** The images most like one image, nearest first. The service caps k at 200. */
+  similarImages: (project: string, dataset: string, image: string, k = 60) =>
+    request<SimilarImages>("/api/embeddings/similar", { project, dataset, image, k }),
+
+  /** What a label check could be run with: models on this computer, and whether one is running. */
+  screeningOptions: (project: string) => request<ScreeningOptions>("/api/findings/screen", { project }),
+
+  /** Read a dataset version with one model. A job: a pass over every image of the sets. */
+  startScreening: (payload: {
+    project: string; sets: Record<string, string>;
+    weights_run?: string; pretrained?: string; image_size?: number; run_name?: string;
+  }) => request<Job<{ run_name: string }>>("/api/findings/screen", undefined, payload),
+
+  /** Whether a dataset is fit to train on, and what stands in the way. */
+  datasetHealth: (project: string, dataset: string) =>
+    request<DatasetHealth>("/api/datasets/health", { project, dataset }),
+
+  /** The layouts a dataset can be written as, and read from. */
+  formats: () => request<FormatsReport>("/api/formats"),
+
+  /** Write a dataset out for another tool. A job: every image of every set. */
+  startExport: (payload: {
+    project: string; dataset: string; release_id?: string | null; format: string; images: string;
+  }) => request<Job<ExportResult>>("/api/datasets/export", undefined, payload),
+
+  /** Words people have put on this dataset's images. */
+  tags: (project: string, dataset: string) => request<TagOverview>("/api/tags", { project, dataset }),
+
+  tagImages: (payload: { project: string; dataset: string; samples: string[]; add?: string[]; remove?: string[]; author?: string }) =>
+    request<TagOverview & { images_tagged: Record<string, string[]> }>("/api/tags", undefined, payload),
+
+  /** Named filter sets for this dataset. */
+  views: (project: string, dataset: string) => request<{ views: SavedView[] }>("/api/views", { project, dataset }),
+
+  saveView: (payload: { project: string; dataset: string; name: string; state: SavedView["state"]; author?: string }) =>
+    request<{ view: SavedView; views: SavedView[] }>("/api/views", undefined, payload),
+
+  deleteView: (project: string, dataset: string, id: string) =>
+    requestMethod<{ views: SavedView[] }>("DELETE", "/api/views", { project, dataset, id }),
+
+  /** The models on this computer that could read a dataset. */
+  models: (project: string) => request<ModelOptions>("/api/models", { project }),
+
+  /** Draft a set's labels with a model. A job: a pass over every image, then a new version. */
+  startPrelabel: (payload: {
+    project: string; dataset: string; tables: string[];
+    weights_run?: string; pretrained?: string;
+    mode?: "empty" | "replace"; confidence?: number; image_size?: number;
+  }) => request<Job<PrelabelResult>>("/api/datasets/prelabel", undefined, payload),
 
   installTraining: () => request<Job<{ installed: string }>>("/api/training/install", undefined, {}),
 

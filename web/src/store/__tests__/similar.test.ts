@@ -5,13 +5,15 @@
  */
 
 import { describe, expect, it } from "vitest";
-import type { ImageRow, LeakPair } from "../../api/types";
+import type { ImageRow, LeakPair, SimilarImages } from "../../api/types";
 import {
   leakSide,
   leakSides,
+  likeRows,
   liveExports,
   liveGroups,
   liveLeaks,
+  liveOutliers,
   marksFor,
   redundantImages,
 } from "../../images/similar";
@@ -161,5 +163,63 @@ describe("marks on the gallery", () => {
     // The flip repeats nothing: it is a copy of a picture, so no copy count and no leak.
     expect(marks.get("/d/train/a_flip.jpg")).toEqual({ copies: 0, exports: 2, leak: false });
     expect(marks.get("/d/train/b.jpg")).toBeUndefined();
+  });
+});
+
+describe("images with nothing like them", () => {
+  it("keeps the ones the dataset still holds, furthest from anything first", () => {
+    const outliers = liveOutliers([
+      { image: "/d/train/b.jpg", score: 0.95, set: "train", alone: true },
+      { image: "/d/gone.jpg", score: 1.4, set: "train", alone: true },
+      { image: "/d/train/a.jpg", score: 1.2, set: "train", alone: true },
+    ], byImage);
+    expect(outliers.map((row) => row.item.image)).toEqual(["/d/train/a.jpg", "/d/train/b.jpg"]);
+    expect(outliers[0]!.score).toBe(1.2);
+  });
+
+  it("keeps the ones the policy calls alone apart from the merely furthest", () => {
+    // A set where nothing is isolated still has a loneliest image, and it is listed.
+    const outliers = liveOutliers([
+      { image: "/d/train/a.jpg", score: 0.4, set: "train", alone: false },
+      { image: "/d/train/b.jpg", score: 0.3, set: "train", alone: false },
+    ], byImage);
+    expect(outliers.map((row) => row.alone)).toEqual([false, false]);
+  });
+});
+
+describe("what else looks like this one", () => {
+  const answer = (neighbours: SimilarImages["neighbours"], scale = 0.4): SimilarImages =>
+    ({ image: "/d/train/a.jpg", set: "train", scale, neighbours });
+
+  it("reads each distance as a share of the dataset's typical distance", () => {
+    const rows = likeRows(answer([
+      { image: "/d/valid/a.jpg", set: "valid", distance: 0.02 },
+      { image: "/d/train/b.jpg", set: "train", distance: 0.4 },
+    ]), byImage);
+    expect(rows.map((row) => row.item.image)).toEqual(["/d/valid/a.jpg", "/d/train/b.jpg"]);
+    expect(rows[0]!.share).toBeCloseTo(0.05);
+    expect(rows[1]!.share).toBeCloseTo(1);
+  });
+
+  it("keeps the service's order rather than re-sorting it", () => {
+    const rows = likeRows(answer([
+      { image: "/d/train/b.jpg", set: "train", distance: 0.3 },
+      { image: "/d/valid/a.jpg", set: "valid", distance: 0.3 },
+    ]), byImage);
+    expect(rows.map((row) => row.item.image)).toEqual(["/d/train/b.jpg", "/d/valid/a.jpg"]);
+  });
+
+  it("drops what the gallery cannot place, and never the image itself", () => {
+    const rows = likeRows(answer([
+      { image: "/d/train/a.jpg", set: "train", distance: 0 },
+      { image: "/d/gone.jpg", set: "train", distance: 0.1 },
+      { image: "/d/valid/a.jpg", set: "valid", distance: 0.2 },
+    ]), byImage);
+    expect(rows.map((row) => row.item.image)).toEqual(["/d/valid/a.jpg"]);
+  });
+
+  it("reads a distance as nothing when the dataset has no scale to read it against", () => {
+    const rows = likeRows(answer([{ image: "/d/valid/a.jpg", set: "valid", distance: 0.2 }], 0), byImage);
+    expect(rows[0]!.share).toBe(0);
   });
 });

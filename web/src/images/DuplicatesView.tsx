@@ -1,4 +1,4 @@
-/** Copies and cross-split leaks, as a mode of the Images tab.
+/** Copies, cross-split leaks and images with nothing like them, as a mode of the Images tab.
  *
  * Two questions a dataset owes an answer to before anything is trained on it: is the same
  * picture in here more than once, and is anything in the validation or test set also in the
@@ -9,6 +9,13 @@
  * Nothing here deletes anything. Images are selected, and the page's decision tray does the
  * rest, so a copy removed from this view goes to the removed set like every other deletion
  * and can be put back.
+ *
+ * Outliers are the same graph read the other way round: the images whose nearest neighbour is
+ * furthest away, furthest first. The ones past the threshold are marked as having nothing like
+ * them, and the rest are still the loneliest pictures in the set -- a dataset of one subject
+ * shot by one camera has no image the policy would call isolated and still has a furthest one,
+ * which is what a reader opened this tab for. Either way it is a flag to look, not a verdict:
+ * the rarest class in a set lives here too, so nothing offers to remove them in bulk.
  *
  * The exporter's own copies of one picture — a flip, a colour shift, whatever augmentation was
  * switched on when the dataset was exported — are not duplicates and are never offered for
@@ -21,13 +28,13 @@ import { api } from "../api/client";
 import type { EmbeddingStatus, ImageRow, Job } from "../api/types";
 import { EmptyState, Icon, formatNumber, formatWhen, plural } from "../components/ui";
 import { fileName } from "../review/status";
-import type { CopyGroup, ExportSet, LeakRow, readReport } from "./similar";
+import type { CopyGroup, ExportSet, LeakRow, OutlierRow, readReport } from "./similar";
 import { leakSide, leakSides, redundantImages } from "./similar";
 
 /** Groups or pairs added to the page at a time: enough to scroll, few enough to draw. */
 const PAGE = 24;
 
-export type SimilarTab = "copies" | "exports" | "leaks";
+export type SimilarTab = "copies" | "exports" | "leaks" | "outliers";
 
 export type Joined = ReturnType<typeof readReport>;
 
@@ -42,6 +49,7 @@ interface Props {
   scale: number;
   duplicateAt: number;
   leakAt: number;
+  outlierAt: number;
   reading: boolean;
   error: string | null;
   job: Job<{ status: EmbeddingStatus["status"]; unreadable: number }> | null;
@@ -53,6 +61,8 @@ interface Props {
   onSelect: (images: string[], on: boolean) => void;
   /** Open one image full screen, stepping through the group or pair it came from. */
   onOpen: (image: string, scope: ImageRow[]) => void;
+  /** Leave this mode and show the gallery ordered by likeness to one image. */
+  onLike: (image: string) => void;
 }
 
 export function DuplicatesView(props: Props) {
@@ -127,14 +137,18 @@ function Reading({ images }: { images: number }) {
   );
 }
 
-function Graph({ project, dataset, status, joined, scale, duplicateAt, leakAt, tab, onTab, selected, onSelect, onOpen, onCompute }:
+function Graph({ project, dataset, status, joined, scale, duplicateAt, leakAt, outlierAt, tab, onTab, selected, onSelect, onOpen, onLike, onCompute }:
   Props & { status: EmbeddingStatus; joined: Joined }) {
   const [shown, setShown] = useState(PAGE);
   const vectors = status.status!;
   const sides = useMemo(() => leakSides(joined.leaks), [joined.leaks]);
-  const rows: (CopyGroup | ExportSet | LeakRow)[] =
-    tab === "copies" ? joined.groups : tab === "exports" ? joined.exports : joined.leaks;
-  const more = tab === "copies" ? joined.moreGroups : tab === "exports" ? joined.moreExports : joined.moreLeaks;
+  const rows: (CopyGroup | ExportSet | LeakRow | OutlierRow)[] =
+    tab === "copies" ? joined.groups
+      : tab === "exports" ? joined.exports
+        : tab === "outliers" ? joined.outliers : joined.leaks;
+  const more = tab === "copies" ? joined.moreGroups
+    : tab === "exports" ? joined.moreExports
+      : tab === "outliers" ? 0 : joined.moreLeaks;
 
   const switchTab = (next: SimilarTab) => {
     setShown(PAGE);
@@ -148,6 +162,7 @@ function Graph({ project, dataset, status, joined, scale, duplicateAt, leakAt, t
           <Count label="Distinct pictures" value={joined.found.sources} of={vectors.images} />
           <Count label="Pictures that repeat another" value={joined.found.redundant} />
           <Count label="Cross-split leaks" value={joined.found.leaks} tone={joined.found.leaks ? "warn" : undefined} />
+          <Count label="With nothing like them" value={joined.alone} />
         </div>
         {joined.found.exported > 0 && (
           <p className="muted small similar-policy">
@@ -200,6 +215,9 @@ function Graph({ project, dataset, status, joined, scale, duplicateAt, leakAt, t
           <button className={tab === "leaks" ? "on" : ""} onClick={() => switchTab("leaks")}>
             Leaks<span className="split-toggle-count">{formatNumber(joined.leaks.length)}</span>
           </button>
+          <button className={tab === "outliers" ? "on" : ""} onClick={() => switchTab("outliers")}>
+            Outliers<span className="split-toggle-count">{formatNumber(joined.alone || joined.outliers.length)}</span>
+          </button>
         </div>
         <span className="spacer" />
         {tab === "copies" ? (
@@ -215,6 +233,15 @@ function Graph({ project, dataset, status, joined, scale, duplicateAt, leakAt, t
           <span className="muted small">
             One picture, written out more than once. Nothing to remove here — this is the
             augmentation the export was asked for.
+          </span>
+        ) : tab === "outliers" ? (
+          <span className="muted small">
+            The images furthest from anything else here, furthest first.
+            {joined.alone > 0
+              ? ` ${formatNumber(joined.alone)} of them sit more than ${Math.round(outlierAt * 100)}% of the typical distance from their nearest neighbour, which is far enough that nothing in this dataset is really like them.`
+              : ` None is more than ${Math.round(outlierAt * 100)}% of the typical distance from its nearest neighbour, so this set has no image that stands on its own.`}
+            {" "}Nothing to remove in bulk: a lone image is as likely to be the one rare case the
+            set needs as it is to be a mistake.
           </span>
         ) : (
           sides.map((side) => (
@@ -236,10 +263,12 @@ function Graph({ project, dataset, status, joined, scale, duplicateAt, leakAt, t
             ? "No picture in this dataset repeats another picture."
             : tab === "exports"
               ? "Every picture in this dataset is in it once. Nothing was exported more than one time."
-              : "No image in one set is a near copy of an image in another. Scores measured on these sets mean what they say."}
+              : tab === "outliers"
+                ? "Nothing to rank: this dataset has been read but holds no images."
+                : "No image in one set is a near copy of an image in another. Scores measured on these sets mean what they say."}
         </p>
       ) : (
-        <div className={tab === "leaks" ? "leak-list" : "copy-list"}>
+        <div className={tab === "leaks" ? "leak-list" : tab === "outliers" ? "outlier-grid" : "copy-list"}>
           {tab === "copies" && joined.groups.slice(0, shown).map((group) => (
             <CopyGroupRow key={group.id} group={group} project={project} dataset={dataset}
               selected={selected} onSelect={onSelect} onOpen={onOpen} />
@@ -251,6 +280,21 @@ function Graph({ project, dataset, status, joined, scale, duplicateAt, leakAt, t
           {tab === "leaks" && joined.leaks.slice(0, shown).map((leak) => (
             <LeakPairRow key={leak.id} leak={leak} project={project} dataset={dataset}
               selected={selected} onSelect={onSelect} onOpen={onOpen} />
+          ))}
+          {tab === "outliers" && joined.outliers.slice(0, shown).map((row, at) => (
+            <SimilarTile
+              key={row.item.image}
+              item={row.item}
+              project={project}
+              dataset={dataset}
+              note={`${Math.round(row.score * 100)}% to its nearest`}
+              noteTitle={`The nearest image to this one is ${Math.round(row.score * 100)}% of the distance between two images of this dataset picked at random. Over ${Math.round(outlierAt * 100)}% and nothing here is really like it.`}
+              tag={row.alone ? "Nothing like it" : undefined}
+              checked={selected.has(row.item.image)}
+              onToggle={() => onSelect([row.item.image], !selected.has(row.item.image))}
+              onOpen={() => onOpen(row.item.image, joined.outliers.slice(at).map((other) => other.item))}
+              onLike={() => onLike(row.item.image)}
+            />
           ))}
         </div>
       )}
@@ -415,23 +459,42 @@ function LeakPairRow({ leak, project, dataset, selected, onSelect, onOpen }: {
 }
 
 /** One image in a group or a pair: pick it to act on it, click it to look properly. */
-function SimilarTile({ item, project, dataset, keeper, wide, checked, onToggle, onOpen }: {
+function SimilarTile({ item, project, dataset, keeper, wide, note, noteTitle, tag, checked, onToggle, onOpen, onLike }: {
   item: ImageRow;
   project: string;
   dataset: string;
   keeper?: boolean;
   /** A leak is two images to compare, so each gets the room a strip of copies cannot. */
   wide?: boolean;
+  /** A number this tile is listed for, over the picture: how far from anything it is. */
+  note?: string;
+  noteTitle?: string;
+  /** A verdict on the picture itself, over the image rather than under it. */
+  tag?: string;
   checked: boolean;
   onToggle: () => void;
   onOpen: () => void;
+  /** Show the gallery ordered by likeness to this image, when that is offered here. */
+  onLike?: () => void;
 }) {
   return (
     <div className={`similar-tile${wide ? " wide" : ""}${checked ? " selected" : ""}`} title={item.image}>
       <button className="image-card-frame" onClick={onOpen} aria-label={`Open ${fileName(item.image)}`}>
         <img loading="lazy" src={api.mediaUrl(item.image, 240, project, dataset)} alt="" />
         {keeper && <span className="similar-keep">Keep</span>}
+        {tag && <span className="similar-keep alone">{tag}</span>}
+        {note && <span className="similar-note" title={noteTitle}>{note}</span>}
       </button>
+      {onLike && (
+        <button
+          className="image-action"
+          onClick={onLike}
+          title="Show the images most like this one"
+          aria-label={`Find images like ${fileName(item.image)}`}
+        >
+          <Icon name="search" size={13} />
+        </button>
+      )}
       <label className="image-check" onClick={(event) => event.stopPropagation()}>
         <input type="checkbox" checked={checked} onChange={onToggle} aria-label={`Select ${fileName(item.image)}`} />
       </label>

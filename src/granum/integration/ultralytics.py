@@ -56,11 +56,22 @@ def _box_column(table: Table, column: str | None) -> str:
     return candidates[0]
 
 
+def _match_name(name: str) -> str:
+    """A class name as it compares: case, spacing and punctuation are not the class."""
+    return re.sub(r"[^a-z0-9]+", "", str(name).lower())
+
+
 class YOLOPredictor:
     """Calls a YOLO model on a batch's image paths; maps its classes to the Table's by name.
 
     Mapping by name rather than index matters: a model trained on an ``export_yolo``
     dataset numbers classes 0..K-1, while a COCO-imported Table keeps COCO's ids.
+
+    A model trained on this Table knows exactly its classes, and anything else is a mistake
+    worth stopping for -- the default. A *pretrained* model is a different case: it knows
+    eighty classes of which a dataset may share four, and the useful thing is to predict
+    those four and say so. ``on_unknown="drop"`` does that, and leaves ``known`` holding the
+    Table's classes this model can actually speak about.
     """
 
     def __init__(
@@ -73,17 +84,28 @@ class YOLOPredictor:
         iou: float = 0.7,
         imgsz: int = 640,
         device: Any = None,
+        on_unknown: str = "raise",
     ) -> None:
         self.model = _load_yolo(model)
-        by_name = {entry.internal_name: key for key, entry in value_map.items()}
+        by_name = {_match_name(entry.internal_name): key for key, entry in value_map.items()}
         names = dict(self.model.names)
-        unknown = sorted(name for name in names.values() if name not in by_name)
-        if unknown:
+        unknown = sorted(name for name in names.values() if _match_name(name) not in by_name)
+        if unknown and on_unknown != "drop":
             raise IntegrationError(
                 f"the model predicts classes the Table does not have: {unknown[:5]}"
                 f"{' ...' if len(unknown) > 5 else ''}"
             )
-        self.class_map = {int(index): by_name[name] for index, name in names.items()}
+        self.class_map = {int(index): by_name[_match_name(name)]
+                          for index, name in names.items() if _match_name(name) in by_name}
+        #: The Table's own class ids this model can predict, and the names it cannot place.
+        self.known = set(self.class_map.values())
+        self.unknown = unknown
+        if not self.class_map:
+            raise IntegrationError(
+                "this model and this dataset have no class in common: it predicts "
+                f"{sorted(names.values())[:5]}, the dataset has "
+                f"{sorted(e.internal_name for e in value_map.values())[:5]}"
+            )
         self.image_column = image_column
         self.options = {"conf": conf, "iou": iou, "imgsz": imgsz, "device": device, "verbose": False}
 
@@ -93,10 +115,13 @@ class YOLOPredictor:
         for result in self.model.predict(paths, **self.options):
             detected = result.boxes
             classes = detected.cls.cpu().numpy().astype(int)
+            # A class this dataset does not have is dropped here rather than mapped to
+            # something near it: a prediction nobody asked for is worse than no prediction.
+            keep = [i for i, c in enumerate(classes) if int(c) in self.class_map]
             outputs.append({
-                "boxes": detected.xyxy.cpu().numpy().astype(np.float64),
-                "scores": detected.conf.cpu().numpy().astype(np.float64),
-                "labels": np.array([self.class_map[c] for c in classes], dtype=np.int64),
+                "boxes": detected.xyxy.cpu().numpy().astype(np.float64)[keep],
+                "scores": detected.conf.cpu().numpy().astype(np.float64)[keep],
+                "labels": np.array([self.class_map[int(classes[i])] for i in keep], dtype=np.int64),
             })
         return outputs
 

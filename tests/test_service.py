@@ -435,7 +435,10 @@ def test_import_flow_browse_preflight_commit(client, tmp_path):
     folder = _dataset(tmp_path)
 
     browsed = api.get("/api/import/browse", params={"path": str(folder.parent)}).json()
-    assert browsed["detected"] == [{"split": "train", "annotations": str(Url(folder / "_annotations.coco.json")), "images": str(Url(folder))}]
+    # Detection says what layout it found, because the import converts anything that is
+    # not COCO before the same preflight runs on it.
+    assert browsed["detected"] == [{"split": "train", "annotations": str(Url(folder / "_annotations.coco.json")),
+                                    "images": str(Url(folder)), "format": "coco"}]
 
     # Opening one split folder still finds every split of the dataset beside it.
     valid = folder.parent / "valid"
@@ -665,6 +668,67 @@ def test_create_dataset_versions_all_or_verified_only(client, tmp_path):
     listed = api.get("/api/releases", params={"project": "shop"}).json()["releases"]
     assert [r["name"] for r in listed] == ["Clean", "Everything"] and listed[0]["dataset"] == dataset
     assert set(api.get("/api/training/status", params={"project": "shop"}).json()["shipped"]) == {train["url"], frozen["url"]}
+
+
+def test_export_a_dataset_version_in_other_formats(client, tmp_path):
+    """A frozen version written out for another tool, in each layout Granum offers."""
+    api = client[0]
+    folder = _dataset(tmp_path)
+    job = api.post("/api/import/preflight", json={"sources": [{"split": "train", "annotations": str(folder / "_annotations.coco.json")}], "media": "none"}).json()
+    _wait(api, job)
+    _wait(api, api.post("/api/import/commit", json={"preflight_job": job["id"], "project_name": "shop"}).json())
+    [dataset] = {t["dataset_name"] for t in api.get("/api/projects/shop/tables").json()["tables"]}
+    base = {"project": "shop", "dataset": dataset}
+    release = api.post("/api/qa/release", json={**base, "name": "Everything", "mode": "all"}).json()["release"]
+
+    offered = api.get("/api/formats").json()
+    assert {e["id"] for e in offered["exports"]} >= {"coco", "yolo", "voc", "kitti", "csv", "cvat", "label-studio", "folders"}
+    assert "symlink" in offered["images"]
+
+    # One file per image, images linked beside them: Pascal VOC.
+    started = api.post("/api/datasets/export", json={**base, "release_id": release["id"], "format": "voc", "images": "symlink"})
+    assert started.status_code == 200, started.text
+    done = _wait(api, started.json())
+    assert done["status"] == "done", done.get("error")
+    written = done["result"]
+    assert written["format"] == "voc" and written["images"] == 2
+    out = Path(written["folder"])
+    assert sorted(p.name for p in (out / "train" / "Annotations").glob("*.xml")) == ["a.xml", "b.xml"]
+    assert "<name>can</name>" in (out / "train" / "Annotations" / "a.xml").read_text()
+    assert (out / "train" / "JPEGImages" / "a.jpg").is_symlink()
+
+    # One row per box, no image files at all: the labels can leave on their own.
+    rows = _wait(api, api.post("/api/datasets/export", json={
+        **base, "release_id": release["id"], "format": "csv", "images": "none"}).json())["result"]
+    lines = Path(rows["sets"][0]["path"]).read_text().splitlines()
+    assert lines[0].startswith("image,width,height,class")
+    # One row per box, and an image nobody labelled still gets a row, with no class on it.
+    assert sum(",can," in line for line in lines) == 1
+    assert sum(line.endswith(",,,,,,,,") for line in lines) == 1
+
+    # "Labels only" means only labels: no image files are written beside them.
+    bare = _wait(api, api.post("/api/datasets/export", json={
+        **base, "release_id": release["id"], "format": "voc", "images": "none"}).json())["result"]
+    assert (Path(bare["folder"]) / "train" / "Annotations").is_dir()
+    assert not (Path(bare["folder"]) / "train" / "JPEGImages").exists()
+
+    # Two layouts are made of the image files, so they cannot be written without them.
+    for layout in ("yolo", "folders"):
+        refused = api.post("/api/datasets/export", json={**base, "release_id": release["id"], "format": layout, "images": "none"})
+        assert refused.status_code == 400 and "without them" in refused.text
+
+    # The folder says which version it came from, and does not say the dataset twice when
+    # the version is already named after it.
+    assert Path(written["folder"]).name.startswith(f"{dataset}-Everything-voc-")
+    named = api.post("/api/qa/release", json={**base, "name": f"{dataset} v2", "mode": "all"}).json()["release"]
+    again = _wait(api, api.post("/api/datasets/export", json={
+        **base, "release_id": named["id"], "format": "csv", "images": "none"}).json())["result"]
+    assert Path(again["folder"]).name.startswith(f"{dataset}-v2-csv-")
+
+    # A format nobody has, and a version that is not there, are refused rather than guessed at.
+    assert api.post("/api/datasets/export", json={**base, "release_id": release["id"], "format": "pickle"}).status_code == 400
+    assert api.post("/api/datasets/export", json={**base, "release_id": release["id"], "format": "voc", "images": "move"}).status_code == 400
+    assert api.post("/api/datasets/export", json={**base, "release_id": "nope", "format": "voc"}).status_code == 404
 
 
 def test_review_isolate_return_delete_and_edit_boxes(client, tmp_path):

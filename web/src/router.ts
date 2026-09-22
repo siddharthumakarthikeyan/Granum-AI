@@ -12,13 +12,15 @@ export type Route =
   | { name: "overview"; project: string }
   | { name: "datasets"; project: string }
   | { name: "runs"; project: string }
-  | { name: "images"; project: string; dataset?: string; review?: boolean; edit?: boolean; similar?: boolean; open?: string }
+  | { name: "images"; project: string; dataset?: string; review?: boolean; edit?: boolean; similar?: boolean; patches?: boolean; stats?: boolean; like?: string; open?: string }
   | { name: "import"; project?: string; example?: boolean }
   | { name: "report"; project: string; id: string }
   | { name: "table"; project: string; url: string }
   | { name: "run"; project: string; url: string }
   | { name: "learning"; project: string; url: string }
   | { name: "findings"; project: string; url?: string }
+  | { name: "evaluation"; project: string; url?: string }
+  | { name: "health"; project: string; dataset?: string }
   | { name: "compare"; project: string; baseline?: string; candidate?: string; split?: string }
   | { name: "removed"; project: string; dataset: string };
 
@@ -47,6 +49,11 @@ export function parseRoute(hash: string): Route {
         if (parts[2] === "review" || params.get("review") === "1") route.review = true;
         else if (params.get("edit") === "1") route.edit = true;
         else if (params.get("similar") === "1") route.similar = true;
+        else if (params.get("patches") === "1") route.patches = true;
+        // Orthogonal to the modes: a panel of counts, and an order, either of which can be
+        // on whatever the gallery is doing.
+        if (params.get("stats") === "1") route.stats = true;
+        if (params.get("like")) route.like = params.get("like")!;
         if (params.get("open")) route.open = params.get("open")!;
         return route;
       }
@@ -64,6 +71,10 @@ export function parseRoute(hash: string): Route {
         return { name: "datasets", project };
       case "findings":
         return params.get("url") ? { name: "findings", project, url: params.get("url")! } : { name: "findings", project };
+      case "evaluation":
+        return params.get("url") ? { name: "evaluation", project, url: params.get("url")! } : { name: "evaluation", project };
+      case "health":
+        return params.get("dataset") ? { name: "health", project, dataset: params.get("dataset")! } : { name: "health", project };
       case "compare": {
         const route: Route = { name: "compare", project };
         for (const key of ["baseline", "candidate", "split"] as const) {
@@ -100,6 +111,9 @@ export function routeHref(route: Route): string {
       if (route.review) query.set("review", "1");
       else if (route.edit) query.set("edit", "1");
       else if (route.similar) query.set("similar", "1");
+      else if (route.patches) query.set("patches", "1");
+      if (route.stats) query.set("stats", "1");
+      if (route.like) query.set("like", route.like);
       if (route.open) query.set("open", route.open);
       const text = query.toString();
       return `${p(route.project)}/images${text ? `?${text}` : ""}`;
@@ -118,6 +132,10 @@ export function routeHref(route: Route): string {
       return `${p(route.project)}/learning?url=${encodeURIComponent(route.url)}`;
     case "findings":
       return `${p(route.project)}/findings${route.url ? `?url=${encodeURIComponent(route.url)}` : ""}`;
+    case "evaluation":
+      return `${p(route.project)}/evaluation${route.url ? `?url=${encodeURIComponent(route.url)}` : ""}`;
+    case "health":
+      return `${p(route.project)}/health${route.dataset ? `?dataset=${encodeURIComponent(route.dataset)}` : ""}`;
     case "compare": {
       const query = new URLSearchParams();
       if (route.baseline) query.set("baseline", route.baseline);

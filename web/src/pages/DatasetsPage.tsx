@@ -9,6 +9,7 @@ import { TrainDialog } from "../training/Training";
 import { navigate, routeHref } from "../router";
 import { recipeSummary } from "../images/AugmentationPanel";
 import { DeleteReleaseDialog } from "./DeleteReleaseDialog";
+import { ExportDialog } from "./ExportDialog";
 import { useStore } from "../store/store";
 import { groupDatasets } from "./datasets";
 
@@ -20,6 +21,7 @@ export function DatasetsPage({ project }: { project: string }) {
   const [error, setError] = useState<string | null>(null);
   const [training, setTraining] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<Release | null>(null);
+  const [exporting, setExporting] = useState<Release | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
   const load = useCallback(() => {
@@ -46,7 +48,8 @@ export function DatasetsPage({ project }: { project: string }) {
           )}
           {releases?.map((release) => (
             <ReleaseRibbon key={`${release.dataset}/${release.id}`} project={project} release={release}
-              onTrain={() => setTraining(release.id)} onDelete={() => setDeleting(release)} />
+              onTrain={() => setTraining(release.id)} onExport={() => setExporting(release)}
+              onDelete={() => setDeleting(release)} />
           ))}
         </section>
       )}
@@ -58,6 +61,17 @@ export function DatasetsPage({ project }: { project: string }) {
         >
           <p>Datasets written by training scripts with the Granum SDK also appear here.</p>
         </EmptyState>
+      )}
+
+      {exporting && (
+        <ExportDialog
+          project={project}
+          dataset={exporting.dataset}
+          releaseId={exporting.id}
+          releaseName={exporting.name}
+          images={Object.values(exporting.sets).reduce((n, set) => n + set.images, 0)}
+          onClose={() => setExporting(null)}
+        />
       )}
 
       {deleting && (
@@ -88,7 +102,9 @@ export function DatasetsPage({ project }: { project: string }) {
 
 /** One dataset version, laid out like a working dataset: its sets, a strip of images, the
  * facts of how it was made, and a way to train on it. */
-function ReleaseRibbon({ project, release, onTrain, onDelete }: { project: string; release: Release; onTrain: () => void; onDelete: () => void }) {
+function ReleaseRibbon({ project, release, onTrain, onExport, onDelete }: {
+  project: string; release: Release; onTrain: () => void; onExport: () => void; onDelete: () => void;
+}) {
   const sets = Object.entries(release.sets);
   const [chosen, setChosen] = useState(() => (sets.find(([name]) => /^train/i.test(name)) ?? sets[0])?.[0] ?? "");
   const current = release.sets[chosen] ?? sets[0]?.[1];
@@ -118,6 +134,9 @@ function ReleaseRibbon({ project, release, onTrain, onDelete }: { project: strin
             </button>
           ))}
         </div>
+        <button className="button" onClick={onExport} title={`Export ${release.name} for another tool`}>
+          <Icon name="export" size={15} />Export
+        </button>
         <button className="button primary" onClick={onTrain}><Icon name="runs" size={15} />Train</button>
         <button className="icon-button release-delete" onClick={onDelete} title={`Delete ${release.name}`} aria-label={`Delete ${release.name}`}>
           <Icon name="trash" size={15} />

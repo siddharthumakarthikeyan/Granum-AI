@@ -9,8 +9,10 @@ import { useStore } from "../store/store";
 const SECTIONS = [
   { name: "overview", label: "Overview", icon: "overview" },
   { name: "images", label: "Images", icon: "images" },
+  { name: "health", label: "Health", icon: "shield" },
   { name: "datasets", label: "Datasets", icon: "datasets" },
   { name: "runs", label: "Runs", icon: "runs" },
+  { name: "evaluation", label: "Evaluation", icon: "target" },
   { name: "findings", label: "Findings", icon: "findings" },
 ] as const;
 

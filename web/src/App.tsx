@@ -7,6 +7,8 @@ import { SavedReportPage } from "./importing/SavedReportPage";
 import { DatasetsPage } from "./pages/DatasetsPage";
 import { HomePage } from "./pages/HomePage";
 import { LicencePage } from "./pages/LicencePage";
+import { EvaluationPage } from "./runs/EvaluationPage";
+import { HealthPage } from "./pages/HealthPage";
 import { ImagesPage } from "./images/ImagesPage";
 import { LearningPage } from "./pages/LearningPage";
 import { RemovedPage } from "./pages/RemovedPage";
@@ -83,7 +85,7 @@ export default function App() {
   useEffect(() => {
     const titles: Record<string, string> = {
       home: "Projects", licence: "Licence", overview: routedProject ?? "", datasets: "Datasets", runs: "Runs", images: "Images",
-      import: "Import", report: "Import report", table: "Dataset", run: "Run", learning: "How images were learned", findings: "Findings", compare: "Compare runs", removed: "Removed images",
+      import: "Import", report: "Import report", table: "Dataset", run: "Run", learning: "How images were learned", findings: "Findings", evaluation: "Evaluation", health: "Health", compare: "Compare runs", removed: "Removed images",
     };
     document.title = `${titles[route.name]}${routedProject && route.name !== "overview" ? ` - ${routedProject}` : ""} - Granum`;
   }, [route, routedProject]);
@@ -125,7 +127,9 @@ export default function App() {
         {route.name === "home" && <HomePage />}
         {route.name === "licence" && <LicencePage />}
         {route.name === "overview" && <ProjectOverview project={route.project} />}
-        {route.name === "images" && <ImagesPage project={route.project} dataset={route.dataset} review={Boolean(route.review)} edit={Boolean(route.edit)} similar={Boolean(route.similar)} open={route.open} />}
+        {route.name === "health" && <HealthPage project={route.project} dataset={route.dataset} />}
+        {route.name === "evaluation" && <EvaluationPage project={route.project} url={route.url} />}
+        {route.name === "images" && <ImagesPage project={route.project} dataset={route.dataset} review={Boolean(route.review)} edit={Boolean(route.edit)} similar={Boolean(route.similar)} patches={Boolean(route.patches)} stats={Boolean(route.stats)} like={route.like} open={route.open} />}
         {route.name === "datasets" && <DatasetsPage project={route.project} />}
         {route.name === "runs" && <RunsPage project={route.project} />}
         {route.name === "import" && <ImportPage project={route.project} example={route.example} />}

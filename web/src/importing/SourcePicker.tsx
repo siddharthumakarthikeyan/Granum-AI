@@ -216,6 +216,11 @@ export function SourcePicker({ project }: { project?: string }) {
   );
 }
 
+/** What a detected layout is called on screen. COCO is the default and says nothing. */
+const FORMAT_NAMES: Record<string, string> = {
+  yolo: "YOLO", voc: "Pascal VOC", kitti: "KITTI", csv: "CSV", folders: "Folder per class",
+};
+
 /** Split names made unique: two files both called train become train and train-2. */
 function uniqueSplits(sources: ImportSource[]): ImportSource[] {
   const out: ImportSource[] = [];
@@ -300,7 +305,14 @@ function FolderPicker({ start, onClose, onPick }: {
                     }}
                   />
                   <span className="strong">{d.split}</span>
-                  <span className="mono small muted split-path" title={d.annotations}>{tail(d.annotations, 2)}</span>
+                  <span className="mono small muted split-path" title={d.annotations}>
+                    {d.format && d.format !== "coco" && (
+                      <span className="tag detected-format" title={`Read as ${FORMAT_NAMES[d.format] ?? d.format}, then checked like any other import`}>
+                        {FORMAT_NAMES[d.format] ?? d.format}
+                      </span>
+                    )}
+                    {tail(d.annotations, 2)}
+                  </span>
                 </label>
               </li>
             ))}

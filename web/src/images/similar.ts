@@ -13,7 +13,7 @@
  * came with them, never the keeper's own.
  */
 
-import type { EmbeddingReport, ExportGroup, ImageRow, LeakPair } from "../api/types";
+import type { EmbeddingReport, ExportGroup, ImageRow, LeakPair, SimilarImages } from "../api/types";
 import { fileName } from "../review/status";
 
 /** One image of a group, and which of the group's source pictures it came from. */
@@ -59,6 +59,27 @@ export interface LeakRow {
   sameImage: boolean;
   /** Both sides are copies of one source picture, so the split was cut through it. */
   sameSource: boolean;
+}
+
+/** One image far from anything else in the dataset. */
+export interface OutlierRow {
+  item: ImageRow;
+  /** Distance to its nearest neighbour, as a share of the typical distance: 1 is a whole
+   *  typical distance away, which is as far as two images of one dataset usually get. */
+  score: number;
+  /** Past the policy's threshold: nothing in this dataset is really like it. The rest of
+   *  the list is only "the furthest from anything here", which on a set of one subject
+   *  taken by one camera is the most anybody will get. */
+  alone: boolean;
+}
+
+/** One answer to "what else looks like this", as a row the gallery can draw. */
+export interface LikeRow {
+  item: ImageRow;
+  distance: number;
+  /** The distance as a share of this dataset's typical distance, which is what makes it
+   *  readable: 0.05 is the same picture again, 1.0 is an unrelated image. */
+  share: number;
 }
 
 /** What to say about one image in the gallery, once a report has been read. */
@@ -190,6 +211,41 @@ export function leakSides(leaks: LeakRow[]): { set: string; images: number }[] {
     .sort((a, b) => b.images - a.images || a.set.localeCompare(b.set));
 }
 
+/** The report's outliers, as images the dataset still holds, furthest from anything first. */
+export function liveOutliers(
+  outliers: { image: string; score: number; set: string; alone?: boolean }[],
+  byImage: Map<string, ImageRow>,
+): OutlierRow[] {
+  const live: OutlierRow[] = [];
+  for (const outlier of outliers) {
+    const item = byImage.get(outlier.image);
+    if (item) live.push({ item, score: outlier.score, alone: outlier.alone ?? false });
+  }
+  live.sort((a, b) => b.score - a.score
+    || fileName(a.item.image).localeCompare(fileName(b.item.image), undefined, { numeric: true }));
+  return live;
+}
+
+/** The neighbours of one image, as rows of the gallery, nearest first.
+ *
+ * The service answers over the dataset as it stands now, but the gallery's own list is a
+ * moment older or newer, so anything it cannot place is dropped rather than drawn as a gap.
+ * The image asked about never appears among its own neighbours.
+ */
+export function likeRows(answer: SimilarImages, byImage: Map<string, ImageRow>): LikeRow[] {
+  const rows: LikeRow[] = [];
+  for (const neighbour of answer.neighbours) {
+    const item = byImage.get(neighbour.image);
+    if (!item || item.image === answer.image) continue;
+    rows.push({
+      item,
+      distance: neighbour.distance,
+      share: answer.scale > 0 ? neighbour.distance / answer.scale : 0,
+    });
+  }
+  return rows;
+}
+
 /** What to mark on each thumbnail in the ordinary gallery, once the graph has been read. */
 export function marksFor(groups: CopyGroup[], exported: ExportSet[], leaks: LeakRow[]): Map<string, SimilarMark> {
   const marks = new Map<string, SimilarMark>();
@@ -217,13 +273,17 @@ export function readReport(report: EmbeddingReport, images: ImageRow[]) {
   const groups = liveGroups(report.duplicates.groups, byImage, report.duplicates.spreads, report.duplicates.families);
   const exported = liveExports(report.exports.groups, byImage);
   const leaks = liveLeaks(report.leaks, byImage, report.scale);
+  const outliers = liveOutliers(report.outliers, byImage);
   return {
     groups,
     exports: exported,
     leaks,
+    outliers,
     marks: marksFor(groups, exported, leaks),
     /** Images that would go if every group kept one picture and the copies of it. */
     redundant: redundantImages(groups).length,
+    /** Images with nothing in the set really like them, of the ones listed. */
+    alone: outliers.filter((row) => row.alone).length,
     /** Everything the service found, whether or not it sent the detail of all of it. */
     found: {
       groups: report.duplicates.total,

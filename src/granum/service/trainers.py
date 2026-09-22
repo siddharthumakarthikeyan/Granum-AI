@@ -31,6 +31,11 @@ from granum.errors import GranumError
 from granum.processes import no_window, popen_detached, windows_process_alive
 
 TRAINER_MODULE = "granum.training.train"
+SCREEN_MODULE = "granum.training.screen"
+PRELABEL_MODULE = "granum.training.prelabel"
+#: Everything launched this way. A check and a pre-labelling pass are trainers in every way
+#: that matters here: long GPU jobs that outlive the service and are followed through a log.
+TRAINER_MODULES = (TRAINER_MODULE, SCREEN_MODULE, PRELABEL_MODULE)
 #: Frameworks the dashboard trains; runs with one of these were started by a trainer here.
 DASHBOARD_FRAMEWORKS = {"yolo", "rtdetr", "rfdetr"}
 _ANSI = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
@@ -51,6 +56,9 @@ class TrainerRecord:
     log: str
     project_root: str
     started: float
+    #: Which of :data:`TRAINER_MODULES` is behind it. Records written before screenings
+    #: existed have no such key and are trainers, which is what the default says.
+    module: str = TRAINER_MODULE
 
     @property
     def path(self) -> Path:
@@ -86,7 +94,7 @@ def _same_root(a: str, b: str) -> bool:
     return a == b
 
 
-def is_trainer_alive(pid: int) -> bool:
+def is_trainer_alive(pid: int, module: str | None = None) -> bool:
     """The process exists and is still a Granum trainer (process ids get reused)."""
     if os.name == "nt":
         # Never os.kill(pid, 0) here: on Windows it terminates the process.
@@ -99,14 +107,16 @@ def is_trainer_alive(pid: int) -> bool:
         except OSError:
             return False
         return True  # no /proc (not Linux): trust the id
-    return TRAINER_MODULE.encode() in cmdline
+    wanted = (module,) if module else TRAINER_MODULES
+    return any(name.encode() in cmdline for name in wanted)
 
 
-def trainer_prefix(executable: list[str]) -> list[str]:
-    return [*executable, "-u", "-m", TRAINER_MODULE]
+def trainer_prefix(executable: list[str], module: str = TRAINER_MODULE) -> list[str]:
+    return [*executable, "-u", "-m", module]
 
 
-def launch(command: list[str], *, cwd: Path | None, project_root: str, project: str, run_name: str, rounds: int) -> tuple[subprocess.Popen, TrainerRecord]:
+def launch(command: list[str], *, cwd: Path | None, project_root: str, project: str, run_name: str,
+           rounds: int, module: str = TRAINER_MODULE) -> tuple[subprocess.Popen, TrainerRecord]:
     log = state_dir() / f"{re.sub(r'[^A-Za-z0-9]+', '_', project_root).strip('_')[-60:]}-{run_name}.log"
     log.parent.mkdir(parents=True, exist_ok=True)
     with log.open("ab") as handle:
@@ -115,7 +125,7 @@ def launch(command: list[str], *, cwd: Path | None, project_root: str, project: 
             env={**os.environ, "PYTHONUNBUFFERED": "1"},
         )
     record = TrainerRecord(pid=process.pid, project=project, run_name=run_name, rounds=rounds, log=str(log),
-                           project_root=project_root, started=time.time())
+                           project_root=project_root, started=time.time(), module=module)
     record.save()
     return process, record
 
@@ -210,7 +220,7 @@ def follow(job: Any, record: TrainerRecord, process: subprocess.Popen | None,
                 job.log.append(line[:400])
 
     def running() -> bool:
-        return process.poll() is None if process is not None else is_trainer_alive(record.pid)
+        return process.poll() is None if process is not None else is_trainer_alive(record.pid, record.module)
 
     while True:
         read_new()
@@ -234,6 +244,26 @@ def follow(job: Any, record: TrainerRecord, process: subprocess.Popen | None,
     code = process.wait() if process is not None else None
     record.remove()
     return finish(record, cancelled, code)
+
+
+def last_result(record: TrainerRecord) -> dict[str, Any] | None:
+    """What a process reported it had done, from its own log.
+
+    A trainer's outcome is a Run, which the service can read afterwards. A pass that writes
+    *data* has no Run to read, so it prints one ``GRANUM_RESULT <json>`` line and this
+    picks it up once the process has exited.
+    """
+    try:
+        text = Path(record.log).read_text(errors="replace")
+    except OSError:
+        return None
+    for line in reversed(text.splitlines()):
+        if line.startswith("GRANUM_RESULT "):
+            try:
+                return json.loads(line[len("GRANUM_RESULT "):])
+            except ValueError:
+                return None
+    return None
 
 
 def finish_run(run_url: Any, cancelled: bool, code: int | None) -> str:

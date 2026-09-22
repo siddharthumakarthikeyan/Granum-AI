@@ -10,9 +10,12 @@ workspace**: three linked panels that share one selection and one set of filters
 |---|---|---|
 | Projects | `#/` | Every project under the project root. Hover a row to rename (pencil) or delete (bin) a project |
 | Overview | `#/p/<project>` | Images, boxes, best mAP50, preflight findings needing attention, datasets |
-| Datasets | `#/p/<project>/datasets` | Each dataset's sets and their version history |
+| Datasets | `#/p/<project>/datasets` | Each dataset's sets and their version history, with *Train* and *Export* on every version |
+| Health | `#/p/<project>/health?dataset=<name>` | Whether a dataset is fit to train on: copies, leaks, outliers, class imbalance, findings and review, each judged against a stated threshold |
 | Images | `#/p/<project>/images?dataset=<name>` | Every image with its annotations. Review, edit and duplicate hunting are modes of this page |
 | Runs | `#/p/<project>/runs` | Training runs, the comparison with the previous run, training charts |
+| Findings | `#/p/<project>/findings` | Labels a model suggests checking, from a training run or from one pass over the labels |
+| Evaluation | `#/p/<project>/evaluation?url=<run>` | One run read for what it gets wrong: confusion matrix, per-class scores, threshold sweep |
 | Compare | `#/p/<project>/compare?baseline=<run>&candidate=<run>` | Two runs image by image, with a downloadable report |
 | Samples | `#/p/<project>/learning?url=<run>` | When each image was learned during a run |
 | Removed | `#/p/<project>/removed?dataset=<name>` | Deleted images, with a way to put them back |
@@ -102,11 +105,38 @@ an optional reason. These curation decisions are recorded immediately (no commit
 a filterable *Review* column, and are separate from the annotation-review statuses of the
 [Review tab](review-and-shipping.md).
 
-## Copies and leaks
+## Patches: one tile per object
 
-**Duplicates** in the Images ribbon answers two questions about a dataset before anything is
-trained on it: is the same picture in here more than once, and is anything in a set you measure
-with also in the set you train on?
+**Patches** in the Images ribbon unrolls the gallery into one tile per labelled object, cropped
+to the box with a little of its surroundings around it. It is how a class is checked for
+consistency: a "car" that is plainly a van stands out in a wall of cars in a way it never does
+inside a busy street scene.
+
+The ribbon still decides what is in front of you, and the class filter narrows the *objects* as
+well as the images — asked for cars, the grid shows cars, not the pedestrians standing next to
+them. Tiles are cut from the images whose geometry has been fetched, and *Show more objects*
+brings in both more objects and more images, so a page is a run you can scan rather than a
+scroll that never ends. Clicking a tile opens its image full screen with that object picked out
+and the rest of the picture dimmed, which is where a wrong label gets fixed.
+
+## Stats: what these images are made of
+
+**Stats** opens a panel beside the gallery counting the selection: images per set, where they
+stand in review, how many objects each image carries, how many images contain each class, and
+how much of an image its boxes cover. The numbers are of whatever the ribbon has left, so
+filtering to the validation set gives the validation set's distribution — which is how you find
+out that the class you are missing is missing only there.
+
+Each distribution leaves out its own filter, so every set and every class stays a bar you can
+pick: clicking one narrows the gallery to it, clicking it again lets it go. The counts come from
+the image rows and cover the whole selection; object *size* is the one exception and is counted
+over the images whose boxes have been read so far, which the panel says under it.
+
+## Copies, leaks and outliers
+
+**Duplicates** in the Images ribbon answers three questions about a dataset before anything is
+trained on it: is the same picture in here more than once, is anything in a set you measure with
+also in the set you train on, and what is in here that nothing else is like?
 
 Both are read off one neighbour graph. Granum reads every image once into a vector (MobileNetV3
 or ResNet-18 when the training add-on is installed; otherwise a plain colour-and-edge descriptor,
@@ -146,6 +176,13 @@ That is why the summary counts **distinct pictures**, not images: a set of 12,42
   *Select valid* and so on, to take one whole side out at once. A pair of copies of one picture is
   reported whatever the distance between them: a heavy colour shift is a long way off in the
   embedding and leaks exactly as badly.
+- **Outliers** lists the images furthest from anything else in the set, furthest first, each
+  marked with how far its nearest neighbour is as a share of the typical distance. Past 90% of it
+  an image is tagged **Nothing like it**: nothing in the dataset is really similar. A set of one
+  subject shot by one camera has no image that far out and still has a furthest one, so the tab
+  ranks rather than filters — an empty answer would say the check had not run. Nothing is offered
+  for removal in bulk here: a lone image is as likely to be the one rare case the set needs as it
+  is to be a mistake.
 
 Selected images go to the same decision tray as review, so removing a repeat moves it to the
 removed set and can be undone from **Removed**. Nothing is deleted on Granum's own initiative.
@@ -155,6 +192,149 @@ a pan, frames of a video — where each image is near the next and no two are th
 
 Once the graph has been read, the gallery keeps the marks: a thumbnail shows how many images are
 the same picture as it, how many times its own picture was exported, and whether it leaks.
+
+### What else looks like this one
+
+The same vectors answer a question about a single image. The magnifier on a thumbnail, *Find
+images like this* in the full-screen viewer, and the same action on an outlier tile all put the
+gallery in front of that image's neighbours, most alike first, with a bar above naming the image
+they are being compared against. Each thumbnail carries how alike it is as a share of the typical
+distance, so *the same* and *38%* are different claims rather than two numbers. The ribbon's
+filters still narrow the answer — the valid images most like this training image, say — and
+*Ask for 200* widens it from the 60 nearest. Review and Edit work on the result as on any other
+gallery, so a run of near-copies can be selected and dealt with where it was found.
+
+### Uniqueness as an order
+
+**Order by → Uniqueness** sorts the gallery by how unlike the rest of the dataset each image is,
+most unusual first, with the score on each thumbnail (0 is a copy of something here, 1 is nothing
+like it). It weights the nearest neighbours most, so one exact copy is enough to make an image
+unremarkable however unusual the rest of its neighbourhood is. Both this and *Find images like
+this* need the dataset to have been read once; where it has not, the bar under the ribbon says so
+and offers to read it.
+
+## Pre-labelling: a model drafts the labels
+
+Labelling from nothing is the expensive part of a dataset. **Pre-label** in the Images header
+runs a model over the sets you choose and writes its boxes in as labels, turning labelling into
+correcting. The model is the same choice as a check: one trained in this project, or one that has
+never seen this data (which draws only the classes it knows and leaves the rest).
+
+Every box it draws is marked as a **draft** — the set's box column gains `source` and
+`confidence`, and the labels that were already there are marked `manual` on the way through. A
+drafted box is drawn dashed wherever boxes are drawn, and each thumbnail says how many of its
+boxes are drafts, so nothing can mistake a machine's guess for a label somebody checked.
+
+Two choices decide what can be lost, and the default loses nothing:
+
+- **Leave them alone** (default) — only images with no labels at all get boxes.
+- **Redraw them** — every image gets the model's boxes instead of the ones it has.
+
+Either way a **new version of each set** is written, so the labels that were there stay in the
+version before it. The confidence slider trades boxes to delete against objects to add by hand.
+
+## Health: is this dataset fit to train on?
+
+Granum already knows most of this — the import found broken files, the neighbour graph found
+copies and leaks, a check found labels worth looking at, the review log knows what has been
+verified. Each of those lives on the page where it was produced, which is the right place to
+*work* and the wrong place to answer "is it ready?". The Health page is those answers in one
+list, each judged against a threshold that is written down beside it:
+
+- **block** — a reason not to train yet: an image in two sets at once makes the score partly a
+  memory test, and a dataset with nothing held back has nothing to measure with.
+- **warn** — a reason to look: too many copies, too many images with nothing like them, a class
+  too rare for the loss to care about, labels a check flagged, or boxes a model drew that nobody
+  has confirmed.
+- **ok** — nothing to do, said out loud, because a check that only speaks up when it is unhappy
+  is a check nobody trusts.
+
+Every row links to the page that can act on it.
+
+## Evaluation: what one run gets wrong
+
+A single mAP number says a run is better or worse; it never says *what* it gets wrong. The
+Evaluation page reads one run's stored predictions three ways:
+
+- **Confusion**, matched class-agnostically: a box is paired with the nearest label it overlaps
+  whatever class it claims, so "van called car" lands in a cell instead of vanishing into one miss
+  and one false positive, which is how class-aware matching — the right rule for *scoring* — hides
+  it. Every cell is a button: it opens the objects behind it, cut to the box, label solid and the
+  model's box dashed over it.
+- **Per class**: precision, recall, F1, support and average precision, so a class the set barely
+  holds reads as that rather than as noise in the mean.
+- **Threshold**: precision and recall as the operating confidence is swept, with the point that
+  scores best named — the confidence a team ships at is a choice, and it is usually a guess.
+
+## Findings: labels worth checking
+
+**Findings** ranks the labels a model disagrees with, under four rules — a confident prediction
+with nothing labelled there (*missing label*), a confident prediction of another class on a label
+(*wrong class*), a box that overlaps its label too little to match (*loose box*), and a label the
+model does not find at all (*not found*). Each one is shown as a crop around the box with the
+evidence behind it, and a decision is recorded per image.
+
+The evidence comes from one of two places, and the page says which.
+
+### A training run
+
+A run started with *Record per-sample metrics and predictions every epoch* keeps the model's boxes
+for every image in every epoch. A finding then has to **recur**: it is judged only on the epochs
+after the model became competent on the set, must appear in at least a fifth of them, and a label
+the model merely fails to find must be missed in half. That is the strongest evidence Granum has,
+because a label that is wrong stays wrong round after round while noise does not.
+
+### A check: one pass, no training
+
+**Check labels** runs one model over a dataset version and asks the same four questions. It needs
+no training run, takes minutes, and changes nothing. Two models are offered:
+
+- **a model trained in this project** — it knows these classes exactly, and pointing it at labels
+  edited since it was trained is the strongest use of it;
+- **a model that has never seen this data** — it knows the classes it was trained on. Whichever of
+  yours it cannot name are left alone rather than reported as wrong, and the report says which.
+
+With no rounds to recur in, a finding is worth what the model's confidence is worth, and a label
+the model simply does not find weighs half of a just-confident prediction. Each image also gets a
+**trustworthiness** number, decided by its worst box rather than by the average of its boxes: forty
+right boxes do not make one badly wrong box acceptable.
+
+A single pass over a dense set would otherwise report everything, so a check is gated by what the
+pass was worth on that set. A class the model finds less than 60% of here is a class it cannot find
+here, and its silence about those labels is not evidence; the page names those classes and their
+recall. In an image where it found less than 60% of the labels it could be asked about, it is out
+of its depth and its misses are dropped — its own confident predictions are still reported. On one
+aerial set, that gate took a check from 17,686 "not found" to 1,949.
+
+The queue can be ordered by the strongest single finding or by **least trustworthy image**,
+which is the softmin above: twenty middling disagreements make a worse picture than one loud one.
+
+The check also summarises the **class pairs** it disagrees with most — `van → car 354`,
+`people → pedestrian 79` — which is a fact about the labelling rather than about any one box: a
+distinction the dataset is not drawing consistently.
+
+## Exporting a dataset version
+
+*Export* on a dataset version writes it out for another tool, under the project's `exports`
+folder in a folder named for the version, the format and the time. The version is read as it
+was frozen, so what leaves is what was trained on, whatever has been edited since.
+
+Eight layouts: **COCO**, **YOLO**, **Pascal VOC**, **KITTI**, **CSV** (one row per box),
+**CVAT for images**, **Label Studio** tasks, and **folder per class**. A box a model drafted
+carries its source and its confidence wherever the format has room for them, so nothing
+downstream can mistake a draft for a label somebody checked.
+
+The second question is what to do with the image files, and it is the one people get wrong:
+
+- **Link to them** — no extra disk, and broken the moment the folder moves to another machine.
+- **Copy them** — portable, and as large again as the images.
+- **Hard link them** — no extra disk, and survives moving within the same drive.
+- **Labels only** — annotations alone, naming the images where they already are. Not offered for
+  YOLO or folder-per-class, because in those two layouts the images *are* the annotation.
+
+The same formats can be read back in, converted to COCO first so that a VOC folder and a COCO
+file go through exactly the same preflight, media checks and findings rather than two code paths.
+The import wizard marks a folder it recognises with the layout it found.
 
 ## Training runs and samples
 

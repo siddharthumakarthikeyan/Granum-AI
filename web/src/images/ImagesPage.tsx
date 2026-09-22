@@ -6,15 +6,24 @@
  *
  * Review is a mode of this page, switched on in the ribbon: images become selectable for
  * bulk decisions (verify, rework, isolate, delete) and open in the full-screen inspector,
- * where boxes can be edited. Duplicates is another: copies of one picture and images that sit
- * in two sets at once, read off the dataset's image vectors and selectable in the same way.
- * Create dataset freezes the sets into a named dataset version; only those are offered for
- * training.
+ * where boxes can be edited. Duplicates is another: copies of one picture, images that sit
+ * in two sets at once and images with nothing like them, read off the dataset's image vectors
+ * and selectable in the same way. Create dataset freezes the sets into a named dataset
+ * version; only those are offered for training.
+ *
+ * Patches is a third mode: every labelled object of the images the ribbon leaves, one tile
+ * each, which is how a class is checked for consistency -- a wrong label stands out in a wall
+ * of its own kind in a way it never does inside a busy image.
+ *
+ * The same vectors answer two questions about a single image, and both are ordinary states of
+ * the gallery rather than modes of their own: "what else looks like this one", which replaces
+ * the list with that image's neighbours nearest first, and "how unlike the rest of the set is
+ * each image", which is an order to sort by. Both need the dataset to have been read once.
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api } from "../api/client";
-import type { EmbeddingReport, EmbeddingStatus, ImageBoxes, ImageRow, ImagesOverview, Job, QaState, QaStatus } from "../api/types";
+import type { EmbeddingReport, EmbeddingStatus, ImageBoxes, ImageRow, ImagesOverview, Job, QaState, QaStatus, SavedView, SimilarImages, TagOverview } from "../api/types";
 import { EmptyState, Icon, PageHeader, formatNumber, formatWhen, plural } from "../components/ui";
 import { ISOLATED_SET, groupDatasets, REMOVED_SET } from "../pages/datasets";
 import { ImageInspector } from "../review/ImageInspector";
@@ -26,13 +35,23 @@ import { CreateDatasetDialog } from "./CreateDatasetDialog";
 import { DuplicatesView, type SimilarTab } from "./DuplicatesView";
 import { ImageDetail } from "./ImageDetail";
 import { ImageEditor } from "./ImageEditor";
+import { PatchesView } from "./PatchesView";
+import { PrelabelDialog } from "./PrelabelDialog";
+import { StatsPanel } from "./StatsPanel";
 import { labelColor } from "./labelColors";
-import { readReport, type SimilarMark } from "./similar";
+import { likeRows, readReport, type SimilarMark } from "./similar";
 
 const PAGE = 120;
+/** Objects drawn at once in Patches, and how many more each page adds. One page is a run
+ *  a reader can scan in a sitting; beyond that it is scrolling rather than checking. */
+const PATCHES = 600;
+/** Neighbours asked for at a time when the gallery is ordered by likeness; the service caps
+ *  it at 200, which is also as far as "more like this" is worth reading. */
+const NEIGHBOURS = 60;
+const MOST_NEIGHBOURS = 200;
 
 type StatusFilter = "all" | "verified" | "unverified" | "rework" | "commented";
-type OrderKey = "filename" | "updated" | "added";
+type OrderKey = "filename" | "updated" | "added" | "uniqueness";
 type Direction = "asc" | "desc";
 type TrayMode = "rework" | "isolate" | "delete" | null;
 
@@ -40,6 +59,7 @@ const ORDER_LABEL: Record<OrderKey, string> = {
   filename: "Filename",
   updated: "Last updated",
   added: "Date added",
+  uniqueness: "Uniqueness",
 };
 
 /** Verified is the reviewed status; unreviewed and rework both read as unverified. */
@@ -60,7 +80,7 @@ function matchesStatus(filter: StatusFilter, state: QaState | undefined): boolea
   return true;
 }
 
-export function ImagesPage({ project, dataset, review, edit, similar, open: openImage }: { project: string; dataset?: string; review: boolean; edit: boolean; similar: boolean; open?: string }) {
+export function ImagesPage({ project, dataset, review, edit, similar, patches, stats, like, open: openImage }: { project: string; dataset?: string; review: boolean; edit: boolean; similar: boolean; patches: boolean; stats: boolean; like?: string; open?: string }) {
   const tables = useStore((s) => s.tables);
   const loading = useStore((s) => s.loading);
   const refreshProject = useStore((s) => s.refreshProject);
@@ -82,11 +102,21 @@ export function ImagesPage({ project, dataset, review, edit, similar, open: open
   const [order, setOrder] = useState<OrderKey>("filename");
   const [direction, setDirection] = useState<Direction>("asc");
   const [annotations, setAnnotations] = useState(true);
+  /** Boxes of the classes not being filtered for are hidden rather than their images. */
+  const [onlyClasses, setOnlyClasses] = useState(false);
+  // Words people put on images, and the filter sets worth coming back to. Both live with
+  // the dataset rather than in this tab, so they outlive the tab and are shared.
+  const [tags, setTags] = useState<TagOverview | null>(null);
+  const [tagFilter, setTagFilter] = useState<Set<string>>(new Set());
+  const [views, setViews] = useState<SavedView[]>([]);
   const [asList, setAsList] = useState(false);
   const [shown, setShown] = useState(PAGE);
   const [open, setOpen] = useState<string | null>(null);
   /** The images the viewer steps through when that is not the gallery: a group, or a pair. */
   const [openScope, setOpenScope] = useState<ImageRow[] | null>(null);
+  /** The object to pick out when the viewer was opened from a patch rather than a thumbnail. */
+  const [openInstance, setOpenInstance] = useState<number | null>(null);
+  const [patchLimit, setPatchLimit] = useState(PATCHES);
 
   // Duplicates mode. The vectors are computed once per dataset and read back as a graph,
   // which costs the service a pass over all of them -- so only when this mode is opened.
@@ -98,6 +128,16 @@ export function ImagesPage({ project, dataset, review, edit, similar, open: open
   const [similarTab, setSimilarTab] = useState<SimilarTab>("copies");
   const askedForGraph = useRef(false);
 
+  // "What else looks like this one" and "how unlike the rest is each image": the same vectors
+  // as Duplicates, asked one image at a time. Both are fetched only when asked for, because a
+  // dataset that has never been read has neither and should not be made to look broken.
+  const [neighbours, setNeighbours] = useState<SimilarImages | null>(null);
+  const [likeError, setLikeError] = useState<string | null>(null);
+  const [likeBusy, setLikeBusy] = useState(false);
+  const [nearest, setNearest] = useState(NEIGHBOURS);
+  const [scores, setScores] = useState<Record<string, number> | null>(null);
+  const [scoresError, setScoresError] = useState<string | null>(null);
+
   // Review mode.
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [inspecting, setInspecting] = useState<number | null>(null);
@@ -107,6 +147,7 @@ export function ImagesPage({ project, dataset, review, edit, similar, open: open
   const [toast, setToast] = useState<{ text: string; href?: string } | null>(null);
   const [author, setAuthorState] = useState(readReviewer);
   const [creating, setCreating] = useState(false);
+  const [drafting, setDrafting] = useState(false);
   const lastClicked = useRef<number | null>(null);
   const [editing, setEditing] = useState<number | null>(null);
   /** An image to open in the inspector or editor once that mode is on. */
@@ -117,9 +158,23 @@ export function ImagesPage({ project, dataset, review, edit, similar, open: open
     saveReviewer(name);
   };
 
-  const setReview = (on: boolean) => navigate({ name: "images", project, dataset, review: on || undefined });
-  const setEdit = (on: boolean) => navigate({ name: "images", project, dataset, edit: on || undefined });
-  const setSimilar = (on: boolean) => navigate({ name: "images", project, dataset, similar: on || undefined });
+  const setReview = (on: boolean) => navigate({ name: "images", project, dataset, review: on || undefined, stats: stats || undefined, like });
+  const setEdit = (on: boolean) => navigate({ name: "images", project, dataset, edit: on || undefined, stats: stats || undefined, like });
+  const setSimilar = (on: boolean) => navigate({ name: "images", project, dataset, similar: on || undefined, stats: stats || undefined, like });
+  const setPatches = (on: boolean) => navigate({ name: "images", project, dataset, patches: on || undefined, stats: stats || undefined, like });
+  /** The counts panel, on beside whatever the gallery is doing. */
+  const setStats = (on: boolean) => navigate({
+    name: "images", project, dataset,
+    review: review || undefined, edit: edit || undefined, similar: similar || undefined,
+    patches: patches || undefined, stats: on || undefined, like,
+  });
+  /** Order the gallery by likeness to one image, or go back to the whole dataset. */
+  const setLike = (image: string | null) => navigate({
+    name: "images", project, dataset,
+    review: review || undefined, edit: edit || undefined, similar: similar || undefined,
+    patches: patches || undefined, stats: stats || undefined,
+    like: image ?? undefined,
+  });
 
   const load = useCallback(async () => {
     if (!active) return;
@@ -131,6 +186,24 @@ export function ImagesPage({ project, dataset, review, edit, similar, open: open
     }
   }, [project, active]);
 
+  const loadTags = useCallback(async () => {
+    if (!active) return;
+    try {
+      setTags(await api.tags(project, active));
+    } catch {
+      // Tags are an extra: a dataset with none, or a service that cannot read them, is
+      // not a reason to fail the gallery.
+    }
+  }, [project, active]);
+
+  useEffect(() => {
+    setTags(null);
+    setTagFilter(new Set());
+    setViews([]);
+    void loadTags();
+    if (active) api.views(project, active).then(({ views: saved }) => setViews(saved)).catch(() => undefined);
+  }, [project, active, loadTags]);
+
   useEffect(() => {
     setData(null);
     setBoxes({});
@@ -140,6 +213,10 @@ export function ImagesPage({ project, dataset, review, edit, similar, open: open
     setReport(null);
     setSimilarError(null);
     askedForGraph.current = false;
+    setNeighbours(null);
+    setLikeError(null);
+    setScores(null);
+    setScoresError(null);
     setSplit("all");
     setClasses(new Set());
     setSelected(new Set());
@@ -158,7 +235,7 @@ export function ImagesPage({ project, dataset, review, edit, similar, open: open
     setOpenScope(null);
     if (!review && (status === "rework" || status === "commented")) setStatus("all");
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [review, edit, similar]);
+  }, [review, edit, similar, patches]);
 
   const statuses = data?.statuses ?? {};
   const labels = data?.labels ?? {};
@@ -175,10 +252,35 @@ export function ImagesPage({ project, dataset, review, edit, similar, open: open
     return data.images.filter((image) => image.set === split);
   }, [data, split]);
 
+  const byImage = useMemo(() => new Map((data?.images ?? []).map((i) => [i.image, i])), [data]);
+
+  /** The image the gallery is being compared against, when it is. */
+  const likeItem = like ? byImage.get(like) ?? null : null;
+
+  /** Its neighbours, joined to the images the dataset holds now, nearest first. */
+  const likeList = useMemo(
+    () => (neighbours && neighbours.image === like ? likeRows(neighbours, byImage) : null),
+    [neighbours, like, byImage],
+  );
+
+  /** Where each neighbour came in the answer: the order the gallery is put in. */
+  const likeRank = useMemo(
+    () => (likeList ? new Map(likeList.map((row, at) => [row.item.image, at])) : null),
+    [likeList],
+  );
+
+  /** How alike each neighbour is, as a share of the typical distance, for its thumbnail. */
+  const likeShare = useMemo(
+    () => (likeList ? new Map(likeList.map((row) => [row.item.image, row.share])) : null),
+    [likeList],
+  );
+
   /** Class counts over the images the other filters leave, so the numbers track. */
   const beforeClass = useMemo(
-    () => inSplit.filter((image) => matchesStatus(status, statuses[image.image])),
-    [inSplit, status, statuses],
+    () => inSplit.filter((image) => matchesStatus(status, statuses[image.image])
+      && (tagFilter.size === 0
+        || (tags?.images[image.image] ?? []).some((tag) => tagFilter.has(tag)))),
+    [inSplit, status, statuses, tagFilter, tags],
   );
 
   const classCounts = useMemo(() => {
@@ -191,6 +293,13 @@ export function ImagesPage({ project, dataset, review, edit, similar, open: open
     const filtered = classes.size === 0
       ? beforeClass
       : beforeClass.filter((image) => image.classes.some((label) => classes.has(label)));
+    // Compared against one image, the gallery is that image's neighbours and nothing else:
+    // the filters still narrow them, but the order is the service's answer, not a column.
+    if (likeRank) {
+      return filtered
+        .filter((image) => likeRank.has(image.image))
+        .sort((a, b) => likeRank.get(a.image)! - likeRank.get(b.image)!);
+    }
     const sign = direction === "asc" ? 1 : -1;
     const when = (image: ImageRow) => statuses[image.image]?.time ?? "";
     const sorted = [...filtered];
@@ -199,11 +308,14 @@ export function ImagesPage({ project, dataset, review, edit, similar, open: open
       if (order === "filename") by = fileName(a.image).localeCompare(fileName(b.image), undefined, { numeric: true });
       // Never-touched images have no time; they sort as the oldest either way.
       else if (order === "updated") by = when(a).localeCompare(when(b));
+      // Images with no score yet -- added since the last read -- sort as the least unusual,
+      // which keeps them out of the way of what the reader asked to see.
+      else if (order === "uniqueness") by = (scores?.[a.image] ?? 0) - (scores?.[b.image] ?? 0);
       else by = a.added.localeCompare(b.added) || a.row - b.row;
       return by !== 0 ? by * sign : a.image.localeCompare(b.image);
     });
     return sorted;
-  }, [beforeClass, classes, order, direction, statuses]);
+  }, [beforeClass, classes, order, direction, statuses, scores, likeRank]);
 
   // Linked from elsewhere (a finding) to edit one image: open it once the list is in.
   const openedFromLink = useRef<string | null>(null);
@@ -221,7 +333,8 @@ export function ImagesPage({ project, dataset, review, edit, similar, open: open
   useEffect(() => {
     setShown(PAGE);
     setSelected(new Set());
-  }, [split, status, order, direction, classes]);
+    setPatchLimit(PATCHES);
+  }, [split, status, order, direction, classes, like, tagFilter]);
 
   // Isolating or deleting the inspected image shortens the list; stay at the same position.
   useEffect(() => {
@@ -230,11 +343,29 @@ export function ImagesPage({ project, dataset, review, edit, similar, open: open
 
   const visible = useMemo(() => items.slice(0, shown), [items, shown]);
 
+  /** Counts for the panel, each leaving out the filter it would set.
+   *
+   * A distribution of sets drawn after the set filter is one bar, and a class list drawn
+   * after the class filter is the class already chosen. Leaving each filter out of its own
+   * counts keeps every bar something that can be picked, and matches the class menu in the
+   * ribbon, which counts the same way.
+   */
+  const facets = useMemo(() => {
+    const inLike = (rows: ImageRow[]) => (likeRank ? rows.filter((row) => likeRank.has(row.image)) : rows);
+    const inClasses = (rows: ImageRow[]) =>
+      classes.size === 0 ? rows : rows.filter((row) => row.classes.some((label) => classes.has(label)));
+    const inStatus = (rows: ImageRow[]) => rows.filter((row) => matchesStatus(status, statuses[row.image]));
+    // Isolated images are out of the way unless their own chip is the one chosen.
+    const all = inLike((data?.images ?? []).filter((row) => row.set !== ISOLATED_SET || split === ISOLATED_SET));
+    const chosen = split === "all" ? all : all.filter((row) => row.set === split);
+    return { sets: inClasses(inStatus(all)), classes: inStatus(chosen) };
+  }, [data, split, status, classes, statuses, likeRank]);
+
   // Geometry is fetched for what is on screen and kept: the aerial set's 11,882 images
   // carry 644,000 boxes, which is not something to hold in a browser to draw thumbnails.
   const requested = useRef<Set<string>>(new Set());
   useEffect(() => {
-    if (!active || !annotations) return;
+    if (!active || (!annotations && !patches)) return;
     // A group opened from Duplicates is not part of the gallery page, and the viewer
     // draws boxes over whatever it is shown.
     const wanted = openScope ? [...visible, ...openScope] : visible;
@@ -243,17 +374,17 @@ export function ImagesPage({ project, dataset, review, edit, similar, open: open
       .slice(0, 500);
     if (missing.length === 0) return;
     for (const image of missing) requested.current.add(image.image);
-    let alive = true;
+    // A reply that arrives after this effect has run again is kept, not dropped: the images
+    // it covers are already marked as asked for, so dropping it would leave them without
+    // geometry until the dataset is reloaded. Nothing else keys on when it arrived -- boxes
+    // are looked up by image, and an image of a dataset since left behind is never asked for.
     api.imageBoxes(project, active, missing.map((image) => ({ table: image.table, row: image.row })))
-      .then((next) => alive && setBoxes((was) => ({ ...was, ...next })))
+      .then((next) => setBoxes((was) => ({ ...was, ...next })))
       .catch(() => {
         // Leave them unrequested so scrolling back tries again.
         for (const image of missing) requested.current.delete(image.image);
       });
-    return () => {
-      alive = false;
-    };
-  }, [project, active, annotations, visible, openScope, boxes]);
+  }, [project, active, annotations, patches, visible, openScope, boxes]);
 
   const live = useMemo(() => (data?.images ?? []).filter((image) => image.set !== ISOLATED_SET), [data]);
   const counts = useMemo(() => {
@@ -299,6 +430,45 @@ export function ImagesPage({ project, dataset, review, edit, similar, open: open
     if (similar && !askedForGraph.current) void loadSimilar();
   }, [similar, loadSimilar]);
 
+  /** One image's neighbours. Cheap: the vectors are already on the service, and the answer
+   *  is a few hundred names rather than the whole graph. */
+  const loadNeighbours = useCallback(async (image: string, k: number) => {
+    if (!active) return;
+    setLikeBusy(true);
+    setLikeError(null);
+    try {
+      setNeighbours(await api.similarImages(project, active, image, k));
+    } catch (e) {
+      setNeighbours(null);
+      setLikeError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setLikeBusy(false);
+    }
+  }, [project, active]);
+
+  useEffect(() => {
+    if (!like) {
+      setNeighbours(null);
+      setLikeError(null);
+      return;
+    }
+    void loadNeighbours(like, nearest);
+  }, [like, nearest, loadNeighbours]);
+
+  // Uniqueness is one number per image and arrives whole, so it is asked for once -- when
+  // the order first calls for it, and again after the images have been read afresh. A failure
+  // stops it being asked for again: the notice under the ribbon says what to do instead.
+  useEffect(() => {
+    if (order !== "uniqueness" || !active || scores || scoresError) return;
+    let alive = true;
+    api.embeddingScores(project, active)
+      .then((answer) => alive && setScores(answer.uniqueness))
+      .catch((e) => alive && setScoresError(e instanceof Error ? e.message : String(e)));
+    return () => {
+      alive = false;
+    };
+  }, [order, project, active, scores, scoresError]);
+
   /** Read every image of the dataset. Minutes on a large one, so it is followed as a job. */
   const computeVectors = useCallback(async () => {
     if (!active) return;
@@ -313,12 +483,19 @@ export function ImagesPage({ project, dataset, review, edit, similar, open: open
       }
       setEmbedJob(null);
       if (job.status === "failed") setSimilarError(job.error ?? "the images could not be read");
-      else if (job.status === "done") await loadSimilar();
+      else if (job.status === "done") {
+        // Every reading of the vectors is now out of date, including the ones this page was
+        // shown before the images were read.
+        setScores(null);
+        setScoresError(null);
+        await loadSimilar();
+        if (like) await loadNeighbours(like, nearest);
+      }
     } catch (e) {
       setEmbedJob(null);
       setSimilarError(e instanceof Error ? e.message : String(e));
     }
-  }, [project, active, loadSimilar]);
+  }, [project, active, loadSimilar, like, nearest, loadNeighbours]);
 
   const flash = (text: string, href?: string) => {
     setToast({ text, href });
@@ -326,8 +503,6 @@ export function ImagesPage({ project, dataset, review, edit, similar, open: open
   };
 
   // -- review decisions ---------------------------------------------------------
-
-  const byImage = useMemo(() => new Map((data?.images ?? []).map((i) => [i.image, i])), [data]);
 
   /** Apply a status at once; the service call follows and a failure reloads the truth. */
   const decide = useCallback(async (images: string[], next: QaStatus, comment = "") => {
@@ -470,7 +645,7 @@ export function ImagesPage({ project, dataset, review, edit, similar, open: open
   const progress = counts.total ? counts.verified / counts.total : 0;
 
   return (
-    <div className={`page page-wide images-page${review ? " reviewing" : ""}${edit ? " editing" : ""}${similar ? " similar" : ""}`}>
+    <div className={`page page-wide images-page${review ? " reviewing" : ""}${edit ? " editing" : ""}${similar ? " similar" : ""}${stats ? " with-detail" : ""}`}>
       <PageHeader
         title="Images"
         context={project}
@@ -489,6 +664,14 @@ export function ImagesPage({ project, dataset, review, edit, similar, open: open
                 <Icon name="trash" size={15} />Removed <span className="split-toggle-count">{formatNumber(removedCount)}</span>
               </a>
             )}
+            <button
+              className="button"
+              disabled={!data || counts.total === 0}
+              onClick={() => setDrafting(true)}
+              title="Draw a model's boxes into these sets as labels to correct"
+            >
+              <Icon name="pencil" size={15} />Pre-label
+            </button>
             <button
               className="button primary create-dataset"
               disabled={!data || counts.total === 0}
@@ -525,6 +708,21 @@ export function ImagesPage({ project, dataset, review, edit, similar, open: open
 
             <ClassFilter labels={labels} counts={classCounts} chosen={classes} onChange={setClasses} />
 
+            {classes.size > 0 && (
+              <button
+                className={`button subtle toggle-button${onlyClasses ? " on" : ""}`}
+                aria-pressed={onlyClasses}
+                onClick={() => setOnlyClasses(!onlyClasses)}
+                title="Draw only the boxes of the chosen classes, instead of every box on the image"
+              >
+                <Icon name="fit" size={15} />Only their boxes
+              </button>
+            )}
+
+            {tags && Object.keys(tags.counts).length > 0 && (
+              <TagFilter counts={tags.counts} chosen={tagFilter} onChange={setTagFilter} />
+            )}
+
             <div className="segmented" role="group" aria-label="Status">
               {statusFilters.map((key) => (
                 <button key={key} className={status === key ? "on" : ""} onClick={() => setStatus(key)}>
@@ -534,28 +732,76 @@ export function ImagesPage({ project, dataset, review, edit, similar, open: open
             </div>
 
             <div className="ribbon-order">
-              <div className="select-wrap">
-                <select aria-label="Order by" value={order} onChange={(e) => setOrder(e.target.value as OrderKey)}>
-                  {(Object.keys(ORDER_LABEL) as OrderKey[]).map((key) => (
-                    <option key={key} value={key}>{ORDER_LABEL[key]}</option>
-                  ))}
-                </select>
-              </div>
-              <button
-                className="icon-button"
-                onClick={() => setDirection(direction === "asc" ? "desc" : "asc")}
-                aria-label={direction === "asc" ? "Ascending" : "Descending"}
-                title={direction === "asc" ? "Ascending — click for descending" : "Descending — click for ascending"}
-              >
-                <Icon name={direction === "asc" ? "up" : "down"} size={15} />
-              </button>
+              {like ? (
+                <span className="muted small" title="Compared against one image, the order is how alike each image is to it">
+                  Most alike first
+                </span>
+              ) : (
+                <>
+                  <div className="select-wrap">
+                    <select
+                      aria-label="Order by"
+                      value={order}
+                      onChange={(e) => {
+                        const next = e.target.value as OrderKey;
+                        setOrder(next);
+                        // The point of this order is what nothing else in the set looks like,
+                        // so it opens at that end rather than at the copies.
+                        if (next === "uniqueness") setDirection("desc");
+                      }}
+                    >
+                      {(Object.keys(ORDER_LABEL) as OrderKey[]).map((key) => (
+                        <option key={key} value={key}>{ORDER_LABEL[key]}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <button
+                    className="icon-button"
+                    onClick={() => setDirection(direction === "asc" ? "desc" : "asc")}
+                    aria-label={direction === "asc" ? "Ascending" : "Descending"}
+                    title={direction === "asc" ? "Ascending — click for descending" : "Descending — click for ascending"}
+                  >
+                    <Icon name={direction === "asc" ? "up" : "down"} size={15} />
+                  </button>
+                </>
+              )}
             </div>
               </>
             )}
             {similar && <span className="spacer" />}
 
             <div className="ribbon-views">
-              {!similar && (
+              <ViewsMenu
+                views={views}
+                onSave={async (name) => {
+                  if (!active) return;
+                  const { views: saved } = await api.saveView({
+                    project, dataset: active, name, author,
+                    state: {
+                      split, status, order, direction,
+                      classes: [...classes], tags: [...tagFilter], onlyClasses,
+                    },
+                  });
+                  setViews(saved);
+                  flash(`Saved “${name}”`);
+                }}
+                onOpen={(view) => {
+                  const state = view.state;
+                  setSplit(state.split ?? "all");
+                  setStatus((state.status as StatusFilter) ?? "all");
+                  setOrder((state.order as OrderKey) ?? "filename");
+                  setDirection((state.direction as Direction) ?? "asc");
+                  setClasses(new Set(state.classes ?? []));
+                  setTagFilter(new Set(state.tags ?? []));
+                  setOnlyClasses(Boolean(state.onlyClasses));
+                }}
+                onDelete={async (view) => {
+                  if (!active) return;
+                  const { views: saved } = await api.deleteView(project, active, view.id);
+                  setViews(saved);
+                }}
+              />
+              {!similar && !patches && (
               <button
                 className={`button subtle toggle-button${annotations ? " on" : ""}`}
                 aria-pressed={annotations}
@@ -575,6 +821,22 @@ export function ImagesPage({ project, dataset, review, edit, similar, open: open
                 {joined && <span className="split-toggle-count">{formatNumber(joined.groups.length)}</span>}
               </button>
               <button
+                className={`button subtle toggle-button${stats ? " on" : ""}`}
+                aria-pressed={stats}
+                onClick={() => setStats(!stats)}
+                title="Counts of what these images hold: sets, review, objects per image, classes, object size"
+              >
+                <Icon name="runs" size={15} />Stats
+              </button>
+              <button
+                className={`button subtle toggle-button${patches ? " on" : ""}`}
+                aria-pressed={patches}
+                onClick={() => setPatches(!patches)}
+                title="Every labelled object as its own tile, to check a class for consistency"
+              >
+                <Icon name="grid" size={15} />Patches
+              </button>
+              <button
                 className={`button subtle toggle-button${review ? " on" : ""}`}
                 aria-pressed={review}
                 onClick={() => setReview(!review)}
@@ -590,7 +852,7 @@ export function ImagesPage({ project, dataset, review, edit, similar, open: open
               >
                 <Icon name="pencil" size={15} />Edit
               </button>
-              {!similar && (
+              {!similar && !patches && (
               <button
                 className={`button subtle toggle-button${asList ? " on" : ""}`}
                 aria-pressed={asList}
@@ -602,6 +864,35 @@ export function ImagesPage({ project, dataset, review, edit, similar, open: open
               )}
             </div>
           </div>
+
+          {like && !similar && (
+            <LikeBar
+              project={project}
+              dataset={active!}
+              image={like}
+              item={likeItem}
+              set={neighbours?.set ?? likeItem?.set ?? null}
+              rows={items.length}
+              asked={nearest}
+              busy={likeBusy}
+              error={likeError}
+              job={embedJob}
+              onMore={() => setNearest(MOST_NEIGHBOURS)}
+              onCompute={() => void computeVectors()}
+              onClear={() => setLike(null)}
+            />
+          )}
+
+          {!similar && !like && order === "uniqueness" && (scoresError || !scores) && (
+            <UniquenessNote
+              error={scoresError}
+              job={embedJob}
+              onCompute={() => {
+                setScoresError(null);
+                void computeVectors();
+              }}
+            />
+          )}
 
           {review && (
             <div className="review-bar">
@@ -645,7 +936,29 @@ export function ImagesPage({ project, dataset, review, edit, similar, open: open
 
           <div className="images-body">
             <div className="images-main">
-              {similar ? (
+              {patches ? (
+                <PatchesView
+                  project={project}
+                  dataset={active!}
+                  items={items}
+                  boxes={boxes}
+                  classes={classes}
+                  labels={labels}
+                  limit={patchLimit}
+                  reach={Math.min(shown, items.length)}
+                  more={items.length > shown}
+                  onMore={() => {
+                    // More objects, and the images to cut them from: a page of each, so
+                    // that asking for more never stalls on geometry that was never fetched.
+                    setPatchLimit(patchLimit + PATCHES);
+                    if (items.length > shown) setShown(shown + PAGE);
+                  }}
+                  onOpen={(image, instance) => {
+                    setOpenInstance(instance);
+                    setOpen(image);
+                  }}
+                />
+              ) : similar ? (
                 <DuplicatesView
                   project={project}
                   dataset={active!}
@@ -654,6 +967,7 @@ export function ImagesPage({ project, dataset, review, edit, similar, open: open
                   scale={report?.scale ?? 0}
                   duplicateAt={report?.policy.duplicate ?? 0}
                   leakAt={report?.policy.leak ?? 0}
+                  outlierAt={report?.policy.outlier ?? 0}
                   reading={reading}
                   error={similarError}
                   job={embedJob}
@@ -667,6 +981,7 @@ export function ImagesPage({ project, dataset, review, edit, similar, open: open
                     setOpenScope(rows);
                     setOpen(image);
                   }}
+                  onLike={(image) => navigate({ name: "images", project, dataset: active, like: image })}
                 />
               ) : items.length === 0 ? (
                 <p className="muted qa-empty">No images match these filters.</p>
@@ -675,6 +990,8 @@ export function ImagesPage({ project, dataset, review, edit, similar, open: open
                   items={visible}
                   statuses={statuses}
                   marks={joined?.marks}
+                  scores={order === "uniqueness" ? scores : null}
+                  shares={likeShare}
                   labels={labels}
                   project={project}
                   dataset={active!}
@@ -691,18 +1008,24 @@ export function ImagesPage({ project, dataset, review, edit, similar, open: open
                       item={item}
                       state={statuses[item.image]}
                       mark={joined?.marks.get(item.image)}
+                      tags={tags?.images[item.image]}
+                      drafted={item.drafted}
+                      unique={order === "uniqueness" ? scores?.[item.image] : undefined}
+                      share={likeShare?.get(item.image)}
                       boxes={annotations ? boxes[item.image] : undefined}
+                      onlyLabels={onlyClasses && classes.size > 0 ? classes : null}
                       project={project}
                       dataset={active!}
                       opened={open === item.image}
                       checked={review ? selected.has(item.image) : null}
                       onToggle={(range) => toggle(i, range)}
                       onOpen={() => (review ? setInspecting(i) : edit ? setEditing(i) : setOpen(item.image))}
+                      onLike={() => setLike(item.image)}
                     />
                   ))}
                 </div>
               )}
-              {items.length > shown && (
+              {items.length > shown && !patches && (
                 <div className="qa-more">
                   <button className="button" onClick={() => setShown(shown + PAGE)}>
                     Show {formatNumber(Math.min(PAGE, items.length - shown))} more
@@ -712,11 +1035,28 @@ export function ImagesPage({ project, dataset, review, edit, similar, open: open
               )}
             </div>
 
+            {stats && data && (
+              <StatsPanel
+                items={items}
+                acrossSets={facets.sets}
+                acrossClasses={facets.classes}
+                statuses={statuses}
+                labels={labels}
+                boxes={boxes}
+                split={split}
+                onSplit={setSplit}
+                classes={classes}
+                onClasses={setClasses}
+                onClose={() => setStats(false)}
+              />
+            )}
+
             {opened && !review && !edit && (
               <ImageDetail
                 project={project}
                 dataset={active!}
                 item={opened}
+                instance={openInstance}
                 index={openedIndex}
                 total={scope.length}
                 state={statuses[opened.image]}
@@ -728,6 +1068,7 @@ export function ImagesPage({ project, dataset, review, edit, similar, open: open
                   const at = openedIndex + step;
                   const next = scope[at];
                   if (next) {
+                    setOpenInstance(null);
                     setOpen(next.image);
                     if (!openScope && at >= shown) setShown(at + 1);
                   }
@@ -738,9 +1079,16 @@ export function ImagesPage({ project, dataset, review, edit, similar, open: open
                   pendingInspect.current = openedIndex;
                   setEdit(true);
                 }}
+                like={like === opened.image}
+                onLike={() => {
+                  setOpen(null);
+                  setOpenScope(null);
+                  setLike(opened.image);
+                }}
                 onClose={() => {
                   setOpen(null);
                   setOpenScope(null);
+                  setOpenInstance(null);
                 }}
               />
             )}
@@ -790,6 +1138,19 @@ export function ImagesPage({ project, dataset, review, edit, similar, open: open
               ) : (
                 <button className="button" disabled={busy} onClick={() => setTrayMode("isolate")}><Icon name="isolate" />Isolate…</button>
               )}
+              <TagAction
+                counts={tags?.counts ?? {}}
+                onTag={async (tag, on) => {
+                  if (!active) return;
+                  const images = [...selected];
+                  await api.tagImages({
+                    project, dataset: active, samples: images, author,
+                    ...(on ? { add: [tag] } : { remove: [tag] }),
+                  });
+                  await loadTags();
+                  flash(`${on ? "Tagged" : "Untagged"} ${plural(images.length, "image")} ${on ? "as" : ""} “${tag}”`);
+                }}
+              />
               <button className="button" disabled={busy} onClick={() => void bulk("unreviewed")}>Unverify</button>
               <button className="button" disabled={busy} onClick={() => setTrayMode("rework")}>Rework…</button>
               <button className="button primary" disabled={busy} onClick={() => void bulk("reviewed")}><Icon name="check" />Verify</button>
@@ -855,6 +1216,25 @@ export function ImagesPage({ project, dataset, review, edit, similar, open: open
         />
       )}
 
+      {drafting && data && active && (
+        <PrelabelDialog
+          project={project}
+          dataset={active}
+          sets={data.sets.filter((set) => set.set !== ISOLATED_SET)}
+          onClose={() => setDrafting(false)}
+          onDone={(result) => {
+            setDrafting(false);
+            const boxes = result.sets.reduce((n, set) => n + set.boxes, 0);
+            const images = result.sets.reduce((n, set) => n + set.images, 0);
+            flash(`${formatNumber(boxes)} boxes drafted on ${plural(images, "image")} with ${result.model} — check them before training`);
+            // New versions of the sets: the gallery is looking at the old ones.
+            requested.current.clear();
+            setBoxes({});
+            void Promise.all([load(), refreshProject()]);
+          }}
+        />
+      )}
+
       {creating && data && active && (
         <CreateDatasetDialog
           project={project}
@@ -873,6 +1253,94 @@ export function ImagesPage({ project, dataset, review, edit, similar, open: open
             void refreshProject();
           }}
         />
+      )}
+    </div>
+  );
+}
+
+/** The image the gallery is being compared against, above the gallery it has reordered.
+ *
+ * Likeness is a distance, and a distance in an embedding means nothing on its own, so every
+ * number here is a share of this dataset's own typical distance -- the same unit the copies
+ * and leaks are judged in. The reader is told how many neighbours were asked for, because
+ * "the 60 most alike" is a different claim from "everything like this".
+ */
+function LikeBar({ project, dataset, image, item, set, rows, asked, busy, error, job, onMore, onCompute, onClear }: {
+  project: string;
+  dataset: string;
+  image: string;
+  /** The row for the image itself, when the dataset still holds it. */
+  item: ImageRow | null;
+  set: string | null;
+  /** Neighbours on screen after the ribbon's filters, which can be fewer than were asked for. */
+  rows: number;
+  asked: number;
+  busy: boolean;
+  error: string | null;
+  job: Job<unknown> | null;
+  onMore: () => void;
+  onCompute: () => void;
+  onClear: () => void;
+}) {
+  const reading = job !== null && job.status === "running";
+  return (
+    <div className="review-bar like-bar">
+      <img className="like-thumb" src={api.mediaUrl(image, 96, project, dataset)} alt="" />
+      <div className="like-what">
+        <span className="mono small truncate" title={image}>{fileName(image)}</span>
+        <span className="muted small">
+          {set ? `${set} · ` : ""}
+          {error ? "no vectors for this dataset yet"
+            : busy ? "looking…"
+            : `${plural(rows, "image")} like this one, most alike first`}
+        </span>
+      </div>
+      {error && !reading && (
+        <>
+          <span className="muted small">
+            Images are compared by content, which has to be read once per dataset before
+            anything can be found like this one.
+          </span>
+          <button className="button" onClick={onCompute}><Icon name="search" size={15} />Read the images</button>
+        </>
+      )}
+      {reading && (
+        <span className="muted small tabular">
+          {job.phase} {formatNumber(job.done)} / {formatNumber(job.total)}
+        </span>
+      )}
+      <span className="spacer" />
+      {!error && asked < MOST_NEIGHBOURS && (
+        <button className="button subtle" disabled={busy} onClick={onMore} title={`Ask for the ${MOST_NEIGHBOURS} most alike instead of the ${asked} most alike`}>
+          Ask for {formatNumber(MOST_NEIGHBOURS)}
+        </button>
+      )}
+      {item && (
+        <a className="button subtle" href={routeHref({ name: "images", project, dataset, open: image })} title="Open this image full screen">
+          <Icon name="open" size={15} />Open it
+        </a>
+      )}
+      <button className="button subtle" onClick={onClear}><Icon name="close" size={15} />Show the whole set</button>
+    </div>
+  );
+}
+
+/** Why a gallery ordered by uniqueness is not ordered yet: it has nothing to order by. */
+function UniquenessNote({ error, job, onCompute }: { error: string | null; job: Job<unknown> | null; onCompute: () => void }) {
+  const reading = job !== null && job.status === "running";
+  return (
+    <div className="review-bar">
+      <Icon name="info" size={15} />
+      <span className="muted small">
+        {reading
+          ? `${job.phase} — ${formatNumber(job.done)} of ${formatNumber(job.total)}`
+          : error
+            ? "Uniqueness comes from reading every image once, which this dataset has not had done."
+            : "Reading how unlike the rest of the set each image is…"}
+      </span>
+      <span className="spacer" />
+      {error && !reading && (
+        <button className="button" onClick={onCompute}><Icon name="search" size={15} />Read the images</button>
       )}
     </div>
   );
@@ -909,6 +1377,8 @@ export function BoxLayer({ boxes, only, frameAspect = 4 / 3 }: {
             fill="none"
             stroke={labelColor(label)}
             strokeWidth={1}
+            // A box a model drew and nobody has checked is drawn as what it is: a draft.
+            strokeDasharray={boxes.d?.[i] ? "3 2" : undefined}
             vectorEffect="non-scaling-stroke"
           />
         );
@@ -917,12 +1387,22 @@ export function BoxLayer({ boxes, only, frameAspect = 4 / 3 }: {
   );
 }
 
-function ImageCard({ item, state, mark, boxes, project, dataset, opened, checked, onToggle, onOpen }: {
+function ImageCard({ item, state, mark, tags, drafted, unique, share, boxes, onlyLabels, project, dataset, opened, checked, onToggle, onOpen, onLike }: {
   item: ImageRow;
   state: QaState | undefined;
   /** What the neighbour graph found about this image, once it has been read. */
   mark: SimilarMark | undefined;
+  /** Words people have put on this image. */
+  tags: string[] | undefined;
+  /** Boxes on it a model drafted and nobody has checked. */
+  drafted: number | undefined;
+  /** Its uniqueness, when the gallery is ordered by it. */
+  unique: number | undefined;
+  /** How alike it is to the image the gallery is compared against, when there is one. */
+  share: number | undefined;
   boxes: ImageBoxes | undefined;
+  /** Draw only these classes' boxes, when the reader has asked to see just them. */
+  onlyLabels: Set<number> | null;
   project: string;
   dataset: string;
   opened: boolean;
@@ -930,6 +1410,7 @@ function ImageCard({ item, state, mark, boxes, project, dataset, opened, checked
   checked: boolean | null;
   onToggle: (range: boolean) => void;
   onOpen: () => void;
+  onLike: () => void;
 }) {
   const verified = isVerified(state);
   const flagged = isFlagged(state);
@@ -941,7 +1422,7 @@ function ImageCard({ item, state, mark, boxes, project, dataset, opened, checked
     >
       <button className="image-card-frame" onClick={onOpen} aria-label={`Open ${fileName(item.image)}`}>
         <img loading="lazy" src={api.mediaUrl(item.image, 320, project, dataset)} alt="" />
-        {boxes && <BoxLayer boxes={boxes} />}
+        {boxes && <BoxLayer boxes={boxes} only={onlyLabels} />}
         {flagged && (
           <span
             className="image-flag"
@@ -950,7 +1431,21 @@ function ImageCard({ item, state, mark, boxes, project, dataset, opened, checked
         )}
         {verified && checked === null && <span className="image-tick" title="Verified"><Icon name="check" size={11} /></span>}
         {item.from && <span className="qa-origin" title={item.reason || undefined}>from {item.from}</span>}
-        <SimilarMarks mark={mark} />
+        <SimilarMarks mark={mark} unique={unique} share={share} />
+        {drafted ? (
+          <span className="image-draft" title={`${drafted} of these boxes were drawn by a model and not checked by anyone`}>
+            <Icon name="pencil" size={10} />{drafted}
+          </span>
+        ) : null}
+      </button>
+      {/* Outside the frame: the frame is itself a button, and one cannot hold another. */}
+      <button
+        className="image-action"
+        onClick={onLike}
+        title="Show the images most like this one"
+        aria-label={`Find images like ${fileName(item.image)}`}
+      >
+        <Icon name="search" size={13} />
       </button>
       {checked !== null && (
         <label className="image-check" onClick={(e) => e.stopPropagation()}>
@@ -968,6 +1463,11 @@ function ImageCard({ item, state, mark, boxes, project, dataset, opened, checked
           <span className={`qa-chip ${state?.status ?? "unreviewed"}`}>{STATUS_LABEL[state?.status ?? "unreviewed"]}</span>
         )}
         <span className="mono small truncate">{fileName(item.image)}</span>
+        {tags && tags.length > 0 && (
+          <span className="image-tags" title={tags.join(", ")}>
+            <Icon name="star" size={11} />{tags.length > 1 ? tags.length : tags[0]}
+          </span>
+        )}
         {(state?.comments ?? 0) > 0 && checked !== null && (
           <span className="qa-comments small" title={plural(state!.comments, "comment")}><Icon name="comment" size={12} />{state!.comments}</span>
         )}
@@ -983,21 +1483,42 @@ function ImageCard({ item, state, mark, boxes, project, dataset, opened, checked
  * this one" is redundancy. "the export wrote this picture twice" is the augmentation somebody
  * asked for, and calling that a duplicate would invite deleting it.
  */
-function SimilarMarks({ mark }: { mark: SimilarMark | undefined }) {
-  if (!mark || (mark.copies < 2 && mark.exports < 2 && !mark.leak)) return null;
+function SimilarMarks({ mark, unique, share }: {
+  mark: SimilarMark | undefined;
+  unique?: number;
+  share?: number;
+}) {
+  const graph = mark && (mark.copies > 1 || mark.exports > 1 || mark.leak);
+  if (!graph && unique === undefined && share === undefined) return null;
   return (
     <span className="image-marks">
-      {mark.copies > 1 && (
+      {share !== undefined && (
+        <span
+          className="image-mark alike"
+          title={`${(share * 100).toFixed(share < 0.1 ? 1 : 0)}% of the distance between two images of this dataset picked at random — 0% is the same picture`}
+        >
+          {share <= 0.02 ? "the same" : `${Math.round(share * 100)}%`}
+        </span>
+      )}
+      {unique !== undefined && (
+        <span
+          className="image-mark"
+          title="How unlike the rest of this dataset this image is: 0 is a copy of something here, 1 is nothing like it"
+        >
+          <Icon name="target" size={10} />{unique.toFixed(2)}
+        </span>
+      )}
+      {mark && mark.copies > 1 && (
         <span className="image-mark" title={`${mark.copies} images in this dataset are the same picture as this one`}>
           <Icon name="copy" size={10} />{mark.copies}
         </span>
       )}
-      {mark.exports > 1 && (
+      {mark && mark.exports > 1 && (
         <span className="image-mark export" title={`The export wrote this picture out ${mark.exports} times — augmented copies, not duplicates`}>
           <Icon name="layers" size={10} />{mark.exports}
         </span>
       )}
-      {mark.leak && (
+      {mark?.leak && (
         <span className="image-mark leak" title="A near copy of this image sits in another set, so a score measured on it is not honest">
           Leak
         </span>
@@ -1006,10 +1527,14 @@ function SimilarMarks({ mark }: { mark: SimilarMark | undefined }) {
   );
 }
 
-function ImageList({ items, statuses, marks, labels, project, dataset, opened, selected, onToggle, onOpen }: {
+function ImageList({ items, statuses, marks, scores, shares, labels, project, dataset, opened, selected, onToggle, onOpen }: {
   items: ImageRow[];
   statuses: Record<string, QaState>;
   marks: Map<string, SimilarMark> | undefined;
+  /** Uniqueness per image, when the list is ordered by it. */
+  scores: Record<string, number> | null;
+  /** Likeness to the image the list is compared against, when there is one. */
+  shares: Map<string, number> | null;
   labels: Record<string, string>;
   project: string;
   dataset: string;
@@ -1054,7 +1579,7 @@ function ImageList({ items, statuses, marks, labels, project, dataset, opened, s
                 </td>
                 <td className="cell-mono small" title={item.image}>
                   {fileName(item.image)}
-                  <SimilarMarks mark={marks?.get(item.image)} />
+                  <SimilarMarks mark={marks?.get(item.image)} unique={scores?.[item.image]} share={shares?.get(item.image)} />
                 </td>
                 <td>{item.set}</td>
                 <td className="num tabular">{item.objects}</td>
@@ -1146,6 +1671,210 @@ function ClassFilter({ labels, counts, chosen, onChange }: {
               </li>
             ))}
           </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+/** Filter by the words people have put on images. A menu, because tags are invented freely
+ *  and a ribbon cannot hold however many a team decides it needs. */
+function TagFilter({ counts, chosen, onChange }: {
+  counts: Record<string, number>;
+  chosen: Set<string>;
+  onChange: (next: Set<string>) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const close = (event: MouseEvent) => {
+      if (ref.current && !ref.current.contains(event.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, [open]);
+
+  const toggle = (tag: string) => {
+    const next = new Set(chosen);
+    if (next.has(tag)) next.delete(tag);
+    else next.add(tag);
+    onChange(next);
+  };
+  const summary = chosen.size === 0 ? "Any tag" : chosen.size === 1 ? [...chosen][0]! : `${chosen.size} tags`;
+
+  return (
+    <div className="class-filter" ref={ref}>
+      <button className={`button subtle${chosen.size ? " on" : ""}`} aria-expanded={open} onClick={() => setOpen(!open)}>
+        <Icon name="star" size={15} />
+        {summary}
+        <Icon name="chevron" size={13} className="chevron-down" />
+      </button>
+      {open && (
+        <div className="class-menu" role="group" aria-label="Filter by tag">
+          <div className="class-menu-head">
+            <span className="muted small">{plural(Object.keys(counts).length, "tag")}</span>
+            {chosen.size > 0 && <button className="button subtle small" onClick={() => onChange(new Set())}>Clear</button>}
+          </div>
+          <ul>
+            {Object.entries(counts).map(([tag, count]) => (
+              <li key={tag}>
+                <label>
+                  <input type="checkbox" checked={chosen.has(tag)} onChange={() => toggle(tag)} />
+                  <span className="truncate">{tag}</span>
+                  <span className="faint small tabular">{formatNumber(count)}</span>
+                </label>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Save the filters in front of you under a name, and come back to them.
+ *
+ * The state saved is what the ribbon holds, not the scroll position or the selection: a
+ * view is a question ("the unverified night shots in valid"), not a moment.
+ */
+function ViewsMenu({ views, onSave, onOpen, onDelete }: {
+  views: SavedView[];
+  onSave: (name: string) => Promise<void>;
+  onOpen: (view: SavedView) => void;
+  onDelete: (view: SavedView) => Promise<void>;
+}) {
+  const [open, setOpen] = useState(false);
+  const [naming, setNaming] = useState(false);
+  const [name, setName] = useState("");
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const close = (event: MouseEvent) => {
+      if (ref.current && !ref.current.contains(event.target as Node)) {
+        setOpen(false);
+        setNaming(false);
+      }
+    };
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, [open]);
+
+  const save = async () => {
+    const text = name.trim();
+    if (!text) return;
+    await onSave(text);
+    setName("");
+    setNaming(false);
+    setOpen(false);
+  };
+
+  return (
+    <div className="class-filter" ref={ref}>
+      <button className="button subtle" aria-expanded={open} onClick={() => setOpen(!open)} title="Named sets of filters">
+        <Icon name="star" size={15} />Views
+        {views.length > 0 && <span className="split-toggle-count">{formatNumber(views.length)}</span>}
+      </button>
+      {open && (
+        <div className="class-menu views-menu" role="group" aria-label="Saved views">
+          <div className="class-menu-head">
+            <span className="muted small">{views.length ? plural(views.length, "saved view") : "Nothing saved yet"}</span>
+            <button className="button subtle small" onClick={() => setNaming(true)}>Save these filters</button>
+          </div>
+          {naming && (
+            <div className="views-name">
+              <input
+                autoFocus
+                type="text"
+                value={name}
+                maxLength={60}
+                placeholder="Name these filters"
+                onChange={(e) => setName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") void save();
+                  if (e.key === "Escape") setNaming(false);
+                }}
+              />
+              <button className="button primary small" disabled={!name.trim()} onClick={() => void save()}>Save</button>
+            </div>
+          )}
+          <ul>
+            {views.map((view) => (
+              <li key={view.id} className="views-row">
+                <button className="views-open" onClick={() => { onOpen(view); setOpen(false); }} title={`Saved ${formatWhen(view.time)}${view.author ? ` by ${view.author}` : ""}`}>
+                  <span className="truncate">{view.name}</span>
+                </button>
+                <button className="icon-button" aria-label={`Delete ${view.name}`} onClick={() => void onDelete(view)}>
+                  <Icon name="trash" size={13} />
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Put a word on every selected image, or take one off. */
+function TagAction({ counts, onTag }: { counts: Record<string, number>; onTag: (tag: string, on: boolean) => Promise<void> }) {
+  const [open, setOpen] = useState(false);
+  const [text, setText] = useState("");
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const close = (event: MouseEvent) => {
+      if (ref.current && !ref.current.contains(event.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, [open]);
+
+  const apply = async (tag: string, on: boolean) => {
+    const word = tag.trim();
+    if (!word) return;
+    await onTag(word, on);
+    setText("");
+    setOpen(false);
+  };
+
+  return (
+    <div className="class-filter" ref={ref}>
+      <button className="button" onClick={() => setOpen(!open)} aria-expanded={open}>
+        <Icon name="star" size={15} />Tag…
+      </button>
+      {open && (
+        <div className="class-menu tag-menu" role="group" aria-label="Tag the selection">
+          <div className="views-name">
+            <input
+              autoFocus
+              type="text"
+              value={text}
+              maxLength={40}
+              placeholder="A word for these images"
+              onChange={(e) => setText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") void apply(text, true);
+                if (e.key === "Escape") setOpen(false);
+              }}
+            />
+            <button className="button primary small" disabled={!text.trim()} onClick={() => void apply(text, true)}>Add</button>
+          </div>
+          {Object.keys(counts).length > 0 && (
+            <ul>
+              {Object.keys(counts).slice(0, 12).map((tag) => (
+                <li key={tag} className="views-row">
+                  <button className="views-open" onClick={() => void apply(tag, true)}>
+                    <span className="truncate">{tag}</span>
+                  </button>
+                  <button className="button subtle small" onClick={() => void apply(tag, false)} title={`Take “${tag}” off these images`}>
+                    Remove
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       )}
     </div>

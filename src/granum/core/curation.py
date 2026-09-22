@@ -56,7 +56,7 @@ def image_column(table: Table) -> str:
     raise CurationError(f"{table.name} has no image column to identify images by")
 
 
-def _write_version(
+def write_version(
     *,
     project_name: str,
     dataset_name: str,
@@ -182,7 +182,7 @@ def remove_images(
     set_name = source.base_name
     dropped = set(rows)
     kept = [i for i in range(len(images)) if i not in dropped]
-    new_version = _write_version(
+    new_version = write_version(
         project_name=source.project_name, dataset_name=source.dataset_name, base_name=set_name,
         name=f"{set_name}_{holding}", arrow=source.to_arrow().take(pa.array(kept, type=pa.int64())),
         schema=source.schema, parents=(source.url,), op="delete_rows",
@@ -218,7 +218,7 @@ def remove_images(
     else:
         arrow = taken
         parents = ()
-    removed = _write_version(
+    removed = write_version(
         project_name=source.project_name, dataset_name=source.dataset_name, base_name=holding,
         name=holding, arrow=arrow, schema=schema, parents=parents, op="remove_images" if holding == REMOVED_SET else "isolate_images",
         args={"from": set_name, "from_version": str(source.url), "count": len(rows), "reason": reason},
@@ -282,7 +282,7 @@ def restore_images(
         except (KeyError, pa.ArrowInvalid, ValueError) as exc:
             raise CurationError(f"these images no longer fit {set_name}: its columns have changed ({exc})") from exc
         merged = pa.concat_tables([target.to_arrow(), back])
-        versions.append(_write_version(
+        versions.append(write_version(
             project_name=target.project_name, dataset_name=target.dataset_name, base_name=target.base_name,
             name=f"{target.base_name}_restored", arrow=merged, schema=target.schema, parents=(target.url,),
             op="restore_images", args={"count": len(keep), "from": str(removed_set.url)},
@@ -291,7 +291,7 @@ def restore_images(
 
     chosen_set = set(chosen)
     remaining = [i for i in range(len(images)) if i not in chosen_set]
-    removed = _write_version(
+    removed = write_version(
         project_name=removed_set.project_name, dataset_name=removed_set.dataset_name, base_name=holding,
         name=holding, arrow=arrow.take(pa.array(remaining, type=pa.int64())) if remaining else arrow.schema.empty_table(),
         schema=removed_set.schema, parents=(removed_set.url,), op="restore_images",

@@ -25,6 +25,8 @@ interface Props {
   state: QaState | undefined;
   labels: Record<string, string>;
   boxes: ImageBoxes | undefined;
+  /** An object to pick out on opening: the patch this was opened from, if it was one. */
+  instance?: number | null;
   hasPrev: boolean;
   hasNext: boolean;
   onStep: (step: number) => void;
@@ -33,22 +35,27 @@ interface Props {
   onComment: (text: string) => Promise<boolean>;
   /** Open this image in review, to edit its boxes or comment. */
   onEdit: () => void;
+  /** The gallery behind is already compared against this image. */
+  like: boolean;
+  /** Reorder the gallery by how alike each image is to this one. */
+  onLike: () => void;
   onClose: () => void;
 }
 
-export function ImageDetail({ project, dataset, item, index: position, total, state, labels, boxes, hasPrev, hasNext, onStep, author, onComment, onEdit, onClose }: Props) {
+export function ImageDetail({ project, dataset, item, index: position, total, state, labels, boxes, instance: opening, hasPrev, hasNext, onStep, author, onComment, onEdit, like, onLike, onClose }: Props) {
   const [isolated, setIsolated] = useState<Set<number>>(new Set());
   const [instance, setInstance] = useState<number | null>(null);
   const [hovered, setHovered] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
   const maskId = useId();
 
-  // A different image starts fresh: its classes are not the ones just isolated.
+  // A different image starts fresh: its classes are not the ones just isolated. Opened from
+  // a patch, it starts on that object -- that object is the reason the viewer was opened.
   useEffect(() => {
     setIsolated(new Set());
-    setInstance(null);
+    setInstance(opening ?? null);
     setHovered(null);
-  }, [item.image]);
+  }, [item.image, opening]);
 
   const status = state?.status ?? "unreviewed";
 
@@ -280,6 +287,9 @@ export function ImageDetail({ project, dataset, item, index: position, total, st
                 return (
                   <li key={index}>
                     <button
+                      // Opened from a patch, the object that was clicked can be anywhere in a
+                      // list of a hundred and twenty: bring it to where the reader is looking.
+                      ref={(node) => { if (on) node?.scrollIntoView({ block: "nearest" }); }}
                       className={`instance-row${on ? " on" : ""}`}
                       aria-pressed={on}
                       onClick={() => setInstance(on ? null : index)}
@@ -307,6 +317,14 @@ export function ImageDetail({ project, dataset, item, index: position, total, st
             {boxes && <div><dt>Size</dt><dd className="tabular">{boxes.w} × {boxes.h}</dd></div>}
             <div><dt>Updated</dt><dd>{state?.time ? formatWhen(state.time) : "—"}</dd></div>
           </dl>
+          <button
+            className="button subtle"
+            onClick={onLike}
+            disabled={like}
+            title={like ? "The gallery behind is already the images most like this one" : "Close this and show the images in the dataset most like this one, most alike first"}
+          >
+            <Icon name="search" />Find images like this
+          </button>
           <button className="button subtle" onClick={onEdit} title="Move, resize, draw and delete boxes, masks and keypoints">
             <Icon name="pencil" />Edit annotations
           </button>

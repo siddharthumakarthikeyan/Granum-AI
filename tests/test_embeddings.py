@@ -176,6 +176,30 @@ def test_an_image_with_nothing_like_it_scores_as_an_outlier():
     assert scores[-1] == scores.max() and scores[-1] > NeighbourPolicy().outlier
 
 
+def test_the_furthest_images_are_listed_even_when_none_is_far_enough_to_be_alone():
+    """A set with no isolated image still has a loneliest one, and that is what to show.
+
+    Half the datasets worth checking are one subject shot by one camera: nothing in them
+    passes the threshold, and a tab that answered "no outliers" would be telling the reader
+    the check does not work rather than what it found.
+    """
+    tight = normalise(np.tile([1.0, 0.0, 0.0], (10, 1)) + 0.02 * spread(10, 3))
+    keys = [f"/data/{i}.jpg" for i in range(10)]
+    index, distance = neighbours(tight, k=4)
+    report = summarise(keys, ["train"] * 10, tight, index, distance)
+    listed = report["outliers"]
+    assert len(listed) == 10 and not any(row["alone"] for row in listed)
+    assert [row["score"] for row in listed] == sorted((row["score"] for row in listed), reverse=True)
+
+    # The same set with one image of something else: that one, and only it, is alone.
+    apart = np.vstack([tight, normalise(np.array([[0.0, 0.0, 1.0]], dtype=np.float32))])
+    index, distance = neighbours(apart, k=4)
+    report = summarise([*keys, "/data/odd.jpg"], ["train"] * 11, apart, index, distance)
+    assert report["outliers"][0] == {"image": "/data/odd.jpg", "score": report["outliers"][0]["score"],
+                                     "set": "train", "alone": True}
+    assert [row["alone"] for row in report["outliers"]].count(True) == 1
+
+
 def test_leaks_are_only_reported_across_sets():
     vectors = spread(8)
     vectors[6] = vectors[1]        # the same picture in train and valid
@@ -419,6 +443,40 @@ def test_similar_and_scores_are_served_per_image(api):
 
     points = client.get("/api/embeddings/map", params={"project": "look", "dataset": "shapes"}).json()
     assert len(points["points"]) == 7 and len(points["points"][0]) == 2
+
+
+def test_neighbours_are_answered_over_the_dataset_as_it_stands_now(api):
+    """A deleted image is not offered as something to look at, and never as a neighbour.
+
+    The vectors outlive every version of a set, so "what else looks like this" has to be
+    joined to the sets as they are -- otherwise the answer is a list of images the gallery
+    cannot show.
+    """
+    client, tables = api
+    compute(client)
+    image = tables["train"][1]["image"]
+    copy = tables["valid"][0]["image"]
+    params = {"project": "look", "dataset": "shapes", "image": image, "k": 6}
+
+    before = client.get("/api/embeddings/similar", params=params).json()
+    assert before["set"] == "train"
+    # Every distance is read against this: the median distance between two random images.
+    assert before["scale"] > 0
+    assert "v_copy.png" in before["neighbours"][0]["image"]
+    assert before["neighbours"][0]["distance"] < before["scale"]
+    assert all(neighbour["image"] != image for neighbour in before["neighbours"])
+
+    removed = client.post("/api/datasets/remove", json={
+        "project": "look", "table": str(tables["valid"].url), "samples": [copy], "reason": "a copy"})
+    assert removed.status_code == 200, removed.text
+
+    after = client.get("/api/embeddings/similar", params=params).json()
+    assert all("v_copy.png" not in neighbour["image"] for neighbour in after["neighbours"])
+    # The deleted image is still a question that can be asked, just not an answer.
+    gone = client.get("/api/embeddings/similar",
+                      params={**params, "image": copy}).json()
+    assert gone["set"] is None
+    assert any(neighbour["image"] == image for neighbour in gone["neighbours"])
 
 
 def test_asking_before_computing_says_so_rather_than_failing(api):

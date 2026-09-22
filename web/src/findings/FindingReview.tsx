@@ -180,7 +180,12 @@ export function FindingReview({ project, runUrl, version, split, items, index, o
                     <button className={i === selected ? "on" : ""} onClick={() => setSelected(i)}>
                       <span className="rule-dot" style={{ background: RULE.get(f.rule)!.color }} />
                       <span className="truncate">{RULE.get(f.rule)!.short}{f.label !== null ? `, ${className(f.label)}` : f.predicted_label !== undefined ? `, ${className(f.predicted_label)}` : ""}</span>
-                      <span className="faint">{f.rounds}/{f.window}</span>
+                      {/* Rounds it recurred in, or -- from one pass -- how sure the model was. */}
+                      <span className="faint" title={f.window === 1 ? "How sure the model was" : "Epochs it was seen in, of those judged"}>
+                        {f.window === 1
+                          ? (f.confidence ? `${Math.round(f.confidence[1] * 100)}%` : "—")
+                          : `${f.rounds}/${f.window}`}
+                      </span>
                     </button>
                   </li>
                 ))}

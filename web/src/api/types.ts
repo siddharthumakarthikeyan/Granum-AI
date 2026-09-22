@@ -210,7 +210,7 @@ export interface ImportResult {
 
 export interface Job<T> {
   id: string;
-  kind: "preflight" | "import" | "training" | "training-install" | "release" | "embeddings";
+  kind: "preflight" | "import" | "training" | "training-install" | "release" | "embeddings" | "screening" | "prelabel" | "export";
   status: "running" | "done" | "failed" | "cancelled";
   phase: string;
   done: number;
@@ -229,6 +229,11 @@ export interface ImportSource {
   split: string;
   annotations: string;
   images?: string | null;
+  /** The layout it is in. Anything but "coco" is converted before anything is checked,
+   *  so every import goes through the same preflight whatever it arrived as. */
+  format?: string;
+  /** YOLO only: which split of its data.yaml this source is. */
+  yolo_split?: string;
 }
 
 export interface BrowseResult {
@@ -648,6 +653,9 @@ export interface ImageRow {
   set: string;
   table: string;
   added: string;
+  /** Boxes on this image a model drafted, of its `objects`. Absent on a set nothing
+   *  has pre-labelled. */
+  drafted?: number;
   /** Isolated images: the set each came from, and why it was set aside. */
   from?: string | null;
   reason?: string;
@@ -672,6 +680,8 @@ export interface ImageBoxes {
   h: number;
   /** [label, x0, y0, x1, y1] per box. */
   b: [number | null, number, number, number, number][];
+  /** Per box: drawn by a model and not yet checked by anyone. Absent when none were. */
+  d?: boolean[];
 }
 
 // -- embeddings: copies, leaks and what is unlike the rest ----------------------
@@ -774,10 +784,37 @@ export interface EmbeddingReport {
   chains: { images: number; example: string; sets: string[] }[];
   leaks: LeakPair[];
   leaks_total: number;
-  outliers: { image: string; score: number; set: string }[];
+  /** The 200 images furthest from anything else in the set, furthest first. `alone` is the
+   *  ones past the policy's threshold: far enough that nothing here is really like them. */
+  outliers: { image: string; score: number; set: string; alone: boolean }[];
   /** Images added since the vectors were made, and vectors for images since deleted. */
   missing: number;
   dropped: number;
+}
+
+/** One image ranked against another by how alike the two look. */
+export interface SimilarNeighbour {
+  image: string;
+  set: string;
+  /** Cosine distance: 0 is the same picture. Read it against the report's scale. */
+  distance: number;
+}
+
+/** The answer to "what else looks like this one", over the dataset as it stands now. */
+export interface SimilarImages {
+  image: string;
+  /** The set the image asked about is in, or null if the dataset no longer holds it. */
+  set: string | null;
+  /** The median distance between two random images of this dataset: the unit to read in. */
+  scale: number;
+  neighbours: SimilarNeighbour[];
+}
+
+/** How unlike the rest of the set each image is, and which images repeat another. */
+export interface EmbeddingScores {
+  /** Image key -> 0 (a copy of something) to 1 (nothing in the set is like it). */
+  uniqueness: Record<string, number>;
+  duplicated: string[];
 }
 
 // -- findings: labels worth a reviewer's time -----------------------------------
@@ -789,8 +826,9 @@ export interface Finding {
   rounds: number;
   window: number;
   share: number;
-  first_epoch: number;
-  last_epoch: number;
+  /** Null on a check: one pass has no epoch to name. */
+  first_epoch: number | null;
+  last_epoch: number | null;
   in_last_round: boolean;
   /** [min, max] confidence of the model's predictions behind it; null for a missed label. */
   confidence: [number, number] | null;
@@ -812,8 +850,22 @@ export interface FlaggedImage {
   height: number | null;
   labels: number;
   score: number;
+  /** How much of this image's labelling to trust, 0 to 1, decided by its worst box.
+   *  Only on a check: a training run's findings are ranked by how often they recurred. */
+  trust?: number;
   findings: Finding[];
   review: { status: string; reason: string; time: string; reviewer: string } | null;
+}
+
+/** What one pass was worth on a set, per class: the gate on what its silence means. */
+export interface PassCompetence {
+  recall: Record<string, number>;
+  precision: Record<string, number>;
+  labels: Record<string, number>;
+  predicted: Record<string, number>;
+  /** Classes whose missed labels count as evidence, and whose predictions do. */
+  judged: number[];
+  trusted: number[];
 }
 
 export interface FindingsSplit {
@@ -827,8 +879,16 @@ export interface FindingsSplit {
   competent_from: number | null;
   observed: number;
   window: number;
+  /** The predictions are one pass of a model over the set, not a run's worth of rounds. */
+  single_pass: boolean;
+  /** Recorded by a check rather than by training. */
+  screening: boolean;
+  competence: PassCompetence | null;
   classes: Record<string, string>;
   counts: Record<FindingRule, number>;
+  /** The class pairs the model and the labels disagree on most: a distinction the dataset
+   *  may not be drawing consistently. */
+  swaps: { label: number; predicted: number; count: number }[];
   images: FlaggedImage[];
 }
 
@@ -838,7 +898,204 @@ export interface FindingsReport {
   rules_version: string;
   policy: Record<string, number>;
   stores_boxes: boolean;
+  /** A training run's rounds, or one pass of a model over the labels. */
+  kind: "training" | "screening";
+  /** On a check: which model read the labels, and how much of the dataset it knows. */
+  model: {
+    with: "trained" | "pretrained" | null;
+    from_run: string | null;
+    version: string | null;
+    covers_all_classes: boolean;
+    known_classes: number[];
+  } | null;
   splits: FindingsSplit[];
+}
+
+/** One reading of whether a dataset is fit to train on. */
+export interface DatasetHealth {
+  project: string;
+  dataset: string;
+  images: number;
+  boxes: number;
+  drafted_boxes: number;
+  sets: Record<string, number>;
+  verified: number;
+  graph: { leaks: number; redundant: number; alone: number; read: number } | null;
+  findings: { images: number; counts: Record<string, number>; from: string; run: string } | null;
+  class_names: Record<string, string>;
+  /** Worst first: `block` is a reason not to train yet, `warn` a reason to look. */
+  checks: {
+    code: string;
+    severity: "block" | "warn" | "ok";
+    title: string;
+    detail: string;
+    value?: number | null;
+    rows?: { label: number; name: string; labels: number; share_of_largest: number; verdict: string }[];
+  }[];
+  counts: { block: number; warn: number; ok: number };
+  verdict: "block" | "warn" | "ok";
+  policy: Record<string, number>;
+  balance: { label: number; name: string; labels: number; share_of_largest: number; verdict: string }[];
+}
+
+/** Words people put on images, and how much each is used. */
+export interface TagOverview {
+  project: string;
+  dataset: string;
+  /** Image -> its tags, in the order they were put on. */
+  images: Record<string, string[]>;
+  /** Tag -> how many images carry it, most used first. */
+  counts: Record<string, number>;
+}
+
+/** A named set of filters on the Images tab. */
+export interface SavedView {
+  id: string;
+  name: string;
+  state: {
+    split?: string;
+    classes?: number[];
+    status?: string;
+    order?: string;
+    direction?: string;
+    tags?: string[];
+    onlyClasses?: boolean;
+  };
+  author: string;
+  time: string;
+}
+
+/** The models this computer could read a dataset with. */
+export interface ModelOptions {
+  available: boolean;
+  reason: string | null;
+  gpu: string | null;
+  models: {
+    name: string;
+    framework: string | null;
+    version: string | null;
+    created: string;
+    trained_on: string | null;
+    map50: number | null;
+    image_size: number;
+  }[];
+  pretrained: string[];
+  busy_elsewhere: boolean;
+}
+
+/** What a pre-labelling pass wrote: one new version per set it drafted. */
+export interface PrelabelResult {
+  model: string;
+  from_run: string | null;
+  mode: "empty" | "replace";
+  confidence: number;
+  sets: {
+    set: string;
+    from: string;
+    url: string;
+    name: string;
+    /** Images given boxes, boxes drawn, and images left alone because someone had
+     *  already labelled them. */
+    images: number;
+    boxes: number;
+    kept: number;
+    /** Classes of this set the model could not name, so nothing was drafted for them. */
+    unknown: string[];
+  }[];
+}
+
+/** What a label check can be run with on this computer. */
+export interface ScreeningOptions {
+  available: boolean;
+  reason: string | null;
+  gpu: string | null;
+  /** Runs of this project whose weights are still on this computer, newest first. */
+  models: {
+    name: string;
+    framework: string | null;
+    version: string | null;
+    created: string;
+    trained_on: string | null;
+    map50: number | null;
+    image_size: number;
+  }[];
+  /** Detectors that have never seen this data, for a dataset nobody has trained on yet. */
+  pretrained: string[];
+  running_job: Job<{ run_name: string }> | null;
+  busy_elsewhere: boolean;
+  shipped: string[];
+}
+
+// -- reading one run: confusion, per class, threshold -------------------------
+
+export interface ClassScore {
+  label: number;
+  name: string;
+  tp: number;
+  fp: number;
+  fn: number;
+  /** Labels of this class in the set, and boxes the model drew for it. */
+  support: number;
+  predictions: number;
+  precision: number;
+  recall: number;
+  f1: number;
+  /** Average precision over the whole ranking, so it does not move with the threshold. */
+  ap: number | null;
+}
+
+export interface CurvePoint {
+  confidence: number;
+  tp: number;
+  fp: number;
+  fn: number;
+  precision: number;
+  recall: number;
+  f1: number;
+}
+
+export interface EvaluationReport {
+  url: string;
+  name: string;
+  version: string;
+  /** Sets this run stored boxes for, held-out ones first. */
+  splits: string[];
+  split: string | null;
+  set?: string;
+  table?: string;
+  dataset?: string | null;
+  project?: string;
+  epoch?: number | null;
+  stores_boxes: boolean;
+  policy?: { operating_confidence: number; match_iou: number; sweep_from: number; sweep_step: number };
+  images?: number;
+  headline?: {
+    tp: number; fp: number; fn: number; labels: number;
+    precision: number; recall: number; f1: number; map50: number | null;
+  };
+  classes?: Record<string, string>;
+  per_class?: ClassScore[];
+  /** Pairs as `"labelled:predicted"`, plus what fell off each end. */
+  confusion?: {
+    cells: Record<string, number>;
+    missed: Record<string, number>;
+    background: Record<string, number>;
+  };
+  curve?: CurvePoint[];
+  best_confidence?: number | null;
+}
+
+/** One object behind a cell of the matrix: a label, the box drawn over it, or neither. */
+export interface EvaluationExample {
+  image: string | null;
+  example_id: number | null;
+  width: number;
+  height: number;
+  box: [number, number, number, number];
+  predicted_box?: [number, number, number, number];
+  label: number | null;
+  predicted_label: number | null;
+  confidence: number | null;
 }
 
 // -- comparing two runs (EV06/EV11) ------------------------------------------
@@ -989,4 +1246,25 @@ export interface RunCost {
   wall_clock_seconds: number | null;
   wall_clock_covers: string | null;
   recipe: Record<string, unknown>;
+}
+
+/** One layout a dataset can be written as, or read from. */
+export interface FormatOption {
+  id: string;
+  name: string;
+  detail: string;
+}
+
+export interface FormatsReport {
+  exports: FormatOption[];
+  imports: FormatOption[];
+  /** What can be done with the image files: symlink, copy, hardlink or none. */
+  images: string[];
+}
+
+export interface ExportResult {
+  format: string;
+  folder: string;
+  images: number;
+  sets: { set: string; path: string; images: number }[];
 }

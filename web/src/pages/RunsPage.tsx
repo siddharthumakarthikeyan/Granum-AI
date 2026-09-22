@@ -1,6 +1,13 @@
-/** Training runs side by side: model, data, scores, status. */
+/** Training runs side by side: model, data, scores, status.
+ *
+ * Label checks are runs in every technical sense -- a model, a set of images, per-image
+ * metrics -- and belong nowhere near this table: nothing was trained, so every column here
+ * would be empty, and a row with no epochs and no scores beside runs that have both reads as
+ * a failed training run. They are counted under the table and linked to Findings, which is
+ * the page they belong to.
+ */
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ObjectEntry } from "../api/types";
 import { EmptyState, Icon, PageHeader, RunStatus, formatWhen, plural } from "../components/ui";
 import { navigate, routeHref } from "../router";
@@ -23,7 +30,9 @@ const score = (run: ObjectEntry, key: string): number | null => {
 const FAMILY: Record<string, string> = { yolo: "YOLO", rtdetr: "RT-DETR", rfdetr: "RF-DETR" };
 
 export function RunsPage({ project }: { project: string }) {
-  const runs = useStore((s) => s.runs);
+  const everything = useStore((s) => s.runs);
+  const runs = useMemo(() => everything.filter((r) => r.parameters?.kind !== "screening"), [everything]);
+  const checks = everything.length - runs.length;
   const loading = useStore((s) => s.loading);
   const refreshProject = useStore((s) => s.refreshProject);
   const { job, setJob, dismiss, cancel } = useTrainingJob(project);
@@ -155,6 +164,13 @@ granum.collect_metrics(table, collectors, predictor=predictor,
               </tbody>
             </table>
           </div>
+          {checks > 0 && (
+            <p className="muted small runs-checks">
+              {plural(checks, "label check")} in this project — one pass of a model over a dataset
+              version, with nothing trained.
+              <a className="findings-runs-link" href={routeHref({ name: "findings", project })}>See them in Findings</a>
+            </p>
+          )}
         </>
       )}
     </div>

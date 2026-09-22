@@ -11,6 +11,7 @@ const PATHS: Record<string, ReactNode> = {
   runs: <path d="M3 12h4l3-8 4 16 3-8h4" />,
   findings: <><path d="M10 4H5a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h4" strokeDasharray="2.5 2" /><circle cx="15" cy="11" r="5" /><path d="m18.6 14.6 3.4 3.4" /></>,
   import: <><path d="M12 3v12" /><path d="m7 10 5 5 5-5" /><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" /></>,
+  export: <><path d="M12 15V3" /><path d="m7 8 5-5 5 5" /><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" /></>,
   folder: <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z" />,
   file: <><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5Z" /><path d="M14 3v5h5" /></>,
   chevron: <path d="m9 6 6 6-6 6" />,

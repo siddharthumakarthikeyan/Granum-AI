@@ -589,9 +589,14 @@ def summarise(
                     "sets": sorted({sets[i] for i in members})} for members in chains],
         "leaks": [{**item, "a": keys[item["a"]], "b": keys[item["b"]]} for item in crossing],
         "uniqueness": {key: round(float(value), 4) for key, value in zip(keys, unique)},
+        # The images furthest from anything else, whether or not any of them is far enough to
+        # be called alone. A set of one subject taken by one camera has no image past the
+        # threshold and still has a furthest one, and that is what a reader came to look at;
+        # `alone` marks the ones the policy does call isolated.
         "outliers": [
-            {"image": keys[i], "score": round(float(outliers[i]), 3), "set": sets[i]}
-            for i in np.argsort(-outliers)[:200] if outliers[i] >= policy.outlier
+            {"image": keys[i], "score": round(float(outliers[i]), 3), "set": sets[i],
+             "alone": bool(outliers[i] >= policy.outlier)}
+            for i in np.argsort(-outliers)[:200]
         ],
     }
 

@@ -42,11 +42,14 @@ from granum.core.index import Index, get_index
 from granum.core.layout import ProjectLayout
 from granum.core.objects.run import MetricsTable, Run
 from granum.core.objects.table import ROW_PRESERVING_OPS, Table
+from granum.core.prelabel import MODEL as PRELABEL_MODEL
+from granum.core.prelabel import SOURCE
 from granum.core.schemas import CategoricalLabelSchema, Geometry2DSchema, ImageSchema, Schema
 from granum.core.url import Url, real_local_path
 from granum.errors import GranumError
 from granum.importing.example import is_example_project
 from granum.licensing import LEASE_DAYS, LicenceError, Licensing, get_licensing
+from granum.metrics.findings import RULES as RULES_FOR_HEALTH
 from granum.processes import console_python, no_window
 from granum.service import thumbnails as thumbs
 from granum.service.cache import ByteCache
@@ -59,6 +62,7 @@ JOINED_CACHE_RUNS = 4
 COLLECTED_SUFFIX = "@collected"
 LOOPBACK_HOSTS = ("127.0.0.1", "localhost", "::1", "[::1]")
 ANNOTATION_HINTS = ("_annotations.coco.json", "instances_", "annotations")
+IMAGE_SUFFIXES_FOR_IMPORT = {".jpg", ".jpeg", ".png", ".bmp", ".webp", ".tif", ".tiff"}
 
 
 #: Requests that change nothing, allowed while the licence makes the app read-only. Every
@@ -116,6 +120,11 @@ class SourceRequest(BaseModel):
     split: str
     annotations: str
     images: str | None = None
+    #: The layout it is in. Anything but ``coco`` is converted to COCO before preflight,
+    #: so every import is checked by the same rules whatever it arrived as.
+    format: str = "coco"
+    #: YOLO only: which split of its data.yaml this source is.
+    yolo_split: str | None = None
 
 
 class PreflightRequest(BaseModel):
@@ -256,6 +265,68 @@ class TrainingRequest(BaseModel):
     track_learning: bool = True
     compare_with: str | None = None
     run_name: str | None = None
+
+
+class ScreeningRequest(BaseModel):
+    """Run one model over a dataset version's sets, to find labels worth checking."""
+
+    project: str
+    #: set name -> the table version to read it from, as a dataset version ships them.
+    sets: dict[str, str] = Field(min_length=1, max_length=8)
+    #: Exactly one of these: a run in this project whose weights to use, or a model that
+    #: has never seen this data.
+    weights_run: str | None = None
+    pretrained: str | None = None
+    image_size: int = 640
+    run_name: str | None = None
+
+
+class ExportRequest(BaseModel):
+    """Write a dataset version out in somebody else's format."""
+
+    project: str
+    dataset: str
+    #: A dataset version's id, or the current sets when left out.
+    release_id: str | None = None
+    format: str = "coco"
+    #: Where the images go: beside the labels, or referenced where they already are.
+    images: str = "symlink"
+
+
+class TagRequest(BaseModel):
+    """Put words on images, or take them off."""
+
+    project: str
+    dataset: str
+    samples: list[str] = Field(min_length=1, max_length=200_000)
+    add: list[str] = Field(default_factory=list, max_length=20)
+    remove: list[str] = Field(default_factory=list, max_length=20)
+    author: str = ""
+
+
+class ViewRequest(BaseModel):
+    """A named set of filters worth coming back to."""
+
+    project: str
+    dataset: str
+    name: str = Field(max_length=60)
+    state: dict[str, Any] = Field(default_factory=dict)
+    author: str = ""
+
+
+class PrelabelRequest(BaseModel):
+    """Draft a set's labels with a model: a new version of each set, boxes marked as drafts."""
+
+    project: str
+    dataset: str
+    #: The newest version of each set to draft. Writing off an older one would fork it.
+    tables: list[str] = Field(min_length=1, max_length=8)
+    weights_run: str | None = None
+    pretrained: str | None = None
+    #: ``empty`` leaves every labelled image alone; ``replace`` redraws them.
+    mode: str = "empty"
+    confidence: float = Field(0.4, ge=0.05, le=0.95)
+    image_size: int = 640
 
 
 class RemoveImagesRequest(BaseModel):
@@ -1193,7 +1264,22 @@ def create_app(
     findings_cache: dict[str, tuple[tuple[str, ...], list[dict[str, Any]]]] = {}
 
     def _findings_splits(run: Run) -> list[dict[str, Any]]:
-        from granum.metrics.findings import FindingPolicy, competent_from, image_findings
+        """What each set of a run's recorded predictions says about its labels.
+
+        Two kinds of evidence, read by the same rules. A training run watched every image
+        over many rounds, and a finding earns its place by recurring. A label check saw each
+        image once, and a finding is worth what the model's confidence is worth. Which one
+        this was is decided by the recorded rounds rather than by what the run calls itself,
+        so a training run that only ever finished one round is still read for what it holds.
+        """
+        from granum.metrics.findings import (
+            FindingPolicy,
+            competent_from,
+            image_findings,
+            image_trust,
+            pass_competence,
+            pass_findings,
+        )
 
         tables = [t for t in run.metrics_tables()
                   if t.foreign_table_url is not None and {"bbs_predicted", "gt_match", "epoch"} <= set(t.columns)]
@@ -1206,6 +1292,11 @@ def create_app(
         for table in tables:
             by_split.setdefault(str(table.constants.get("split") or "all"), []).append(table)
         train_url = str(run.parameters.get("train_table") or "")
+        # A model that was never taught some of this dataset's classes has no opinion on
+        # their labels, and the rules must not read its silence as a finding.
+        known = (None if run.parameters.get("covers_all_classes", True)
+                 else {int(c) for c in (run.parameters.get("known_classes") or [])})
+        screening = run.parameters.get("kind") == "screening"
         out = []
         for split, split_tables in by_split.items():
             source_url = str(split_tables[0].foreign_table_url)
@@ -1226,6 +1317,10 @@ def create_app(
             truths = arrow.column(box_column).to_pylist()
             value_map = source.schema[box_column].value_map or {}
             start = competent_from(records, policy)
+            # One round of stored boxes is one pass over the set, whoever recorded it.
+            with_boxes = {int(r["epoch"]) for r in records
+                          if r.get("epoch") is not None and r.get("bbs_predicted") is not None}
+            single_pass = len(with_boxes) == 1
             rounds: dict[int, dict[int, dict[str, Any]]] = {}
             for record in records:
                 example = int(record["example_id"])
@@ -1233,23 +1328,44 @@ def create_app(
                 if current is not None and current.get("bbs_predicted") is not None and record.get("bbs_predicted") is None:
                     continue  # a round recorded twice: keep the copy with boxes
                 rounds[example][int(record["epoch"])] = record
+            # One pass is judged against what the pass was worth on this set as a whole:
+            # a class the model cannot find here is not a class it can accuse labels of.
+            competence = None
+            if single_pass:
+                only = next(iter(with_boxes), None)
+                competence = pass_competence(
+                    ((truths[example] or {}).get("instances", []), per_round[only])
+                    for example, per_round in rounds.items()
+                    if example < len(truths) and only in per_round
+                )
             flagged = []
             window = observed = 0
             for example, per_round in rounds.items():
                 if example >= len(truths):
                     continue
                 truth = (truths[example] or {}).get("instances", [])
-                found, info = image_findings(truth, per_round, policy, from_epoch=start)
+                if single_pass:
+                    only = next(iter(with_boxes), None)
+                    record = per_round.get(only) if only is not None else None
+                    found = (pass_findings(truth, record, policy, known=known, competence=competence)
+                             if record else [])
+                    info = {"observed": 1, "window": 1 if record else 0}
+                else:
+                    found, info = image_findings(truth, per_round, policy, from_epoch=start)
                 window = max(window, info["window"])
                 observed = max(observed, info["observed"])
                 if found:
+                    labelled = len([t for t in truth if not t.get("iscrowd")])
                     flagged.append({
                         "example_id": example,
                         "image": images[example],
                         "width": (truths[example] or {}).get("width"),
                         "height": (truths[example] or {}).get("height"),
-                        "labels": len([t for t in truth if not t.get("iscrowd")]),
+                        "labels": labelled,
                         "score": found[0]["score"],
+                        # How much of this image's labelling to trust, decided by its worst
+                        # box rather than by the average of them.
+                        "trust": image_trust(found, labelled, policy),
                         "findings": found,
                     })
             flagged.sort(key=lambda item: (-item["score"], item["example_id"]))
@@ -1261,7 +1377,13 @@ def create_app(
                 "project": source.project_name,
                 "held_out": source_url != train_url if train_url else split != "train",
                 "images_total": len(rounds),
-                "competent_from": start,
+                # One pass has no warm-up to skip and no rounds to count: saying an epoch
+                # here would dress a screening up as a run.
+                "single_pass": single_pass,
+                # What the pass was worth per class, so the page can say which classes were
+                # judged at all rather than leaving the reader to wonder where they went.
+                "competence": competence.to_dict() if competence is not None else None,
+                "competent_from": None if single_pass else start,
                 "observed": observed,
                 "window": window,
                 "classes": {str(k): (v.display_name or v.internal_name) for k, v in value_map.items()},
@@ -1269,6 +1391,8 @@ def create_app(
             })
         order = {"train": 0, "valid": 1, "val": 1, "test": 2}
         out.sort(key=lambda s_: order.get(s_["split"], 9))
+        for split in out:
+            split["screening"] = screening
         findings_cache[str(run.url)] = (key, out)
         return out
 
@@ -1285,30 +1409,174 @@ def create_app(
             decided = ReviewLog(split["project"], split["dataset"], config=config).current() if split["dataset"] else {}
             images = []
             counts = dict.fromkeys(RULES, 0)
+            #: (labelled class, the class the model says) -> how often. A pair that keeps
+            #: coming back is a distinction the dataset does not draw consistently, which is
+            #: a fact about the labelling rather than about any one box.
+            swaps: dict[tuple[int, int], int] = {}
             for item in split["images"]:
                 event = decided.get(sample_key(item["image"])) if item["image"] else None
                 images.append({**item, "review": {k: event.get(k) for k in ("status", "reason", "time", "reviewer")} if event else None})
                 for finding in item["findings"]:
                     counts[finding["rule"]] += 1
-            splits.append({**{k: v for k, v in split.items() if k != "images"}, "counts": counts, "images": images})
+                    if finding["rule"] == "wrong_class" and finding.get("predicted_label") is not None:
+                        pair = (int(finding["label"]), int(finding["predicted_label"]))
+                        swaps[pair] = swaps.get(pair, 0) + 1
+            top = sorted(swaps.items(), key=lambda item: (-item[1], item[0]))[:8]
+            splits.append({**{k: v for k, v in split.items() if k != "images"}, "counts": counts,
+                           "swaps": [{"label": a, "predicted": b, "count": n} for (a, b), n in top],
+                           "images": images})
         return {
             "url": str(run.url),
             "name": run.name,
             "rules_version": RULES_VERSION,
             "policy": FindingPolicy().to_dict(),
+            # What produced the predictions, so the page can say how strong the evidence is.
+            "kind": "screening" if run.parameters.get("kind") == "screening" else "training",
+            "model": {
+                "with": run.parameters.get("screened_with"),
+                "from_run": run.parameters.get("screened_from_run"),
+                "version": run.parameters.get("version"),
+                "covers_all_classes": bool(run.parameters.get("covers_all_classes", True)),
+                "known_classes": run.parameters.get("known_classes") or [],
+            } if run.parameters.get("kind") == "screening" else None,
             # Runs that did not save the model's boxes each round have nothing to judge.
             "stores_boxes": any(s_["observed"] > 0 for s_ in splits),
             "splits": splits,
         }
 
+    # -- reading one run: confusion, per class, threshold -------------------------------
+
+    #: One evaluation per (run, split, operating point). The sweep walks every threshold
+    #: over every image, which is seconds on a large set and instant from here.
+    evaluation_cache: dict[str, dict[str, Any]] = {}
+
+    #: One split's records per (run, split): reading them is most of the cost, and every
+    #: operating point the reader tries asks the same question of the same rows.
+    evaluation_records: dict[str, dict[str, Any]] = {}
+
+    def _evaluation_records(run: Run, split: str | None) -> tuple[dict[str, Any] | None, list[str]]:
+        """One split's per-image records, and the names of the splits there are."""
+        order = {"valid": 0, "val": 0, "test": 1, "train": 2}
+        names = sorted({str(table.constants.get("split") or "all") for table in run.metrics_tables()
+                        if table.foreign_table_url is not None},
+                       key=lambda name: (order.get(name, 9), name))
+        chosen = split if split in names else (names[0] if names else None)
+        if chosen is None:
+            return None, names
+        key = f"{run.url}|{chosen}"
+        entry = evaluation_records.get(key)
+        if entry is None:
+            entry = _evaluation_data(run, only=chosen).get(chosen)
+            if entry is None or entry.get("unread"):
+                return None, names
+            if len(evaluation_records) > 4:
+                evaluation_records.pop(next(iter(evaluation_records)))
+            evaluation_records[key] = entry
+        return entry, names
+
+    def _evaluation(run: Run, split: str | None, confidence: float) -> dict[str, Any]:
+        from granum.metrics.evaluation import (
+            EVALUATION_VERSION,
+            EvalPolicy,
+            best_threshold,
+            class_matches,
+            confusion,
+            per_class,
+            scores,
+            sweep,
+        )
+
+        key = f"{run.url}|{split}|{round(confidence, 3)}"
+        hit = evaluation_cache.get(key)
+        if hit is not None:
+            return hit
+        entry, names = _evaluation_records(run, split)
+        if entry is None:
+            return {"url": str(run.url), "name": run.name, "splits": names, "split": None,
+                    "version": EVALUATION_VERSION, "stores_boxes": False}
+        policy = EvalPolicy(operating_confidence=confidence)
+        records = [{**record, "image": image} for image, record in entry["images"].items()]
+        classes = {int(k): v for k, v in entry["classes"].items()}
+        # One matching pass feeds both the table and the sweep; on a set of 39,000 labels
+        # that is the difference between a second and three quarters of a minute.
+        matches = class_matches(records, policy)
+        rows = per_class(records, policy, classes, matches=matches)
+        tp = sum(row["tp"] for row in rows)
+        fp = sum(row["fp"] for row in rows)
+        fn = sum(row["fn"] for row in rows)
+        aps = [row["ap"] for row in rows if row["ap"] is not None]
+        curve = sweep(records, policy, matches=matches)
+        payload = {
+            "url": str(run.url),
+            "name": run.name,
+            "version": EVALUATION_VERSION,
+            "splits": names,
+            "split": entry["split"],
+            "set": entry["set"],
+            "table": entry["table"],
+            "dataset": entry["dataset"],
+            "project": entry["project"],
+            "epoch": entry["epoch"],
+            "stores_boxes": True,
+            "policy": policy.to_dict(),
+            "images": len(records),
+            "headline": {"tp": tp, "fp": fp, "fn": fn, "labels": tp + fn, **scores(tp, fp, fn),
+                         "map50": round(float(sum(aps) / len(aps)), 4) if aps else None},
+            "classes": entry["classes"],
+            "per_class": rows,
+            "confusion": confusion(records, policy),
+            "curve": curve,
+            # Where the pooled F1 peaks: the threshold a team would usually ship with, which
+            # is otherwise guessed.
+            "best_confidence": best_threshold(curve),
+        }
+        if len(evaluation_cache) > 8:
+            evaluation_cache.pop(next(iter(evaluation_cache)))
+        evaluation_cache[key] = payload
+        return payload
+
+    @app.get("/api/run/evaluation")
+    def run_evaluation(url: str = Query(...), split: str | None = Query(None),
+                       confidence: float = Query(0.25, ge=0.01, le=0.99)) -> dict[str, Any]:
+        """What a run's predictions say about one set: confusion, per class, and a sweep."""
+        return _evaluation(_run_at(url), split, confidence)
+
+    @app.get("/api/run/evaluation/examples")
+    def run_evaluation_examples(
+        url: str = Query(...),
+        split: str | None = Query(None),
+        truth: int | None = Query(None, description="labelled class; omitted means a box over nothing"),
+        predicted: int | None = Query(None, description="predicted class; omitted means nothing predicted"),
+        confidence: float = Query(0.25, ge=0.01, le=0.99),
+        limit: int = Query(60, ge=1, le=200),
+    ) -> dict[str, Any]:
+        """The objects behind one cell of the matrix, as crops with the image they came from."""
+        from granum.metrics.evaluation import EvalPolicy, examples
+
+        if truth is None and predicted is None:
+            raise _error(400, "ask for a labelled class, a predicted class, or both")
+        entry, _names = _evaluation_records(_run_at(url), split)
+        if entry is None:
+            raise _error(404, "this run did not store the model's boxes")
+        records = [{**record, "image": image} for image, record in entry["images"].items()]
+        found = examples(records, truth_label=truth, predicted_label=predicted,
+                         policy=EvalPolicy(operating_confidence=confidence), limit=limit)
+        return {"split": entry["split"], "dataset": entry["dataset"], "project": entry["project"],
+                "classes": entry["classes"], "truth": truth, "predicted": predicted, "examples": found}
+
     # -- comparing two runs ------------------------------------------------------------
 
-    def _evaluation_data(run: Run) -> dict[str, dict[str, Any]]:
+    def _evaluation_data(run: Run, only: str | None = None) -> dict[str, dict[str, Any]]:
         """Per split: the last round the run recorded, as per-image results keyed by image.
 
         The round chosen is the last one whose boxes were kept, because that is the only
         round a class or size slice can be computed from; when no round kept boxes it is
         simply the last one, and the caller learns that from ``stores_boxes``.
+
+        ``only`` reads one split and names the rest without touching them. A run that
+        tracked learning on a large training set holds twelve rounds of boxes for every
+        image of it; reading those to answer a question about the validation set costs
+        forty seconds and tells the reader nothing.
         """
         from granum.core.url import sample_key
 
@@ -1320,6 +1588,10 @@ def create_app(
 
         out: dict[str, dict[str, Any]] = {}
         for split, tables in by_split.items():
+            if only is not None and split != only:
+                # Named, not read: enough for a picker, and the split itself is one click away.
+                out[split] = {"split": split, "unread": True, "stores_boxes": True, "images": {}}
+                continue
             # A split re-collected on a newer version of its set is not mixed with the old one.
             source_url = str(sorted(tables, key=lambda t: t.name)[-1].foreign_table_url)
             records: list[dict[str, Any]] = []
@@ -2281,7 +2553,15 @@ def create_app(
                 counted[0].append(len(instances))
                 counted[1].append(sorted({x["label"] for x in instances if x.get("label") is not None}))
         objects, classes = counted
-        return [{"row": i, "image": image, "objects": objects[i], "classes": classes[i]}
+        # Boxes a model drafted, per image. Only for a set that has been pre-labelled: a
+        # column with no source property has nothing to count and pays nothing for it.
+        drafted: list[int] = []
+        if box_column and SOURCE in (table.schema[box_column].instance_properties or {}):
+            for value in arrow.column(box_column).to_pylist():
+                instances = (value or {}).get("instances") or []
+                drafted.append(sum(1 for x in instances if x.get(SOURCE) == PRELABEL_MODEL))
+        return [{"row": i, "image": image, "objects": objects[i], "classes": classes[i],
+                 **({"drafted": drafted[i]} if drafted else {})}
                 for i, image in enumerate(images) if image]
 
     @app.get("/api/images")
@@ -2382,6 +2662,7 @@ def create_app(
                 if not width or not height:
                     continue
                 boxes = []
+                drafts = []
                 for instance in value.get("instances", []):
                     vertices = instance.get("vertices") or []
                     if instance.get("iscrowd") or len(vertices) != 4:
@@ -2392,7 +2673,11 @@ def create_app(
                         round(x0 / width, 3), round(y0 / height, 3),
                         round(x1 / width, 3), round(y1 / height, 3),
                     ])
-                out[image] = {"w": width, "h": height, "b": boxes}
+                    drafts.append(instance.get(SOURCE) == PRELABEL_MODEL)
+                out[image] = {"w": width, "h": height, "b": boxes,
+                              # Only when some of them are drafts: a hand-labelled set
+                              # should not pay a list of falses per image for the question.
+                              **({"d": drafts} if any(drafts) else {})}
         return {"boxes": out}
 
     # -- removing images from sets ------------------------------------------
@@ -2570,6 +2855,13 @@ def create_app(
     def _running_training() -> Any:
         return next((j for j in jobs.all() if j.kind == "training" and j.status == "running"), None)
 
+    def _running_screening() -> Any:
+        return next((j for j in jobs.all() if j.kind == "screening" and j.status == "running"), None)
+
+    def _running_model_job() -> Any:
+        """A training or a label check: one machine, one GPU, so each waits for the other."""
+        return _running_training() or _running_screening()
+
     def _rfdetr_steps(record: Any) -> Any:
         """In-round progress for RF-DETR trainers started before they reported steps: its own
         metrics.csv logs the optimizer step, and a round is rows / (batch 4 x accumulation 4) steps."""
@@ -2628,10 +2920,14 @@ def create_app(
 
         live: set[tuple[str, str]] = set()
         for record in trainers.TrainerRecord.load_all(str(config.project_root)):
-            if trainers.is_trainer_alive(record.pid):
+            if trainers.is_trainer_alive(record.pid, record.module):
                 live.add((record.project, record.run_name))
-                job = jobs.start("training", lambda job, record=record: trainers.follow(
-                    job, record, None, _finish_training, fallback_step=_rfdetr_steps(record)))
+                # A label check survives a restart exactly as a training run does, and is
+                # followed the same way; only what it is called differs.
+                checking = record.module == trainers.SCREEN_MODULE
+                job = jobs.start("screening" if checking else "training", lambda job, record=record, checking=checking: trainers.follow(
+                    job, record, None, _finish_screening if checking else _finish_training,
+                    fallback_step=None if checking else _rfdetr_steps(record)))
                 job.payload = record.project
                 job.started = record.started  # elapsed time counts from when training began
             else:
@@ -2647,8 +2943,6 @@ def create_app(
             if run.status == "running" and run.parameters.get("framework") in trainers.DASHBOARD_FRAMEWORKS:
                 run.set_status("interrupted")
         index.refresh(force=True)
-
-    _resume_trainers()
 
     @app.get("/api/training/status")
     def training_status(project: str = Query(...)) -> dict[str, Any]:
@@ -2675,8 +2969,8 @@ def create_app(
         environment = _training_environment()
         if not environment["available"]:
             raise _error(400, environment["reason"])
-        if _running_training() is not None:
-            raise _error(409, "a model is already training on this computer; wait for it to finish or cancel it")
+        if _running_model_job() is not None:
+            raise _error(409, "a model is already running on this computer; wait for it to finish or cancel it")
         chosen = next((f for f in environment["families"] if f["id"] == request.family), None)
         if chosen is None:
             raise _error(400, f"family must be one of {[f['id'] for f in environment['families']]}")
@@ -2742,6 +3036,506 @@ def create_app(
         job = jobs.start("training", work)
         job.payload = request.project
         return job.to_dict()
+
+    # -- writing a dataset out in somebody else's format ---------------------------------
+
+    @app.get("/api/formats")
+    def formats() -> dict[str, Any]:
+        """What Granum can write a dataset as, and read one from."""
+        from granum.formats.exchange import EXPORTS, IMPORTS
+
+        return {"exports": EXPORTS, "imports": IMPORTS, "images": ["symlink", "copy", "hardlink", "none"]}
+
+    def _export_sets(project: str, dataset: str, release_id: str | None) -> tuple[dict[str, Table], str]:
+        """The sets to write out: a frozen dataset version, or the working sets."""
+        from granum.core.curation import HOLDING_SETS
+
+        if release_id:
+            _log, release = _find_release(project, dataset, release_id)
+            tables = {name: Table.from_url(entry["url"]) for name, entry in release["sets"].items()}
+            name = str(release["name"]).strip()
+            label = name if name.lower().startswith(str(release["dataset"]).lower()) else f"{release['dataset']}-{name}"
+            return tables, label.replace(" ", "-")
+        tables = {name: table for name, table in _newest_sets(project, dataset).items()
+                  if name not in HOLDING_SETS}
+        return tables, dataset
+
+    @app.post("/api/datasets/export")
+    def export_dataset(request: ExportRequest = Body(...)) -> dict[str, Any]:
+        """Write a dataset out for another tool, under the project's ``exports`` folder."""
+        import time as _time
+
+        from granum.core.layout import sanitize
+        from granum.formats.exchange import EXPORTERS, EXPORTS
+
+        if request.format not in {entry["id"] for entry in EXPORTS}:
+            raise _error(400, f"format must be one of {[e['id'] for e in EXPORTS]}")
+        if request.images not in ("symlink", "copy", "hardlink", "none"):
+            raise _error(400, "images must be symlink, copy, hardlink or none")
+        if request.images == "none" and request.format in ("yolo", "folders"):
+            # In these two layouts the images *are* the annotation: a YOLO tree is found by
+            # walking the image folders, and a class is the folder an image sits in.
+            raise _error(400, f"the {request.format} layout is made of the image files, so it cannot be written without them")
+        if config.project_root.scheme != "file":
+            raise _error(400, "exporting works on a local project root")
+        tables, label = _export_sets(request.project, request.dataset, request.release_id)
+        if not tables:
+            raise _error(404, f"no sets to export in {request.dataset!r}")
+
+        exports = Path(config.project_root.path) / "projects" / sanitize(request.project) / "exports"
+        stem = exports / f"{sanitize(label)}-{request.format}-{_time.strftime('%m%d-%H%M%S')}"
+        # Two exports of the same version in the same second must not write into one folder,
+        # where they would silently merge. The folder is claimed here, before the job starts.
+        folder, at = stem, 1
+        while True:
+            try:
+                folder.mkdir(parents=True)
+                break
+            except FileExistsError:
+                at += 1
+                folder = stem.with_name(f"{stem.name}-{at}")
+        strategy = None if request.images == "none" else request.images
+        images = sum(len(table) for table in tables.values())
+
+        def work(job: Any) -> Any:
+            from granum import export_coco, export_yolo
+
+            job.progress("Writing", 0, images)
+            written = []
+            done = 0
+            if request.format == "yolo":
+                # YOLO wants every split in one tree, so it is written in one call.
+                data_yaml = export_yolo(tables, folder, image_strategy=strategy)
+                written.append({"set": "all", "path": str(data_yaml), "images": images})
+                done = images
+                job.progress("Writing", done, images)
+            else:
+                for name, table in tables.items():
+                    job.phase = f"Writing the {name} set"
+                    if request.format == "coco":
+                        target = folder / name / "annotations.json"
+                        target.parent.mkdir(parents=True, exist_ok=True)
+                        path = export_coco(table, target, image_strategy=strategy,
+                                           images_dir=folder / name / "images" if strategy else None)
+                    elif request.format in ("csv", "cvat", "label-studio"):
+                        suffix = {"csv": "csv", "cvat": "xml", "label-studio": "json"}[request.format]
+                        path = EXPORTERS[request.format](table, folder / f"{name}.{suffix}")
+                    else:
+                        path = EXPORTERS[request.format](table, folder / name, image_strategy=strategy)
+                    written.append({"set": name, "path": str(path), "images": len(table)})
+                    done += len(table)
+                    job.progress(f"Writing the {name} set", done, images)
+            return {"format": request.format, "folder": str(folder), "images": images, "sets": written}
+
+        job = jobs.start("export", work)
+        job.payload = request.project
+        return job.to_dict()
+
+    # -- is this dataset fit to train on ------------------------------------------------
+
+    #: One health report per dataset, keyed on the set versions it was computed from.
+    health_cache: dict[str, tuple[str, dict[str, Any]]] = {}
+
+    def _label_counts(tables: dict[str, Table]) -> dict[str, Any]:
+        """Labels per class over a dataset's sets, and how many boxes a model drafted."""
+        from granum.core.prelabel import MODEL as DRAFTED
+
+        counts: dict[int, int] = {}
+        names: dict[int, str] = {}
+        boxes = drafted = 0
+        for table in tables.values():
+            column = next((n for n in table.columns if isinstance(table.schema[n], Geometry2DSchema)), None)
+            if column is None:
+                continue
+            for label, entry in (table.schema[column].value_map or {}).items():
+                names.setdefault(int(label), entry.display_name or entry.internal_name)
+            for value in table.to_arrow().column(column).to_pylist():
+                for instance in (value or {}).get("instances") or []:
+                    if instance.get("iscrowd"):
+                        continue
+                    boxes += 1
+                    label = instance.get("label")
+                    if label is not None:
+                        counts[int(label)] = counts.get(int(label), 0) + 1
+                    if instance.get(SOURCE) == DRAFTED:
+                        drafted += 1
+        return {"class_counts": counts, "class_names": names, "boxes": boxes, "drafted_boxes": drafted}
+
+    def _newest_findings(project: str, dataset: str) -> dict[str, Any] | None:
+        """What the newest check of this dataset found, if one has been run."""
+        checks = []
+        for entry in index.runs(project):
+            try:
+                run = Run.from_url(entry.url)
+            except GranumError:
+                continue
+            if run.parameters.get("kind") == "screening":
+                checks.append(run)
+        checks.sort(key=lambda run: str(run.created), reverse=True)
+        for run in checks:
+            splits = [s for s in _findings_splits(run) if s["dataset"] == dataset]
+            if not splits:
+                continue
+            counts = dict.fromkeys(RULES_FOR_HEALTH, 0)
+            images = 0
+            for split in splits:
+                images += len(split["images"])
+                for item in split["images"]:
+                    for finding in item["findings"]:
+                        counts[finding["rule"]] += 1
+            return {"images": images, "counts": counts, "from": run.name, "run": str(run.url)}
+        return None
+
+    @app.get("/api/datasets/health")
+    def dataset_health(project: str = Query(...), dataset: str = Query(...)) -> dict[str, Any]:
+        """Everything Granum knows about whether this dataset is fit to train on."""
+        from granum.core.curation import HOLDING_SETS
+        from granum.core.qa import QaLog
+        from granum.metrics.health import report
+
+        tables = {name: table for name, table in _newest_sets(project, dataset).items()
+                  if name not in HOLDING_SETS}
+        if not tables:
+            raise _error(404, f"no dataset {dataset!r} in {project}")
+        stamp = "|".join(sorted(f"{name}:{table.url}" for name, table in tables.items()))
+        hit = health_cache.get(f"{project}/{dataset}")
+        if hit is not None and hit[0] == stamp:
+            return hit[1]
+
+        sets = {name: len(table) for name, table in tables.items()}
+        labels = _label_counts(tables)
+        images = sum(sets.values())
+        statuses = QaLog(project, dataset, config=config).current()
+        verified = sum(1 for state in statuses.values() if state.get("status") == "reviewed")
+
+        graph = None
+        try:
+            found = _embedding_report(project, dataset)
+            graph = {
+                "leaks": len(found["leaks"]),
+                "redundant": found["duplicates"]["redundant"],
+                "alone": sum(1 for row in found["outliers"] if row.get("alone")),
+                "read": found.get("images"),
+            }
+        except Exception:  # noqa: BLE001 - no vectors, or an unreadable store: not looked at
+            graph = None
+
+        summary = {
+            "images": images,
+            "sets": sets,
+            "verified": verified,
+            "findings": _newest_findings(project, dataset),
+            "graph": graph,
+            **labels,
+        }
+        payload = {
+            "project": project,
+            "dataset": dataset,
+            "images": images,
+            "sets": sets,
+            "verified": verified,
+            "graph": graph,
+            "boxes": labels["boxes"],
+            "drafted_boxes": labels["drafted_boxes"],
+            "findings": summary["findings"],
+            "class_names": {str(k): v for k, v in labels["class_names"].items()},
+            **report(summary),
+        }
+        health_cache[f"{project}/{dataset}"] = (stamp, payload)
+        return payload
+
+    # -- tags and saved views ---------------------------------------------------------
+
+    @app.get("/api/tags")
+    def tags_overview(project: str = Query(...), dataset: str = Query(...)) -> dict[str, Any]:
+        """Every image of this dataset that carries a tag, and how much each tag is used."""
+        from granum.core.tags import TagStore
+
+        store = TagStore(project, dataset, config=config)
+        return {"project": project, "dataset": dataset,
+                "images": store.current(), "counts": store.counts()}
+
+    @app.post("/api/tags")
+    def tags_record(request: TagRequest = Body(...)) -> dict[str, Any]:
+        """Tag images, untag them, or both at once for a whole selection."""
+        from granum.core.tags import TagError, TagStore
+
+        store = TagStore(request.project, request.dataset, config=config)
+        try:
+            written = store.record(request.samples, add=request.add, remove=request.remove,
+                                   author=request.author or None)
+        except TagError as exc:
+            raise _error(400, str(exc)) from exc
+        return {**written, "images_tagged": store.current(), "counts": store.counts()}
+
+    @app.get("/api/views")
+    def views_list(project: str = Query(...), dataset: str = Query(...)) -> dict[str, Any]:
+        """Named filter sets for this dataset, newest first."""
+        from granum.core.tags import ViewStore
+
+        return {"views": ViewStore(project, dataset, config=config).all()}
+
+    @app.post("/api/views")
+    def views_save(request: ViewRequest = Body(...)) -> dict[str, Any]:
+        """Save the filters in front of the reader under a name, replacing one of that name."""
+        from granum.core.tags import TagError, ViewStore
+
+        store = ViewStore(request.project, request.dataset, config=config)
+        try:
+            view = store.save(request.name, request.state, author=request.author or None)
+        except TagError as exc:
+            raise _error(400, str(exc)) from exc
+        return {"view": view, "views": store.all()}
+
+    @app.delete("/api/views")
+    def views_delete(project: str = Query(...), dataset: str = Query(...), id: str = Query(...)) -> dict[str, Any]:
+        from granum.core.tags import ViewStore
+
+        store = ViewStore(project, dataset, config=config)
+        if not store.delete(id):
+            raise _error(404, f"no saved view {id!r}")
+        return {"views": store.all()}
+
+    # -- checking labels with a model (one pass, no training) ------------------------
+
+    def _trained_models(project: str) -> list[dict[str, Any]]:
+        """Runs of this project whose weights are still on this computer, newest first.
+
+        A model trained on this data knows its classes exactly, which makes it the best
+        thing to check the data with -- including labels edited since it was trained.
+        """
+        found = []
+        for entry in index.runs(project):
+            try:
+                run = Run.from_url(entry.url)
+            except GranumError:
+                continue
+            weights = run.parameters.get("weights")
+            if run.parameters.get("kind") == "screening" or not weights or not Path(str(weights)).exists():
+                continue
+            found.append({
+                "name": run.name,
+                "framework": run.parameters.get("framework"),
+                "version": run.parameters.get("version"),
+                "created": run.created,
+                "trained_on": run.parameters.get("train_version"),
+                "map50": run.parameters.get("score_map50"),
+                "image_size": run.parameters.get("imgsz") or 640,
+            })
+        found.sort(key=lambda item: str(item["created"]), reverse=True)
+        return found
+
+    def _model_options(project: str) -> dict[str, Any]:
+        """The models this computer can read a dataset with, and whether it can at all.
+
+        The same answer serves a label check and a pre-labelling pass: both are one model
+        over one set of images, and the only difference is what is done with the boxes.
+        """
+        from granum.training.models import version_ids
+
+        environment = _training_environment()
+        busy = _running_model_job()
+        return {
+            "available": environment["available"],
+            "reason": environment.get("reason"),
+            "gpu": environment.get("gpu"),
+            "models": _trained_models(project),
+            # A detector that has never seen this data. It knows the classes it was trained
+            # on; how many of this dataset's it can speak about is only known once it runs.
+            "pretrained": version_ids("yolo") if environment["available"] else [],
+            "busy_elsewhere": busy is not None and busy.payload != project,
+        }
+
+    def _model_for(project: str, weights_run: str | None, pretrained: str | None) -> tuple[str | None, str]:
+        """The weights to read with, or the pretrained version, whichever was asked for."""
+        from granum.training.models import version_ids
+
+        if bool(weights_run) == bool(pretrained):
+            raise _error(400, "choose one model: a run you trained, or a model that has not seen this data")
+        if weights_run:
+            model = next((m for m in _trained_models(project) if m["name"] == weights_run), None)
+            if model is None:
+                raise _error(404, f"no run named {weights_run!r} in {project} with weights on this computer")
+            if model["framework"] not in (None, "yolo", "rtdetr"):
+                raise _error(400, f"{model['framework']} models cannot read labels yet; choose a YOLO or RT-DETR run")
+            weights = str(Run.from_url(ProjectLayout(config.project_root).run(project, weights_run)).parameters["weights"])
+            return weights, str(model["version"] or Path(weights).name)
+        if pretrained not in version_ids("yolo"):
+            raise _error(400, f"pretrained must be one of {version_ids('yolo')}")
+        return None, str(pretrained)
+
+    @app.get("/api/models")
+    def model_options(project: str = Query(...)) -> dict[str, Any]:
+        """Which models this computer could read a dataset with."""
+        return _model_options(project)
+
+    @app.get("/api/findings/screen")
+    def screening_options(project: str = Query(...)) -> dict[str, Any]:
+        """What a label check can be run with on this computer, and whether one is running."""
+        running = _running_screening()
+        return {
+            **_model_options(project),
+            "running_job": running.to_dict() if running is not None and running.payload == project else None,
+            "shipped": sorted(_shipped_urls(project)),
+        }
+
+    def _finish_screening(record: Any, cancelled: bool, code: int | None) -> Any:
+        from granum.service import trainers
+
+        status = trainers.finish_run(ProjectLayout(config.project_root).run(record.project, record.run_name), cancelled, code)
+        findings_cache.pop(str(ProjectLayout(config.project_root).run(record.project, record.run_name)), None)
+        index.refresh(force=True)
+        if cancelled:
+            return {"run_name": record.run_name, "cancelled": True}
+        if status in ("failed", "interrupted") or (code is not None and code != 0):
+            raise GranumError(f"the check stopped with an error (exit code {code}); see the technical log"
+                              if code is not None else "the check stopped while Granum was not watching it")
+        return {"run_name": record.run_name, "exit_code": code}
+
+    @app.post("/api/findings/screen")
+    def start_screening(request: ScreeningRequest = Body(...)) -> dict[str, Any]:
+        """Read a dataset version with one model and record what it says about the labels."""
+        import re
+        import sys
+        import time as _time
+
+        environment = _training_environment()
+        if not environment["available"]:
+            raise _error(400, environment["reason"])
+        if _running_model_job() is not None:
+            raise _error(409, "a model is already running on this computer; wait for it to finish or cancel it")
+        if request.image_size not in (640, 960, 1280):
+            raise _error(400, "image_size must be 640, 960 or 1280")
+        weights, _version = _model_for(request.project, request.weights_run, request.pretrained)
+
+        tables = {str(e.url): e for e in index.tables(request.project)}
+        shipped = _shipped_urls(request.project)
+        for name, url in request.sets.items():
+            _check_within_roots(Url(url))
+            if url not in tables:
+                raise _error(404, f"{url} is not a dataset version in {request.project}")
+            if url not in shipped:
+                raise _error(409, f"{tables[url].name} is not part of a dataset version; create one from Images first")
+            if not re.fullmatch(r"[A-Za-z0-9._-]{1,40}", name):
+                raise _error(400, "set names may use letters, numbers, dots, dashes and underscores")
+
+        name = request.run_name or f"check-{_time.strftime('%m%d-%H%M%S')}"
+        if not re.fullmatch(r"[A-Za-z0-9._-]{1,80}", name):
+            raise _error(400, "names may use letters, numbers, dots, dashes and underscores")
+        if name in {e.name for e in index.runs(request.project)}:
+            raise _error(409, f"{request.project} already has a run named {name!r}")
+
+        from granum.cli.desktop import app_executable, running_appimage
+        from granum.service import trainers
+
+        executable = [*app_executable(), "--python"] if running_appimage() else [console_python(sys.executable)]
+        command = [
+            *trainers.trainer_prefix(executable, trainers.SCREEN_MODULE),
+            "--project-root", str(config.project_root), "--project", request.project,
+            "--run-name", name, "--imgsz", str(request.image_size),
+            *[arg for set_name, url in request.sets.items() for arg in ("--set", f"{set_name}={url}")],
+            *(["--weights", weights, "--from-run", str(request.weights_run)] if weights
+              else ["--pretrained", str(request.pretrained)]),
+        ]
+        images = sum(tables[url].row_count or 0 for url in request.sets.values())
+
+        def work(job: Any) -> Any:
+            job.progress("Starting", 0, images)
+            workdir = None
+            if config.project_root.scheme == "file":
+                from granum.cli.desktop import training_dir
+
+                workdir = training_dir(Path(config.project_root.path))
+                workdir.mkdir(parents=True, exist_ok=True)
+            process, record = trainers.launch(command, cwd=workdir, project_root=str(config.project_root),
+                                              project=request.project, run_name=name, rounds=images,
+                                              module=trainers.SCREEN_MODULE)
+            return trainers.follow(job, record, process, _finish_screening)
+
+        job = jobs.start("screening", work)
+        job.payload = request.project
+        return job.to_dict()
+
+    # -- pre-labelling: a model drafts a set's labels --------------------------------
+
+    def _finish_prelabel(record: Any, cancelled: bool, code: int | None) -> Any:
+        from granum.service import trainers
+
+        written = trainers.last_result(record)
+        index.refresh(force=True)
+        if cancelled:
+            return {"cancelled": True, **(written or {})}
+        if code not in (0, None) or written is None:
+            raise GranumError(
+                f"pre-labelling stopped with an error (exit code {code}); see the technical log"
+                if code not in (0, None) else
+                "pre-labelling stopped before it wrote anything; see the technical log")
+        return written
+
+    @app.post("/api/datasets/prelabel")
+    def start_prelabel(request: PrelabelRequest = Body(...)) -> dict[str, Any]:
+        """Draw a model's boxes into a set as labels to correct, as a new version of it."""
+        import sys
+
+        from granum.core.prelabel import MODES
+
+        environment = _training_environment()
+        if not environment["available"]:
+            raise _error(400, environment["reason"])
+        if _running_model_job() is not None:
+            raise _error(409, "a model is already running on this computer; wait for it to finish or cancel it")
+        if request.mode not in MODES:
+            raise _error(400, f"mode must be one of {list(MODES)}")
+        if request.image_size not in (640, 960, 1280):
+            raise _error(400, "image_size must be 640, 960 or 1280")
+        weights, version = _model_for(request.project, request.weights_run, request.pretrained)
+
+        # Only the newest version of a set may be drafted on: writing off an older one
+        # would fork its history, and the fork nobody is looking at would be the live one.
+        newest = {str(table.url): name for name, table in _newest_sets(request.project, request.dataset).items()}
+        for url in request.tables:
+            _check_within_roots(Url(url))
+            if url not in newest:
+                raise _error(409, f"{url} is not the newest version of a set in {request.dataset}")
+        images = sum(Table.from_url(url).row_count for url in request.tables)
+
+        from granum.cli.desktop import app_executable, running_appimage
+        from granum.service import trainers
+
+        executable = [*app_executable(), "--python"] if running_appimage() else [console_python(sys.executable)]
+        command = [
+            *trainers.trainer_prefix(executable, trainers.PRELABEL_MODULE),
+            "--project-root", str(config.project_root), "--project", request.project,
+            "--mode", request.mode, "--conf", str(request.confidence), "--imgsz", str(request.image_size),
+            *[arg for url in request.tables for arg in ("--table", url)],
+            *(["--weights", weights, "--from-run", str(request.weights_run)] if weights
+              else ["--pretrained", version]),
+        ]
+
+        from granum.core.layout import sanitize
+
+        def work(job: Any) -> Any:
+            job.progress("Starting", 0, images)
+            workdir = None
+            if config.project_root.scheme == "file":
+                from granum.cli.desktop import training_dir
+
+                workdir = training_dir(Path(config.project_root.path))
+                workdir.mkdir(parents=True, exist_ok=True)
+            # Named for the dataset rather than a run: this writes data, not a run.
+            process, record = trainers.launch(command, cwd=workdir, project_root=str(config.project_root),
+                                              project=request.project, run_name=f"prelabel-{sanitize(request.dataset)}",
+                                              rounds=images, module=trainers.PRELABEL_MODULE)
+            return trainers.follow(job, record, process, _finish_prelabel)
+
+        job = jobs.start("prelabel", work)
+        job.payload = request.project
+        return job.to_dict()
+
+    # Now that every kind of job and every finisher exists, pick up whatever survived a
+    # restart: a trainer, a label check, a pre-labelling pass, or runs left behind by a
+    # service that was killed.
+    _resume_trainers()
 
     # -- import -------------------------------------------------------------
 
@@ -2927,14 +3721,22 @@ def create_app(
     @app.get("/api/embeddings/similar")
     def embeddings_similar(project: str = Query(...), dataset: str = Query(...),
                            image: str = Query(...), k: int = Query(24, ge=1, le=200)) -> dict[str, Any]:
-        """The images most like one image, nearest first."""
+        """The images most like one image, nearest first.
+
+        Answered over the dataset as it stands now, like every other reading of the graph: an
+        image deleted since is not a neighbour worth offering, and the set beside each one is
+        the set it is in today rather than the set it was embedded in. The image asked about
+        may itself be outside that -- it is the question, not one of the answers.
+        """
+        import numpy as np
+
         from granum.core.embeddings import EmbeddingError, EmbeddingStore
         from granum.core.url import sample_key
-        from granum.metrics.embeddings import similar_to
+        from granum.metrics.embeddings import similar_to, typical_distance
 
         store = EmbeddingStore(project, dataset, config=config)
         try:
-            images, sets, vectors = store.load()
+            images, _, vectors = store.load()
         except EmbeddingError as exc:
             raise _error(404, str(exc)) from exc
         key = sample_key(image)
@@ -2942,11 +3744,21 @@ def create_app(
             row = images.index(key)
         except ValueError as exc:
             raise _error(404, "this image has no vector; compute embeddings again") from exc
+        current = {name: set_name for name, set_name, _ in _dataset_image_rows(project, dataset)}
+        keep = [i for i, name in enumerate(images) if name in current]
+        # An image the dataset no longer holds goes on the end: asked about, never answered with.
+        at = keep.index(row) if row in keep else len(keep)
+        if at == len(keep):
+            keep = [*keep, row]
+        held = vectors[np.asarray(keep, dtype=int)]
         return {
             "image": key,
+            "set": current.get(key),
+            #: What a distance is read against: the median distance between two random images.
+            "scale": round(typical_distance(held), 4),
             "neighbours": [
-                {"image": images[i], "set": sets[i], "distance": distance}
-                for i, distance in similar_to(vectors, row, k)
+                {"image": images[keep[i]], "set": current[images[keep[i]]], "distance": distance}
+                for i, distance in similar_to(held, at, k)
             ],
         }
 
@@ -3017,6 +3829,66 @@ def create_app(
                 return siblings
         return found
 
+    def _detect_other(folder: Url) -> list[dict[str, Any]]:
+        """Datasets in a layout that is not COCO, as sources the wizard can offer.
+
+        Each is marked with the format it is in; the import converts it to COCO before
+        anything is checked, so a VOC folder and a COCO file go through exactly the same
+        preflight, media handling and findings rather than through two code paths.
+        """
+        if folder.scheme != "file":
+            return []
+        root = Path(folder.path)
+        found: list[dict[str, Any]] = []
+        try:
+            children = sorted(root.iterdir())
+        except OSError:
+            return found
+
+        def source(kind: str, path: Path, split: str, images: Path | None = None) -> dict[str, Any]:
+            return {"split": split, "annotations": str(path), "images": str(images or path.parent),
+                    "format": kind}
+
+        for child in children:
+            name = child.name.lower()
+            if child.is_file() and name in ("data.yaml", "data.yml", "dataset.yaml"):
+                try:
+                    import yaml as yaml_module
+
+                    document = yaml_module.safe_load(child.read_text()) or {}
+                except (OSError, ValueError):
+                    continue
+                for split in ("train", "val", "valid", "test"):
+                    if document.get(split):
+                        found.append({**source("yolo", child, split), "yolo_split": split})
+            elif child.is_file() and child.suffix.lower() == ".csv":
+                found.append(source("csv", child, child.stem or "train"))
+        if found:
+            return found
+
+        # A folder of VOC XML or KITTI text, either here or one level down per split.
+        def look(place: Path, split: str) -> None:
+            annotations = place / "Annotations" if (place / "Annotations").is_dir() else place
+            if any(annotations.glob("*.xml")):
+                found.append(source("voc", annotations, split, place))
+                return
+            labels = next((place / n for n in ("label_2", "labels", "label") if (place / n).is_dir()), None)
+            if labels and any(labels.glob("*.txt")):
+                found.append(source("kitti", labels, split, place))
+
+        look(root, "train")
+        if not found:
+            for child in children:
+                if child.is_dir():
+                    look(child, child.name)
+        if not found:
+            # Folders of images, one per class: a classification set.
+            classes = [c for c in children if c.is_dir()
+                       and any(p.suffix.lower() in IMAGE_SUFFIXES_FOR_IMPORT for p in c.iterdir() if p.is_file())]
+            if len(classes) >= 2:
+                found.append(source("folders", root, "train"))
+        return found
+
     def _detect_sources(folder: Url) -> list[dict[str, Any]]:
         """COCO annotation files in a folder or its immediate subfolders, one per split."""
         found: list[dict[str, Any]] = []
@@ -3040,8 +3912,46 @@ def create_app(
             split = candidate.parent.name if str(candidate.parent) != str(folder) else (
                 name.replace("instances_", "").replace(".json", "") or "train"
             )
-            found.append({"split": split, "annotations": str(candidate), "images": str(candidate.parent)})
-        return found
+            found.append({"split": split, "annotations": str(candidate), "images": str(candidate.parent),
+                          "format": "coco"})
+        return found or _detect_other(folder)
+
+    def _convert_to_coco(item: Any, annotations: Path, images: Path | None) -> Path:
+        """Write somebody else's layout as a COCO file the importer can check.
+
+        The converted file is kept beside the source under a Granum name rather than in a
+        temporary folder: an import is worth being able to look at afterwards, and a file
+        that vanishes the moment a job ends cannot be checked by hand.
+        """
+        import json as json_module
+
+        from granum.formats.exchange import CONVERTERS
+
+        convert = CONVERTERS.get(item.format)
+        if convert is None:
+            raise _error(400, f"format must be coco or one of {sorted(CONVERTERS)}")
+        try:
+            if item.format == "yolo":
+                payload = convert(annotations, item.yolo_split or item.split or "train")
+            elif item.format in ("voc", "kitti"):
+                payload = convert(annotations, images_dir=images)
+            elif item.format == "csv":
+                payload = convert(annotations, images_dir=images)
+            else:
+                payload = convert(annotations)
+        except GranumError as exc:
+            raise _error(400, str(exc)) from exc
+        except (OSError, ValueError) as exc:
+            raise _error(400, f"{annotations.name} could not be read as {item.format}: {exc}") from exc
+        if not payload.get("images"):
+            raise _error(400, f"no images found in {annotations}")
+        target_dir = annotations if annotations.is_dir() else annotations.parent
+        target = target_dir / f"granum-{item.format}-{item.split or 'train'}.coco.json"
+        try:
+            target.write_text(json_module.dumps(payload))
+        except OSError as exc:
+            raise _error(400, f"cannot write the converted file beside the data: {exc}") from exc
+        return target
 
     @app.post("/api/import/preflight")
     def import_preflight(request: PreflightRequest = Body(...)) -> dict[str, Any]:
@@ -3055,6 +3965,9 @@ def create_app(
         for item in request.sources:
             annotations = _check_import_path(item.annotations)
             images = _check_import_path(item.images) if item.images else None
+            if item.format and item.format != "coco":
+                annotations = Url(str(_convert_to_coco(item, Path(str(annotations)),
+                                                       Path(str(images)) if images else None)))
             sources.append(Source(split=item.split.strip(), annotations=str(annotations), images=str(images) if images else None))
         if any(not s.split for s in sources) or len({s.split for s in sources}) != len(sources):
             raise _error(400, "every file needs a distinct split name")
