@@ -561,6 +561,10 @@ def _service_licensing(index: Index, server_url: str) -> Licensing:
     """This computer's licence, beating in the background while the service runs.
 
     The newest object in the projects is a clock mark: a clock behind it was turned back.
+
+    Licensing is switched off in this build (``granum.licensing.manager.ENFORCED``), so what
+    this returns is unrestricted: nothing here starts, writes or asks the server anything, and
+    the service never announces itself as read-only.
     """
     from granum.licensing import Licensing, set_licensing
     from granum.licensing.token import parse_time

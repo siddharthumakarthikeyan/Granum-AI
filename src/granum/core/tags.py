@@ -5,6 +5,12 @@ mattered to them -- ``night``, ``recheck``, ``from-the-carpark-camera`` -- and t
 it is that nobody has to ask permission to invent one. A **view** is a set of filters worth
 returning to, named, so "the unverified night shots in valid" is a click rather than four.
 
+A tag can go on one *object* as well as on the picture holding it -- ``occluded`` on the one
+box that is, ``check-this`` on the box in the corner -- and that is the same log with an
+``object`` on the event. Boxes are addressed by their annotation id where an import gave them
+one and by their position where it did not, which is what an image's own boxes can be
+addressed by without rewriting the set.
+
 Both are kept per dataset beside the review log and for the same reasons: they must outlive
 the browser tab, survive new versions of a set, and be readable by a person with a text
 editor. Tags are an append-only log keyed by image, so the history of who tagged what stays;
@@ -32,6 +38,8 @@ from granum.errors import GranumError
 TAG = re.compile(r"[A-Za-z0-9][A-Za-z0-9 ._-]{0,39}")
 MAX_TAGS_PER_IMAGE = 40
 MAX_VIEWS = 200
+#: Objects of one image that may be tagged in one call.
+MAX_OBJECTS_PER_CALL = 500
 
 _locks: dict[str, threading.Lock] = {}
 _locks_guard = threading.Lock()
@@ -61,8 +69,20 @@ def clean_tag(tag: str) -> str:
     return text
 
 
+def object_key(instance: Any, index: int) -> str:
+    """How one box of an image is addressed by a tag.
+
+    By its annotation id where the import gave it one, because that survives the boxes being
+    reordered, and by its position where it did not. The two are kept apart by their prefix
+    so that a set where some boxes are numbered and some are not cannot collide: box 3 of an
+    unnumbered image is ``i3``, annotation 3 is ``a3``.
+    """
+    annotation = (instance or {}).get("annotation_id") if isinstance(instance, dict) else None
+    return f"a{int(annotation)}" if annotation is not None else f"i{int(index)}"
+
+
 class TagStore:
-    """Tags on the images of one dataset, as an append-only log."""
+    """Tags on the images of one dataset, and on their objects, as an append-only log."""
 
     def __init__(self, project_name: str, dataset_name: str, *, config: Config | None = None) -> None:
         config = config or get_config()
@@ -72,25 +92,40 @@ class TagStore:
                          / "tags" / f"{sanitize(dataset_name)}.jsonl")
 
     def record(self, samples: Iterable[str], *, add: Iterable[str] = (), remove: Iterable[str] = (),
-               author: str | None = None) -> dict[str, Any]:
-        """Put tags on images, take tags off them, or both. Returns what was written."""
+               objects: Iterable[str] = (), author: str | None = None) -> dict[str, Any]:
+        """Put tags on images or on their objects, take them off, or both.
+
+        ``objects`` are the keys of :func:`object_key`. Given them, the tags go on those
+        boxes of the one image named rather than on the image, because "this box is
+        occluded" and "this picture is at night" are different claims and a reader filtering
+        for one should not be handed the other.
+        """
         keys = list(dict.fromkeys(sample_key(s) for s in samples if s))
+        marks = list(dict.fromkeys(str(o) for o in objects if str(o)))
         added = [clean_tag(t) for t in add]
         removed = [clean_tag(t) for t in remove]
+        if marks:
+            if len(keys) != 1:
+                raise TagError("tag the objects of one image at a time")
+            if len(marks) > MAX_OBJECTS_PER_CALL:
+                raise TagError(f"up to {MAX_OBJECTS_PER_CALL} objects at a time")
         if not keys or not (added or removed):
-            return {"images": 0, "added": [], "removed": []}
+            return {"images": 0, "objects": 0, "added": [], "removed": []}
         now = datetime.now(timezone.utc).isoformat(timespec="seconds")
         person = _who() if author is None else author
-        lines = "".join(
-            json.dumps({"sample": key, "add": added, "remove": removed, "author": person, "time": now},
-                       separators=(",", ":")) + "\n"
-            for key in keys
+        events = (
+            [{"sample": keys[0], "object": mark, "add": added, "remove": removed, "author": person, "time": now}
+             for mark in marks]
+            if marks else
+            [{"sample": key, "add": added, "remove": removed, "author": person, "time": now} for key in keys]
         )
+        lines = "".join(json.dumps(event, separators=(",", ":")) + "\n" for event in events)
         with _lock_for(str(self.url)):
             self.url.parent.mkdir()
             with self.url.fs.open(self.url.path, "ab") as handle:
                 handle.write(lines.encode("utf-8"))
-        return {"images": len(keys), "added": added, "removed": removed}
+        return {"images": 0 if marks else len(keys), "objects": len(marks),
+                "added": added, "removed": removed}
 
     def events(self) -> list[dict[str, Any]]:
         if not self.url.exists():
@@ -107,26 +142,51 @@ class TagStore:
                 out.append(event)
         return out
 
+    @staticmethod
+    def _apply(held: list[str], event: dict[str, Any]) -> None:
+        for tag in event.get("add") or []:
+            if tag not in held and len(held) < MAX_TAGS_PER_IMAGE:
+                held.append(tag)
+        for tag in event.get("remove") or []:
+            if tag in held:
+                held.remove(tag)
+
     def current(self) -> dict[str, list[str]]:
         """Image -> its tags now, in the order they were first put on it."""
         held: dict[str, list[str]] = {}
         for event in self.events():
-            tags = held.setdefault(event["sample"], [])
-            for tag in event.get("add") or []:
-                if tag not in tags and len(tags) < MAX_TAGS_PER_IMAGE:
-                    tags.append(tag)
-            for tag in event.get("remove") or []:
-                if tag in tags:
-                    tags.remove(tag)
+            if event.get("object"):
+                continue
+            self._apply(held.setdefault(event["sample"], []), event)
         return {key: tags for key, tags in held.items() if tags}
 
-    def counts(self) -> dict[str, int]:
-        """How many images carry each tag, most used first."""
+    def current_objects(self) -> dict[str, dict[str, list[str]]]:
+        """Image -> object key -> that object's tags now."""
+        held: dict[str, dict[str, list[str]]] = {}
+        for event in self.events():
+            mark = event.get("object")
+            if not mark:
+                continue
+            self._apply(held.setdefault(event["sample"], {}).setdefault(str(mark), []), event)
+        return {image: {mark: tags for mark, tags in marks.items() if tags}
+                for image, marks in held.items()
+                if any(marks.values())}
+
+    @staticmethod
+    def _tally(groups: Iterable[list[str]]) -> dict[str, int]:
         counts: dict[str, int] = {}
-        for tags in self.current().values():
+        for tags in groups:
             for tag in tags:
                 counts[tag] = counts.get(tag, 0) + 1
         return dict(sorted(counts.items(), key=lambda item: (-item[1], item[0].lower())))
+
+    def counts(self) -> dict[str, int]:
+        """How many images carry each tag, most used first."""
+        return self._tally(self.current().values())
+
+    def object_counts(self) -> dict[str, int]:
+        """How many objects carry each tag, most used first."""
+        return self._tally(tags for marks in self.current_objects().values() for tags in marks.values())
 
 
 class ViewStore:

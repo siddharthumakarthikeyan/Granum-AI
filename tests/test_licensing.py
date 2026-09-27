@@ -52,8 +52,11 @@ def _payload(**changes):
 
 
 def _licensing(tmp_path, keys, clocks, **kwargs):
+    # `enforced=True` throughout: licensing is switched off in this build
+    # (`granum.licensing.manager.ENFORCED`), and these tests are what keeps the machinery
+    # honest for the build that turns it back on.
     return Licensing(folder=tmp_path / "data", mark_folder=tmp_path / "state", public_keys=keys, machine=MACHINE,
-                     clock=lambda: clocks.now, monotonic=lambda: clocks.mono, **kwargs)
+                     clock=lambda: clocks.now, monotonic=lambda: clocks.mono, enforced=True, **kwargs)
 
 
 def test_keys_are_checked_by_signature(signing):
@@ -98,7 +101,7 @@ def test_a_key_copied_to_another_machine_is_refused(tmp_path, signing):
     clocks = Clocks()
     _licensing(tmp_path, keys, clocks).install(encode(_payload(), key))
     elsewhere = Licensing(folder=tmp_path / "data", mark_folder=tmp_path / "state", public_keys=keys,
-                          machine="GM-9999-9999-9999-9999-9999-9999", clock=lambda: clocks.now)
+                          machine="GM-9999-9999-9999-9999-9999-9999", clock=lambda: clocks.now, enforced=True)
     assert elsewhere.status()["state"] == "wrong_machine"
 
 
@@ -335,3 +338,23 @@ def test_the_app_signs_in_renews_and_loses_a_revoked_licence(tmp_path, signing):
     with pytest.raises(Refused):
         licensing.renew()
     assert licensing.status()["state"] == "missing" and licensing.status()["server_message"] == "This licence was cancelled."
+
+
+def test_licensing_is_switched_off_in_this_build():
+    """A downloaded Granum is never read-only and never asks to buy anything.
+
+    The machinery above still works -- every test here proves it, holding `enforced=True` --
+    but nothing switches it on, so a copy with no key is unrestricted, writes nothing and
+    starts no thread.
+    """
+    from granum.licensing.manager import ENFORCED, Licensing
+
+    assert ENFORCED is False
+    plain = Licensing()
+    assert plain.unrestricted is True
+    status = plain.status()
+    assert status["mode"] == "full" and status["state"] == "unrestricted" and status["reason"] is None
+    assert status["max_projects"] is None
+    # start() is a no-op while unrestricted, so no heartbeat runs and no state is written.
+    plain.start()
+    assert plain._thread is None

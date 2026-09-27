@@ -1,5 +1,13 @@
 # Licensing
 
+> **Switched off in this build.** `ENFORCED = False` in `src/granum/licensing/manager.py`, so a
+> downloaded Granum is never read-only, never asks to buy anything and never talks to a licence
+> server: every `Licensing` is unrestricted, no heartbeat runs, no state is written, and the
+> dashboard shows no licence link. Everything below is what happens when that line is `True`.
+> The machinery is kept whole and is still tested — `tests/test_licensing.py` passes
+> `enforced=True` — so turning it back on is one line, with no key, clock or lease rule to
+> write again.
+
 Granum checks a signed licence key on each computer. Without a valid key, or when the plan
 has ended, the app is **read-only**: projects open, images and runs can be viewed and data
 exported, but nothing can be created, edited, imported or trained.

@@ -47,6 +47,8 @@ const PATHS: Record<string, ReactNode> = {
   boxes: <><rect x="3" y="4" width="18" height="16" rx="2" /><rect x="6.5" y="7.5" width="6" height="5" rx="1" /><rect x="13" y="13" width="5" height="4" rx="1" /></>,
   down: <path d="M12 5v14M5 12l7 7 7-7" />,
   swap: <><path d="M7 4v13M4 14l3 3 3-3" /><path d="M17 20V7M14 10l3-3 3 3" /></>,
+  shuffle: <><path d="M4 7h3.5l9 10H20" /><path d="M17 4l3 3-3 3" /><path d="M4 17h3.5l2.5-2.8" /><path d="M14.5 9.8 16.5 7H20" /><path d="M17 14l3 3-3 3" /></>,
+  columns: <><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M9 4v16M15 4v16" /></>,
 };
 
 export function Icon({ name, size = 16, className }: { name: keyof typeof PATHS | string; size?: number; className?: string }) {

@@ -26,6 +26,7 @@ import json
 import mimetypes
 import os
 import re
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
@@ -301,6 +302,8 @@ class TagRequest(BaseModel):
     samples: list[str] = Field(min_length=1, max_length=200_000)
     add: list[str] = Field(default_factory=list, max_length=20)
     remove: list[str] = Field(default_factory=list, max_length=20)
+    #: Object keys, when the tags belong on particular boxes of one image rather than on it.
+    objects: list[str] = Field(default_factory=list, max_length=500)
     author: str = ""
 
 
@@ -1564,6 +1567,29 @@ def create_app(
         return {"split": entry["split"], "dataset": entry["dataset"], "project": entry["project"],
                 "classes": entry["classes"], "truth": truth, "predicted": predicted, "examples": found}
 
+    @app.get("/api/run/evaluation/outcomes")
+    def run_evaluation_outcomes(
+        url: str = Query(...),
+        split: str | None = Query(None),
+        kinds: str = Query("tp,fp,fn", description="which of tp, fp and fn to return"),
+        labels: str = Query("", description="comma-separated class indices; empty means every class"),
+        confidence: float = Query(0.25, ge=0.01, le=0.99),
+        limit: int = Query(600, ge=1, le=2000),
+    ) -> dict[str, Any]:
+        """Every object a run got right, invented or missed, as rows to cut crops from."""
+        from granum.metrics.evaluation import EvalPolicy, outcomes
+
+        entry, _names = _evaluation_records(_run_at(url), split)
+        if entry is None:
+            raise _error(404, "this run did not store the model's boxes")
+        records = [{**record, "image": image} for image, record in entry["images"].items()]
+        chosen = [k.strip() for k in kinds.split(",") if k.strip()]
+        wanted = [int(v) for v in labels.split(",") if v.strip().lstrip("-").isdigit()]
+        found = outcomes(records, policy=EvalPolicy(operating_confidence=confidence),
+                         kinds=chosen, labels=wanted or None, limit=limit)
+        return {"split": entry["split"], "dataset": entry["dataset"], "project": entry["project"],
+                "classes": entry["classes"], **found}
+
     # -- comparing two runs ------------------------------------------------------------
 
     def _evaluation_data(run: Run, only: str | None = None) -> dict[str, dict[str, Any]]:
@@ -2132,8 +2158,10 @@ def create_app(
 
     @app.get("/api/qa/image")
     def qa_image(project: str = Query(...), dataset: str = Query(...), table: str = Query(...), image: str = Query(...)) -> dict[str, Any]:
-        """One image for review: its labelled boxes, class names and comment thread."""
+        """One image for review: its labelled boxes, class names, tags and comment thread."""
         from granum.core.curation import CurationError, image_column
+        from granum.core.tags import TagStore
+        from granum.core.url import sample_key
 
         log = _qa_log(project, dataset)
         source = _table_at(table)
@@ -2163,6 +2191,9 @@ def create_app(
             "height": value.get("height"),
             "labels": {str(k): (v.display_name or v.internal_name) for k, v in value_map.items()},
             "boxes": value.get("instances", []),
+            # The tags on this image's own boxes, keyed as they are addressed: the inspector
+            # is where a box is picked, so it is where one gets a word put on it.
+            "box_tags": TagStore(project, dataset, config=config).current_objects().get(sample_key(image), {}),
             "thread": log.thread(image),
         }
 
@@ -2528,13 +2559,17 @@ def create_app(
 
     # -- browsing images -----------------------------------------------------
 
-    def _image_rows(table: Table) -> list[dict[str, Any]]:
+    def _image_rows(table: Table, fields: Sequence[dict[str, Any]] = ()) -> list[dict[str, Any]]:
         """Every image of a set with the classes it uses, for the Images tab.
 
         Separate from ``_set_images``: the class list is only wanted here, and on a large
         set it is the bulk of the payload.
+
+        ``fields`` are the schema columns the caller will let a reader sort, group, filter
+        and summarise by; each row carries their values under ``values``.
         """
         from granum.core.curation import CurationError, image_column
+        from granum.core.fields import field_values
         from granum.importing.library import count_instances
 
         try:
@@ -2560,16 +2595,24 @@ def create_app(
             for value in arrow.column(box_column).to_pylist():
                 instances = (value or {}).get("instances") or []
                 drafted.append(sum(1 for x in instances if x.get(SOURCE) == PRELABEL_MODEL))
+        values = field_values(table, fields) if fields else None
         return [{"row": i, "image": image, "objects": objects[i], "classes": classes[i],
-                 **({"drafted": drafted[i]} if drafted else {})}
+                 **({"drafted": drafted[i]} if drafted else {}),
+                 **({"values": values[i]} if values and values[i] else {})}
                 for i, image in enumerate(images) if image]
 
     @app.get("/api/images")
     def images_overview(project: str = Query(...), dataset: str = Query(...)) -> dict[str, Any]:
         """Every image of the dataset's newest sets, with its classes and review status.
 
-        One call feeds the whole Images tab: filtering by class, split and status, and
-        ordering by name or by when the image was last touched, all happen in the browser.
+        One call feeds the whole Images tab: filtering by class, split and status, ordering
+        by any field, grouping by one, and the summary of a column, all happen in the
+        browser over this one payload.
+
+        ``fields`` are the set's own scalar columns -- whatever the import or a later pass
+        put beside the picture -- described well enough for the ribbon to build a control
+        for each, and each image carries their values. Columns holding one value for every
+        image are dropped: a control that cannot narrow anything is worse than none.
         """
         log = _qa_log(project, dataset)
         current = log.current()
@@ -2577,18 +2620,27 @@ def create_app(
         images: list[dict[str, Any]] = []
         labels: dict[str, str] = {}
         from granum.core.curation import ISOLATED_SET, image_column
+        from granum.core.fields import scalar_fields, usable_fields
 
         newest = _newest_sets(project, dataset)
         chosen = list(_review_sets(project, dataset).values())
         # Images set aside in review come along, marked, so they can be fixed and returned.
         if ISOLATED_SET in newest and len(newest[ISOLATED_SET]):
             chosen.append(newest[ISOLATED_SET])
+        # One descriptor per column name across the sets: the same column means the same
+        # thing in train and in valid, and the ribbon offers it once.
+        described: dict[str, dict[str, Any]] = {}
+        for table in chosen:
+            for field in scalar_fields(table):
+                described.setdefault(field["name"], field)
+        offered = list(described.values())
+
         for table in chosen:
             box_column = next((n for n in table.columns if isinstance(table.schema[n], Geometry2DSchema)), None)
             value_map = (table.schema[box_column].value_map or {}) if box_column else {}
             for label, entry in value_map.items():
                 labels.setdefault(str(label), entry.display_name or entry.internal_name)
-            rows = _image_rows(table)
+            rows = _image_rows(table, offered)
             origins: dict[str, Any] = {}
             if table.base_name == ISOLATED_SET and "removed_from" in table.columns:
                 arrow = table.to_arrow()
@@ -2603,9 +2655,21 @@ def create_app(
                 images.append({**row, **extra, "set": table.base_name, "table": str(table.url), "added": table.created})
         order = ["train", "valid", "val", "validation", "test", ISOLATED_SET]
         sets.sort(key=lambda s: (order.index(s["set"]) if s["set"] in order else len(order), s["set"]))
+        fields = usable_fields(offered, (i.get("values") or {} for i in images))
+        kept = {f["name"] for f in fields}
+        for image in images:
+            values = image.get("values")
+            if values is None:
+                continue
+            pruned = {k: v for k, v in values.items() if k in kept}
+            if pruned:
+                image["values"] = pruned
+            else:
+                image.pop("values")
         return {
             "sets": sets,
             "labels": labels,
+            "fields": fields,
             "images": images,
             "statuses": {image: current[image] for image in {i["image"] for i in images} & set(current)},
         }
@@ -3246,27 +3310,31 @@ def create_app(
 
     # -- tags and saved views ---------------------------------------------------------
 
+    def _tags_payload(store: Any) -> dict[str, Any]:
+        """Everything tagged in one dataset: the images, their objects, and the tallies."""
+        return {"images": store.current(), "counts": store.counts(),
+                "objects": store.current_objects(), "object_counts": store.object_counts()}
+
     @app.get("/api/tags")
     def tags_overview(project: str = Query(...), dataset: str = Query(...)) -> dict[str, Any]:
-        """Every image of this dataset that carries a tag, and how much each tag is used."""
+        """Everything in this dataset that carries a tag, and how much each tag is used."""
         from granum.core.tags import TagStore
 
         store = TagStore(project, dataset, config=config)
-        return {"project": project, "dataset": dataset,
-                "images": store.current(), "counts": store.counts()}
+        return {"project": project, "dataset": dataset, **_tags_payload(store)}
 
     @app.post("/api/tags")
     def tags_record(request: TagRequest = Body(...)) -> dict[str, Any]:
-        """Tag images, untag them, or both at once for a whole selection."""
+        """Tag images or particular boxes of one image, untag them, or both at once."""
         from granum.core.tags import TagError, TagStore
 
         store = TagStore(request.project, request.dataset, config=config)
         try:
             written = store.record(request.samples, add=request.add, remove=request.remove,
-                                   author=request.author or None)
+                                   objects=request.objects, author=request.author or None)
         except TagError as exc:
             raise _error(400, str(exc)) from exc
-        return {**written, "images_tagged": store.current(), "counts": store.counts()}
+        return {**written, "images_tagged": store.current(), **_tags_payload(store)}
 
     @app.get("/api/views")
     def views_list(project: str = Query(...), dataset: str = Query(...)) -> dict[str, Any]:

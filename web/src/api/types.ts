@@ -582,6 +582,8 @@ export interface QaImageDetail {
   height: number | null;
   labels: Record<string, string>;
   boxes: QaBox[];
+  /** Object key -> the tags on that box of this image. */
+  box_tags?: Record<string, string[]>;
   thread: QaEvent[];
 }
 
@@ -653,6 +655,9 @@ export interface ImageRow {
   set: string;
   table: string;
   added: string;
+  /** This image's value for each of the payload's `fields`. A field the image says
+   *  nothing about is absent rather than null. */
+  values?: Record<string, number | string | boolean>;
   /** Boxes on this image a model drafted, of its `objects`. Absent on a set nothing
    *  has pre-labelled. */
   drafted?: number;
@@ -666,10 +671,37 @@ export interface ImageSet extends VersionRef {
   images: number;
 }
 
+/** One column of the set worth ordering, grouping, filtering or summarising by.
+ *
+ * `kind` is what a widget can be built from rather than how the value is stored: an
+ * integer, a confidence and a weight are all `number`; a class index arrives as `class`
+ * with the names behind it.
+ */
+export interface FieldInfo {
+  name: string;
+  label: string;
+  kind: "number" | "string" | "bool" | "class";
+  /** Images carrying a value for this field. */
+  present: number;
+  /** How many distinct values it takes over those images. */
+  distinct?: number;
+  /** Too many distinct values to list: a string one is asked as "contains" instead. */
+  wide?: boolean;
+  /** Every value it takes, when there are few enough to list. */
+  values?: (number | string | boolean)[];
+  /** Class index (as a string key) -> name, for a `class` field. */
+  classes?: Record<string, string>;
+  /** An id rather than a property: offered, but after the rest. */
+  identifier?: boolean;
+  detail?: string;
+}
+
 export interface ImagesOverview {
   sets: ImageSet[];
   /** Class index (as a string key) -> display name, merged across the dataset's sets. */
   labels: Record<string, string>;
+  /** The set's own columns, for ordering, grouping, filtering and summaries. */
+  fields: FieldInfo[];
   images: ImageRow[];
   statuses: Record<string, QaState>;
 }
@@ -946,6 +978,10 @@ export interface TagOverview {
   images: Record<string, string[]>;
   /** Tag -> how many images carry it, most used first. */
   counts: Record<string, number>;
+  /** Image -> object key -> that box's own tags. A word on one box, not on the picture. */
+  objects: Record<string, Record<string, string[]>>;
+  /** Tag -> how many objects carry it. */
+  object_counts: Record<string, number>;
 }
 
 /** A named set of filters on the Images tab. */
@@ -960,6 +996,16 @@ export interface SavedView {
     direction?: string;
     tags?: string[];
     onlyClasses?: boolean;
+    /** Which column the gallery is cut into groups by, and whether the headings are drawn. */
+    group?: string;
+    flatten?: boolean;
+    /** A seeded shuffle and the slice taken out of it. */
+    shuffle?: boolean;
+    seed?: number;
+    skip?: number;
+    take?: number;
+    /** Only the field filters the reader actually set, keyed by column. */
+    fields?: Record<string, unknown>;
   };
   author: string;
   time: string;
@@ -1096,6 +1142,39 @@ export interface EvaluationExample {
   label: number | null;
   predicted_label: number | null;
   confidence: number | null;
+}
+
+/** What one object turned out to be, once the run's boxes were matched to the labels.
+ *
+ * `tp` a label a prediction of its class covered, `fp` a prediction that covered no such
+ * label, `fn` a label nothing of its class found. Matched within a class, the rule the
+ * score uses, so a box in the right place with the wrong class is an `fp` and an `fn`
+ * rather than one row -- the matrix is where it reads as a single confusion.
+ */
+export interface EvaluationOutcome {
+  kind: "tp" | "fp" | "fn";
+  image: string | null;
+  width: number;
+  height: number;
+  label: number;
+  /** The prediction's box for `tp` and `fp`, the label's box for `fn`. */
+  box: [number, number, number, number];
+  /** The label the prediction covered, for a `tp`. */
+  label_box?: [number, number, number, number];
+  iou?: number;
+  confidence: number | null;
+}
+
+export interface EvaluationOutcomes {
+  objects: EvaluationOutcome[];
+  /** Every object of the chosen classes, by kind, whatever the limit returned. */
+  counts: Record<"tp" | "fp" | "fn", number>;
+  images: number;
+  capped: boolean;
+  classes: Record<string, string>;
+  dataset: string | null;
+  project: string;
+  split: string;
 }
 
 // -- comparing two runs (EV06/EV11) ------------------------------------------

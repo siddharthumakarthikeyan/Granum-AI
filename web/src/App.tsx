@@ -129,7 +129,7 @@ export default function App() {
         {route.name === "overview" && <ProjectOverview project={route.project} />}
         {route.name === "health" && <HealthPage project={route.project} dataset={route.dataset} />}
         {route.name === "evaluation" && <EvaluationPage project={route.project} url={route.url} />}
-        {route.name === "images" && <ImagesPage project={route.project} dataset={route.dataset} review={Boolean(route.review)} edit={Boolean(route.edit)} similar={Boolean(route.similar)} patches={Boolean(route.patches)} stats={Boolean(route.stats)} like={route.like} open={route.open} />}
+        {route.name === "images" && <ImagesPage project={route.project} dataset={route.dataset} review={Boolean(route.review)} edit={Boolean(route.edit)} similar={Boolean(route.similar)} patches={Boolean(route.patches)} stats={Boolean(route.stats)} fieldsOpen={Boolean(route.fields)} like={route.like} open={route.open} />}
         {route.name === "datasets" && <DatasetsPage project={route.project} />}
         {route.name === "runs" && <RunsPage project={route.project} />}
         {route.name === "import" && <ImportPage project={route.project} example={route.example} />}

@@ -19,11 +19,18 @@
  * the gallery rather than modes of their own: "what else looks like this one", which replaces
  * the list with that image's neighbours nearest first, and "how unlike the rest of the set is
  * each image", which is an order to sort by. Both need the dataset to have been read once.
+ *
+ * Everything the ribbon can be asked is asked of the set's own columns as well as of the four
+ * it always knew about: `/api/images` describes them (`fields`) and the gallery can be ordered
+ * by any of them, cut into groups by one, narrowed by a widget per column in the Fields panel,
+ * and summarised there -- bounds, mean, deviation, quantiles. Shuffle, skip and take sit with
+ * the order, because "a seeded sample of two hundred" is a thing a reader hands to someone
+ * else, and it is only that if the seed is written down.
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api } from "../api/client";
-import type { EmbeddingReport, EmbeddingStatus, ImageBoxes, ImageRow, ImagesOverview, Job, QaState, QaStatus, SavedView, SimilarImages, TagOverview } from "../api/types";
+import type { EmbeddingReport, EmbeddingStatus, FieldInfo, ImageBoxes, ImageRow, ImagesOverview, Job, QaState, QaStatus, SavedView, SimilarImages, TagOverview } from "../api/types";
 import { EmptyState, Icon, PageHeader, formatNumber, formatWhen, plural } from "../components/ui";
 import { ISOLATED_SET, groupDatasets, REMOVED_SET } from "../pages/datasets";
 import { ImageInspector } from "../review/ImageInspector";
@@ -33,11 +40,17 @@ import { useStore } from "../store/store";
 import { tasksLabel } from "../importing/tasks";
 import { CreateDatasetDialog } from "./CreateDatasetDialog";
 import { DuplicatesView, type SimilarTab } from "./DuplicatesView";
+import { FieldsPanel } from "./FieldsPanel";
 import { ImageDetail } from "./ImageDetail";
 import { ImageEditor } from "./ImageEditor";
 import { PatchesView } from "./PatchesView";
 import { PrelabelDialog } from "./PrelabelDialog";
 import { StatsPanel } from "./StatsPanel";
+import {
+  displayValue, fieldFilterActive, fieldValue, filterByFields, groupImages, makeFieldFilter,
+  openFieldFilter, restoreFieldFilter, shuffleImages, sliceImages, sortByField,
+  type FieldFilter, type Grouping,
+} from "./fields";
 import { labelColor } from "./labelColors";
 import { likeRows, readReport, type SimilarMark } from "./similar";
 
@@ -51,16 +64,34 @@ const NEIGHBOURS = 60;
 const MOST_NEIGHBOURS = 200;
 
 type StatusFilter = "all" | "verified" | "unverified" | "rework" | "commented";
-type OrderKey = "filename" | "updated" | "added" | "uniqueness";
+/** The four orders the gallery has always had, or `field:<column>` for one of the set's own. */
+type OrderKey = string;
 type Direction = "asc" | "desc";
 type TrayMode = "rework" | "isolate" | "delete" | null;
 
-const ORDER_LABEL: Record<OrderKey, string> = {
+const BUILT_IN_ORDERS = ["filename", "updated", "added", "uniqueness"] as const;
+
+const ORDER_LABEL: Record<string, string> = {
   filename: "Filename",
   updated: "Last updated",
   added: "Date added",
   uniqueness: "Uniqueness",
 };
+
+/** A column order, as it is written in the ribbon's select and in a saved view. */
+const FIELD_ORDER = "field:";
+
+/** Images drawn from each group before it is opened: enough to see what a group holds,
+ *  few enough that a page of the gallery reaches dozens of groups. */
+const PER_GROUP = 12;
+
+/** Groups the gallery can be cut into that are not columns of the set. */
+const BUILT_IN_GROUPS: Record<string, string> = { set: "Set", status: "Review status" };
+
+/** A seed a reader can read out loud, which a timestamp is not. */
+function freshSeed(): number {
+  return Math.floor(Math.random() * 9000) + 1000;
+}
 
 /** Verified is the reviewed status; unreviewed and rework both read as unverified. */
 export function isVerified(state: QaState | undefined): boolean {
@@ -80,7 +111,7 @@ function matchesStatus(filter: StatusFilter, state: QaState | undefined): boolea
   return true;
 }
 
-export function ImagesPage({ project, dataset, review, edit, similar, patches, stats, like, open: openImage }: { project: string; dataset?: string; review: boolean; edit: boolean; similar: boolean; patches: boolean; stats: boolean; like?: string; open?: string }) {
+export function ImagesPage({ project, dataset, review, edit, similar, patches, stats, fieldsOpen, like, open: openImage }: { project: string; dataset?: string; review: boolean; edit: boolean; similar: boolean; patches: boolean; stats: boolean; fieldsOpen: boolean; like?: string; open?: string }) {
   const tables = useStore((s) => s.tables);
   const loading = useStore((s) => s.loading);
   const refreshProject = useStore((s) => s.refreshProject);
@@ -110,6 +141,21 @@ export function ImagesPage({ project, dataset, review, edit, similar, patches, s
   const [tagFilter, setTagFilter] = useState<Set<string>>(new Set());
   const [views, setViews] = useState<SavedView[]>([]);
   const [asList, setAsList] = useState(false);
+  // One widget per column of the set, built from what /api/images describes rather than
+  // written out here, so a column that arrives in next week's import is filterable at once.
+  const [fieldFilters, setFieldFilters] = useState<Record<string, FieldFilter>>({});
+  /** Cut the gallery into groups by one field, or by the set or review status. */
+  const [group, setGroup] = useState<string>("");
+  /** Group headings off: the same images in group order, which is FiftyOne's `flatten`. */
+  const [flatten, setFlatten] = useState(false);
+  /** Images drawn per group, so a set of 260 groups shows 260 of them rather than the first
+   *  one. A group opened by name shows all of its images. */
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  /** A seeded shuffle replaces the order; skip and take then cut a slice out of it. */
+  const [shuffle, setShuffle] = useState(false);
+  const [seed, setSeed] = useState(freshSeed);
+  const [skip, setSkip] = useState(0);
+  const [take, setTake] = useState(0);
   const [shown, setShown] = useState(PAGE);
   const [open, setOpen] = useState<string | null>(null);
   /** The images the viewer steps through when that is not the gallery: a group, or a pair. */
@@ -158,21 +204,27 @@ export function ImagesPage({ project, dataset, review, edit, similar, patches, s
     saveReviewer(name);
   };
 
-  const setReview = (on: boolean) => navigate({ name: "images", project, dataset, review: on || undefined, stats: stats || undefined, like });
-  const setEdit = (on: boolean) => navigate({ name: "images", project, dataset, edit: on || undefined, stats: stats || undefined, like });
-  const setSimilar = (on: boolean) => navigate({ name: "images", project, dataset, similar: on || undefined, stats: stats || undefined, like });
-  const setPatches = (on: boolean) => navigate({ name: "images", project, dataset, patches: on || undefined, stats: stats || undefined, like });
+  const setReview = (on: boolean) => navigate({ name: "images", project, dataset, review: on || undefined, stats: stats || undefined, fields: fieldsOpen || undefined, like });
+  const setEdit = (on: boolean) => navigate({ name: "images", project, dataset, edit: on || undefined, stats: stats || undefined, fields: fieldsOpen || undefined, like });
+  const setSimilar = (on: boolean) => navigate({ name: "images", project, dataset, similar: on || undefined, stats: stats || undefined, fields: fieldsOpen || undefined, like });
+  const setPatches = (on: boolean) => navigate({ name: "images", project, dataset, patches: on || undefined, stats: stats || undefined, fields: fieldsOpen || undefined, like });
   /** The counts panel, on beside whatever the gallery is doing. */
   const setStats = (on: boolean) => navigate({
     name: "images", project, dataset,
     review: review || undefined, edit: edit || undefined, similar: similar || undefined,
-    patches: patches || undefined, stats: on || undefined, like,
+    patches: patches || undefined, stats: on || undefined, fields: fieldsOpen || undefined, like,
+  });
+  /** A widget per column of the set, likewise on beside anything else. */
+  const setFieldsOpen = (on: boolean) => navigate({
+    name: "images", project, dataset,
+    review: review || undefined, edit: edit || undefined, similar: similar || undefined,
+    patches: patches || undefined, stats: stats || undefined, fields: on || undefined, like,
   });
   /** Order the gallery by likeness to one image, or go back to the whole dataset. */
   const setLike = (image: string | null) => navigate({
     name: "images", project, dataset,
     review: review || undefined, edit: edit || undefined, similar: similar || undefined,
-    patches: patches || undefined, stats: stats || undefined,
+    patches: patches || undefined, stats: stats || undefined, fields: fieldsOpen || undefined,
     like: image ?? undefined,
   });
 
@@ -275,34 +327,98 @@ export function ImagesPage({ project, dataset, review, edit, similar, patches, s
     [likeList],
   );
 
+  /** Every word on an image, including the ones put on its individual boxes.
+   *
+   * A tag on a box is a claim about that object and not about the picture, so the two are
+   * kept apart in the store; a reader filtering the gallery for `occluded`, though, wants
+   * the images that hold an occluded box. That is this rollup, and nothing else uses it.
+   */
+  const tagsOf = useCallback((image: string): string[] => {
+    const own = tags?.images?.[image] ?? [];
+    const boxes = tags?.objects?.[image];
+    if (!boxes) return own;
+    return [...own, ...new Set(Object.values(boxes).flat())];
+  }, [tags]);
+
   /** Class counts over the images the other filters leave, so the numbers track. */
   const beforeClass = useMemo(
     () => inSplit.filter((image) => matchesStatus(status, statuses[image.image])
-      && (tagFilter.size === 0
-        || (tags?.images[image.image] ?? []).some((tag) => tagFilter.has(tag)))),
-    [inSplit, status, statuses, tagFilter, tags],
+      && (tagFilter.size === 0 || tagsOf(image.image).some((tag) => tagFilter.has(tag)))),
+    [inSplit, status, statuses, tagFilter, tagsOf],
   );
 
   const classCounts = useMemo(() => {
     const counts = new Map<number, number>();
-    for (const image of beforeClass) for (const label of image.classes) counts.set(label, (counts.get(label) ?? 0) + 1);
+    // Field filters count here too, so the class list is the classes of the images the rest
+    // of the ribbon leaves rather than of the whole set.
+    for (const image of filterByFields(beforeClass, fieldFilters)) {
+      for (const label of image.classes) counts.set(label, (counts.get(label) ?? 0) + 1);
+    }
     return counts;
-  }, [beforeClass]);
+  }, [beforeClass, fieldFilters]);
 
-  const items = useMemo(() => {
-    const filtered = classes.size === 0
+  /** What the Fields panel counts against: the ribbon applied, its own filters not. */
+  const beforeFields = useMemo(
+    () => (classes.size === 0
       ? beforeClass
-      : beforeClass.filter((image) => image.classes.some((label) => classes.has(label)));
+      : beforeClass.filter((image) => image.classes.some((label) => classes.has(label)))),
+    [beforeClass, classes],
+  );
+
+  const fields = data?.fields ?? [];
+
+  /** A widget per column, rebuilt when the dataset changes rather than when a filter does:
+   *  a filter's bounds are the data's, and dragging a range must not move them. */
+  useEffect(() => {
+    if (!data) {
+      setFieldFilters({});
+      return;
+    }
+    const built: Record<string, FieldFilter> = {};
+    for (const field of data.fields) {
+      const filter = makeFieldFilter(field, data.images);
+      if (filter) built[field.name] = filter;
+    }
+    setFieldFilters(built);
+    setGroup((was) => (was && !BUILT_IN_GROUPS[was] && !data.fields.some((f) => f.name === was) ? "" : was));
+  }, [data]);
+
+  const setFieldFilter = useCallback((name: string, changes: Partial<FieldFilter>) => {
+    setFieldFilters((was) => (was[name] ? { ...was, [name]: { ...was[name]!, ...changes } as FieldFilter } : was));
+  }, []);
+
+  const resetFieldFilter = useCallback((name: string) => {
+    setFieldFilters((was) => (was[name] ? { ...was, [name]: openFieldFilter(was[name]!) } : was));
+  }, []);
+
+  const clearFieldFilters = useCallback(() => {
+    setFieldFilters((was) => Object.fromEntries(
+      Object.entries(was).map(([name, filter]) => [name, openFieldFilter(filter)]),
+    ) as Record<string, FieldFilter>);
+  }, []);
+
+  const activeFields = useMemo(
+    () => Object.values(fieldFilters).filter(fieldFilterActive).length,
+    [fieldFilters],
+  );
+
+  /** Everything the ribbon narrows, in one order-free list. */
+  const kept = useMemo(() => filterByFields(beforeFields, fieldFilters), [beforeFields, fieldFilters]);
+
+  /** The order asked for, before grouping and before a slice is taken. */
+  const ordered = useMemo(() => {
     // Compared against one image, the gallery is that image's neighbours and nothing else:
     // the filters still narrow them, but the order is the service's answer, not a column.
     if (likeRank) {
-      return filtered
+      return kept
         .filter((image) => likeRank.has(image.image))
         .sort((a, b) => likeRank.get(a.image)! - likeRank.get(b.image)!);
     }
+    if (shuffle) return shuffleImages(kept, seed);
+    if (order.startsWith(FIELD_ORDER)) return sortByField(kept, order.slice(FIELD_ORDER.length), direction);
     const sign = direction === "asc" ? 1 : -1;
     const when = (image: ImageRow) => statuses[image.image]?.time ?? "";
-    const sorted = [...filtered];
+    const sorted = [...kept];
     sorted.sort((a, b) => {
       let by = 0;
       if (order === "filename") by = fileName(a.image).localeCompare(fileName(b.image), undefined, { numeric: true });
@@ -315,7 +431,74 @@ export function ImagesPage({ project, dataset, review, edit, similar, patches, s
       return by !== 0 ? by * sign : a.image.localeCompare(b.image);
     });
     return sorted;
-  }, [beforeClass, classes, order, direction, statuses, scores, likeRank]);
+  }, [kept, order, direction, statuses, scores, likeRank, shuffle, seed]);
+
+  /** The groups one field cuts the gallery into, or null when nothing is grouping it.
+   *
+   * Grouping does not page separately: the groups are laid end to end and the gallery pages
+   * through them as it always has, with a heading where one group ends and the next begins.
+   * That keeps one paging rule for every state of this tab, and makes *flatten* -- the same
+   * images in group order, headings off -- a matter of not drawing the headings.
+   */
+  const grouping = useMemo<Grouping | null>(() => {
+    if (!group) return null;
+    const builtIn = BUILT_IN_GROUPS[group];
+    if (builtIn) {
+      const field: FieldInfo = { name: group, label: builtIn, kind: "string", present: ordered.length };
+      const valueFor = group === "set"
+        ? (item: ImageRow) => item.set
+        : (item: ImageRow) => STATUS_LABEL[statuses[item.image]?.status ?? "unreviewed"] ?? "Unreviewed";
+      return groupImages(ordered, field, { valueFor });
+    }
+    const field = fields.find((f) => f.name === group);
+    return field ? groupImages(ordered, field) : null;
+  }, [group, ordered, fields, statuses]);
+
+  /** The groups laid end to end, each cut to a few images unless it has been opened.
+   *
+   * Cut, because the gallery pages: a dataset with 260 flights and a page of 120 images would
+   * otherwise show the first flight and nothing else, which looks like a broken grouping
+   * rather than a page of one. A handful from each is what makes the groups comparable, and
+   * a group is opened in full by its own heading. Flattened, nothing is cut -- there are no
+   * groups on screen to compare.
+   */
+  const inGroupOrder = useMemo(() => {
+    if (!grouping) return ordered;
+    if (flatten) return grouping.groups.flatMap((entry) => entry.items);
+    return grouping.groups.flatMap((entry) => (
+      expanded.has(entry.key) ? entry.items : entry.items.slice(0, PER_GROUP)
+    ));
+  }, [grouping, ordered, flatten, expanded]);
+
+  /** A group heading is drawn before the first image of each group. */
+  const groupHeads = useMemo(() => {
+    const heads = new Map<string, { key: string; label: string; count: number; shown: number }>();
+    if (!grouping || flatten) return heads;
+    for (const entry of grouping.groups) {
+      const first = entry.items[0];
+      if (!first) continue;
+      const shown = expanded.has(entry.key) ? entry.items.length : Math.min(PER_GROUP, entry.items.length);
+      heads.set(first.image, { key: entry.key, label: entry.label, count: entry.items.length, shown });
+    }
+    return heads;
+  }, [grouping, flatten, expanded]);
+
+  const toggleGroup = useCallback((key: string) => {
+    setExpanded((was) => {
+      const next = new Set(was);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  }, []);
+
+  const items = useMemo(() => sliceImages(inGroupOrder, skip, take), [inGroupOrder, skip, take]);
+
+  /** The column the list view shows a cell for: the one being ordered by, or grouped by. */
+  const listColumn = useMemo(() => {
+    const name = order.startsWith(FIELD_ORDER) ? order.slice(FIELD_ORDER.length) : group;
+    return fields.find((field) => field.name === name) ?? null;
+  }, [order, group, fields]);
 
   // Linked from elsewhere (a finding) to edit one image: open it once the list is in.
   const openedFromLink = useRef<string | null>(null);
@@ -645,7 +828,7 @@ export function ImagesPage({ project, dataset, review, edit, similar, patches, s
   const progress = counts.total ? counts.verified / counts.total : 0;
 
   return (
-    <div className={`page page-wide images-page${review ? " reviewing" : ""}${edit ? " editing" : ""}${similar ? " similar" : ""}${stats ? " with-detail" : ""}`}>
+    <div className={`page page-wide images-page${review ? " reviewing" : ""}${edit ? " editing" : ""}${similar ? " similar" : ""}${stats ? " with-detail" : ""}${fieldsOpen ? " with-fields" : ""}`}>
       <PageHeader
         title="Images"
         context={project}
@@ -719,8 +902,10 @@ export function ImagesPage({ project, dataset, review, edit, similar, patches, s
               </button>
             )}
 
-            {tags && Object.keys(tags.counts).length > 0 && (
-              <TagFilter counts={tags.counts} chosen={tagFilter} onChange={setTagFilter} />
+            {/* A payload without the object keys -- an older service behind a newer dashboard
+                -- must narrow nothing rather than take the tab down with it. */}
+            {tags && (Object.keys(tags.counts ?? {}).length > 0 || Object.keys(tags.object_counts ?? {}).length > 0) && (
+              <TagFilter counts={tags.counts ?? {}} objectCounts={tags.object_counts ?? {}} chosen={tagFilter} onChange={setTagFilter} />
             )}
 
             <div className="segmented" role="group" aria-label="Status">
@@ -736,6 +921,10 @@ export function ImagesPage({ project, dataset, review, edit, similar, patches, s
                 <span className="muted small" title="Compared against one image, the order is how alike each image is to it">
                   Most alike first
                 </span>
+              ) : shuffle ? (
+                <span className="muted small" title="A shuffle replaces the order; clear it in Sample to order by a column again">
+                  Shuffled, seed {seed}
+                </span>
               ) : (
                 <>
                   <div className="select-wrap">
@@ -750,9 +939,16 @@ export function ImagesPage({ project, dataset, review, edit, similar, patches, s
                         if (next === "uniqueness") setDirection("desc");
                       }}
                     >
-                      {(Object.keys(ORDER_LABEL) as OrderKey[]).map((key) => (
+                      {BUILT_IN_ORDERS.map((key) => (
                         <option key={key} value={key}>{ORDER_LABEL[key]}</option>
                       ))}
+                      {fields.length > 0 && (
+                        <optgroup label="Columns of this dataset">
+                          {fields.map((field) => (
+                            <option key={field.name} value={`${FIELD_ORDER}${field.name}`}>{field.label}</option>
+                          ))}
+                        </optgroup>
+                      )}
                     </select>
                   </div>
                   <button
@@ -764,6 +960,49 @@ export function ImagesPage({ project, dataset, review, edit, similar, patches, s
                     <Icon name={direction === "asc" ? "up" : "down"} size={15} />
                   </button>
                 </>
+              )}
+              {!like && (
+                <SampleMenu
+                  shuffle={shuffle}
+                  seed={seed}
+                  skip={skip}
+                  take={take}
+                  total={inGroupOrder.length}
+                  onShuffle={setShuffle}
+                  onSeed={setSeed}
+                  onSkip={setSkip}
+                  onTake={setTake}
+                />
+              )}
+              <div className="select-wrap">
+                <select
+                  aria-label="Group by"
+                  value={group}
+                  onChange={(e) => setGroup(e.target.value)}
+                  title="Cut the gallery into groups by one column, with a heading on each"
+                >
+                  <option value="">No grouping</option>
+                  {Object.entries(BUILT_IN_GROUPS).map(([key, label]) => (
+                    <option key={key} value={key}>Group by {label.toLowerCase()}</option>
+                  ))}
+                  {fields.length > 0 && (
+                    <optgroup label="Columns of this dataset">
+                      {fields.map((field) => (
+                        <option key={field.name} value={field.name}>Group by {field.label.toLowerCase()}</option>
+                      ))}
+                    </optgroup>
+                  )}
+                </select>
+              </div>
+              {grouping && (
+                <button
+                  className={`button subtle toggle-button${flatten ? " on" : ""}`}
+                  aria-pressed={flatten}
+                  onClick={() => setFlatten(!flatten)}
+                  title="Keep the groups' order but drop their headings, so the gallery reads as one list again"
+                >
+                  <Icon name="list" size={15} />Flatten
+                </button>
               )}
             </div>
               </>
@@ -780,6 +1019,12 @@ export function ImagesPage({ project, dataset, review, edit, similar, patches, s
                     state: {
                       split, status, order, direction,
                       classes: [...classes], tags: [...tagFilter], onlyClasses,
+                      group, flatten, shuffle, seed, skip, take,
+                      // Only the filters a reader has actually set: a wide-open widget's
+                      // bounds are the data's, and next month's data has different ones.
+                      fields: Object.fromEntries(
+                        Object.entries(fieldFilters).filter(([, filter]) => fieldFilterActive(filter)),
+                      ),
                     },
                   });
                   setViews(saved);
@@ -794,6 +1039,22 @@ export function ImagesPage({ project, dataset, review, edit, similar, patches, s
                   setClasses(new Set(state.classes ?? []));
                   setTagFilter(new Set(state.tags ?? []));
                   setOnlyClasses(Boolean(state.onlyClasses));
+                  setGroup(typeof state.group === "string" ? state.group : "");
+                  setFlatten(Boolean(state.flatten));
+                  setShuffle(Boolean(state.shuffle));
+                  if (typeof state.seed === "number") setSeed(state.seed);
+                  setSkip(typeof state.skip === "number" ? state.skip : 0);
+                  setTake(typeof state.take === "number" ? state.take : 0);
+                  // A saved field filter is applied over the widget the current data built,
+                  // so a column the dataset no longer has is skipped rather than resurrected.
+                  const saved = (state.fields ?? {}) as Record<string, unknown>;
+                  setFieldFilters((was) => {
+                    const next = { ...was };
+                    for (const [name, filter] of Object.entries(saved)) {
+                      if (was[name]) next[name] = restoreFieldFilter(was[name]!, filter);
+                    }
+                    return next;
+                  });
                 }}
                 onDelete={async (view) => {
                   if (!active) return;
@@ -827,6 +1088,16 @@ export function ImagesPage({ project, dataset, review, edit, similar, patches, s
                 title="Counts of what these images hold: sets, review, objects per image, classes, object size"
               >
                 <Icon name="runs" size={15} />Stats
+              </button>
+              <button
+                className={`button subtle toggle-button${fieldsOpen ? " on" : ""}`}
+                aria-pressed={fieldsOpen}
+                onClick={() => setFieldsOpen(!fieldsOpen)}
+                title="Filter and summarise by the set's own columns: a widget for each, with bounds, mean, deviation and quantiles"
+                disabled={fields.length === 0}
+              >
+                <Icon name="columns" size={15} />Fields
+                {activeFields > 0 && <span className="split-toggle-count">{activeFields}</span>}
               </button>
               <button
                 className={`button subtle toggle-button${patches ? " on" : ""}`}
@@ -989,6 +1260,9 @@ export function ImagesPage({ project, dataset, review, edit, similar, patches, s
                 <ImageList
                   items={visible}
                   statuses={statuses}
+                  heads={groupHeads}
+                  column={listColumn}
+                  onToggleGroup={toggleGroup}
                   marks={joined?.marks}
                   scores={order === "uniqueness" ? scores : null}
                   shares={likeShare}
@@ -1002,13 +1276,20 @@ export function ImagesPage({ project, dataset, review, edit, similar, patches, s
                 />
               ) : (
                 <div className="images-grid">
-                  {visible.map((item, i) => (
+                  {visible.map((item, i) => [
+                    groupHeads.has(item.image) ? (
+                      <GroupHead
+                        key={`head:${item.image}`}
+                        head={groupHeads.get(item.image)!}
+                        onToggle={() => toggleGroup(groupHeads.get(item.image)!.key)}
+                      />
+                    ) : null,
                     <ImageCard
                       key={item.image}
                       item={item}
                       state={statuses[item.image]}
                       mark={joined?.marks.get(item.image)}
-                      tags={tags?.images[item.image]}
+                      tags={tags?.images?.[item.image]}
                       drafted={item.drafted}
                       unique={order === "uniqueness" ? scores?.[item.image] : undefined}
                       share={likeShare?.get(item.image)}
@@ -1021,8 +1302,8 @@ export function ImagesPage({ project, dataset, review, edit, similar, patches, s
                       onToggle={(range) => toggle(i, range)}
                       onOpen={() => (review ? setInspecting(i) : edit ? setEditing(i) : setOpen(item.image))}
                       onLike={() => setLike(item.image)}
-                    />
-                  ))}
+                    />,
+                  ])}
                 </div>
               )}
               {items.length > shown && !patches && (
@@ -1034,6 +1315,18 @@ export function ImagesPage({ project, dataset, review, edit, similar, patches, s
                 </div>
               )}
             </div>
+
+            {fieldsOpen && data && (
+              <FieldsPanel
+                fields={fields}
+                filters={fieldFilters}
+                items={beforeFields}
+                onChange={setFieldFilter}
+                onReset={resetFieldFilter}
+                onClearAll={clearFieldFilters}
+                onClose={() => setFieldsOpen(false)}
+              />
+            )}
 
             {stats && data && (
               <StatsPanel
@@ -1202,6 +1495,7 @@ export function ImagesPage({ project, dataset, review, edit, similar, patches, s
           isolated={items[inspecting]!.set === ISOLATED_SET}
           onMove={move}
           onSaved={load}
+          onTagged={() => void loadTags()}
           onIndex={(i) => {
             setInspecting(i);
             if (i >= shown) setShown(i + 1);
@@ -1527,7 +1821,7 @@ function SimilarMarks({ mark, unique, share }: {
   );
 }
 
-function ImageList({ items, statuses, marks, scores, shares, labels, project, dataset, opened, selected, onToggle, onOpen }: {
+function ImageList({ items, statuses, marks, scores, shares, labels, project, dataset, opened, selected, heads, column, onToggleGroup, onToggle, onOpen }: {
   items: ImageRow[];
   statuses: Record<string, QaState>;
   marks: Map<string, SimilarMark> | undefined;
@@ -1541,9 +1835,15 @@ function ImageList({ items, statuses, marks, scores, shares, labels, project, da
   opened: string | null;
   /** Review mode: the selected images; null outside review. */
   selected: Set<string> | null;
+  /** Group headings, keyed by the first image of each group. */
+  heads: Map<string, { key: string; label: string; count: number; shown: number }>;
+  onToggleGroup: (key: string) => void;
+  /** The column the list is ordered or grouped by, shown as its own cell. */
+  column: FieldInfo | null;
   onToggle: (index: number, range: boolean) => void;
   onOpen: (image: string, index: number) => void;
 }) {
+  const span = 7 + (selected ? 1 : 0) + (column ? 1 : 0);
   return (
     <div className="data-table-wrap">
       <table className="data-table images-table">
@@ -1555,6 +1855,7 @@ function ImageList({ items, statuses, marks, scores, shares, labels, project, da
             <th>Split</th>
             <th className="num">Objects</th>
             <th>Classes</th>
+            {column && <th>{column.label}</th>}
             <th>Status</th>
             <th>Updated</th>
           </tr>
@@ -1562,9 +1863,24 @@ function ImageList({ items, statuses, marks, scores, shares, labels, project, da
         <tbody>
           {items.map((item, index) => {
             const state = statuses[item.image];
+            const head = heads.get(item.image);
             return (
+              <Fragment key={item.image}>
+              {head && (
+                <tr className="group-head-row">
+                  <td colSpan={span}>
+                    <button onClick={(e) => { e.stopPropagation(); onToggleGroup(head.key); }}>
+                      {head.label}
+                      <span className="faint">
+                        {head.shown < head.count
+                          ? `${formatNumber(head.shown)} of ${formatNumber(head.count)} — show all`
+                          : formatNumber(head.count)}
+                      </span>
+                    </button>
+                  </td>
+                </tr>
+              )}
               <tr
-                key={item.image}
                 className={opened === item.image || selected?.has(item.image) ? "selected" : ""}
                 onClick={() => onOpen(item.image, index)}
               >
@@ -1591,12 +1907,18 @@ function ImageList({ items, statuses, marks, scores, shares, labels, project, da
                     </span>
                   ))}
                 </td>
+                {column && (
+                  <td className="tabular small">
+                    {fieldValue(item, column.name) === undefined ? <span className="faint">—</span> : displayValue(column, fieldValue(item, column.name)!)}
+                  </td>
+                )}
                 <td>
                   <span className={`qa-chip ${state?.status ?? "unreviewed"}`}>{STATUS_LABEL[state?.status ?? "unreviewed"]}</span>
                   {isFlagged(state) && <span className="image-flag inline" title={state?.status === "rework" ? "Rework" : "Commented"} />}
                 </td>
                 <td className="muted small">{state?.time ? formatWhen(state.time) : "—"}</td>
               </tr>
+              </Fragment>
             );
           })}
         </tbody>
@@ -1680,8 +2002,10 @@ function ClassFilter({ labels, counts, chosen, onChange }: {
 
 /** Filter by the words people have put on images. A menu, because tags are invented freely
  *  and a ribbon cannot hold however many a team decides it needs. */
-function TagFilter({ counts, chosen, onChange }: {
+function TagFilter({ counts, objectCounts, chosen, onChange }: {
   counts: Record<string, number>;
+  /** How many *boxes* carry each tag. An image is left in when one of its boxes is tagged. */
+  objectCounts: Record<string, number>;
   chosen: Set<string>;
   onChange: (next: Set<string>) => void;
 }) {
@@ -1703,6 +2027,13 @@ function TagFilter({ counts, chosen, onChange }: {
     onChange(next);
   };
   const summary = chosen.size === 0 ? "Any tag" : chosen.size === 1 ? [...chosen][0]! : `${chosen.size} tags`;
+  // Words on pictures and words on boxes are one list to filter by, ordered by how used they are.
+  const all = useMemo(
+    () => [...new Set([...Object.keys(counts), ...Object.keys(objectCounts)])]
+      .sort((a, b) => ((counts[b] ?? 0) + (objectCounts[b] ?? 0)) - ((counts[a] ?? 0) + (objectCounts[a] ?? 0))
+        || a.localeCompare(b)),
+    [counts, objectCounts],
+  );
 
   return (
     <div className="class-filter" ref={ref}>
@@ -1714,20 +2045,136 @@ function TagFilter({ counts, chosen, onChange }: {
       {open && (
         <div className="class-menu" role="group" aria-label="Filter by tag">
           <div className="class-menu-head">
-            <span className="muted small">{plural(Object.keys(counts).length, "tag")}</span>
+            <span className="muted small">{plural(all.length, "tag")}</span>
             {chosen.size > 0 && <button className="button subtle small" onClick={() => onChange(new Set())}>Clear</button>}
           </div>
           <ul>
-            {Object.entries(counts).map(([tag, count]) => (
+            {all.map((tag) => (
               <li key={tag}>
-                <label>
+                <label title={objectCounts[tag]
+                  ? `${formatNumber(objectCounts[tag]!)} boxes carry this${counts[tag] ? `, and ${formatNumber(counts[tag]!)} images` : ""}`
+                  : `${formatNumber(counts[tag] ?? 0)} images carry this`}>
                   <input type="checkbox" checked={chosen.has(tag)} onChange={() => toggle(tag)} />
                   <span className="truncate">{tag}</span>
-                  <span className="faint small tabular">{formatNumber(count)}</span>
+                  {/* Two numbers because they are two claims: images wearing the word, and
+                      boxes wearing it. An image is left in when either is true of it. */}
+                  <span className="faint small tabular">{formatNumber(counts[tag] ?? 0)}</span>
+                  {objectCounts[tag] ? <span className="faint small tabular tag-boxes" title="Boxes">{formatNumber(objectCounts[tag]!)}</span> : <span />}
                 </label>
               </li>
             ))}
           </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** One group's heading in the grid: what it is, how much of it is drawn, and a way in. */
+function GroupHead({ head, onToggle }: {
+  head: { label: string; count: number; shown: number };
+  onToggle: () => void;
+}) {
+  const all = head.shown >= head.count;
+  return (
+    <h3 className="group-head">
+      <button
+        onClick={onToggle}
+        title={all ? "Show only a few of this group again" : "Show every image in this group"}
+      >
+        {head.label}
+        <span className="faint">
+          {all ? formatNumber(head.count) : `${formatNumber(head.shown)} of ${formatNumber(head.count)}`}
+        </span>
+        {!all && <span className="group-more">show all</span>}
+      </button>
+    </h3>
+  );
+}
+
+/** Shuffle, skip and take: which slice of the ordered gallery is in front of the reader.
+ *
+ * Together because they are one question -- "give me two hundred of these, chosen without a
+ * bias I did not intend" -- and a seeded shuffle is the only version of that a reader can
+ * hand to someone else. The seed is shown rather than hidden for the same reason: a sample
+ * nobody can reproduce is an anecdote.
+ */
+function SampleMenu({ shuffle, seed, skip, take, total, onShuffle, onSeed, onSkip, onTake }: {
+  shuffle: boolean;
+  seed: number;
+  skip: number;
+  take: number;
+  total: number;
+  onShuffle: (on: boolean) => void;
+  onSeed: (seed: number) => void;
+  onSkip: (skip: number) => void;
+  onTake: (take: number) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const close = (event: MouseEvent) => {
+      if (ref.current && !ref.current.contains(event.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, [open]);
+
+  const active = shuffle || skip > 0 || take > 0;
+  const summary = !active
+    ? "Sample"
+    : [take > 0 ? `${formatNumber(take)}` : null, skip > 0 ? `from ${formatNumber(skip + 1)}` : null, shuffle ? "shuffled" : null]
+        .filter(Boolean).join(" ");
+
+  return (
+    <div className="class-filter" ref={ref}>
+      <button className={`button subtle${active ? " on" : ""}`} aria-expanded={open} onClick={() => setOpen(!open)}>
+        <Icon name="shuffle" size={15} />
+        {summary}
+        <Icon name="chevron" size={13} className="chevron-down" />
+      </button>
+      {open && (
+        <div className="class-menu sample-menu" role="group" aria-label="Sample">
+          <label className="sample-row">
+            <input type="checkbox" checked={shuffle} onChange={(e) => onShuffle(e.target.checked)} />
+            <span>Shuffle</span>
+          </label>
+          <label className="sample-row">
+            <span className="muted small">Seed</span>
+            <input
+              type="number"
+              value={seed}
+              min={1}
+              disabled={!shuffle}
+              onChange={(e) => onSeed(Math.max(1, Math.floor(Number(e.target.value) || 1)))}
+            />
+            <button className="button subtle small" disabled={!shuffle} onClick={() => onSeed(freshSeed())} title="A different shuffle">New</button>
+          </label>
+          <label className="sample-row">
+            <span className="muted small">Skip</span>
+            <input type="number" value={skip} min={0} onChange={(e) => onSkip(Math.max(0, Math.floor(Number(e.target.value) || 0)))} />
+          </label>
+          <label className="sample-row">
+            <span className="muted small">Take</span>
+            <input type="number" value={take} min={0} onChange={(e) => onTake(Math.max(0, Math.floor(Number(e.target.value) || 0)))} />
+            <span className="faint small">0 = all</span>
+          </label>
+          <div className="sample-foot">
+            <span className="muted small">
+              {take > 0 || skip > 0
+                ? `${formatNumber(Math.max(0, Math.min(take > 0 ? take : total - skip, total - skip)))} of ${formatNumber(total)}`
+                : plural(total, "image")}
+            </span>
+            {active && (
+              <button
+                className="button subtle small"
+                onClick={() => { onShuffle(false); onSkip(0); onTake(0); }}
+              >
+                Clear
+              </button>
+            )}
+          </div>
         </div>
       )}
     </div>

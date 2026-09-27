@@ -5,6 +5,11 @@
  *
  * Keys: ← → images · A verify (and next) · R rework · U unverify · I isolate ·
  * B show boxes · Delete remove box · Esc deselect, then close.
+ *
+ * A picked box can also be given a word of its own -- `occluded`, `check-this`. That is a tag
+ * on the object rather than on the picture, kept in the same log as image tags and addressed
+ * by the box's annotation id, so it survives a new version of the set and means something a
+ * class cannot say.
  */
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -12,7 +17,7 @@ import { api } from "../api/client";
 import type { QaBox, QaEvent, QaImage, QaImageDetail, QaState, QaStatus } from "../api/types";
 import { Icon, formatNumber, formatWhen, plural } from "../components/ui";
 import { CROWD_COLOR, labelColor } from "../images/labelColors";
-import { STATUS_LABEL, statusOf, type MoveAction } from "./status";
+import { STATUS_LABEL, objectKey, statusOf, type MoveAction } from "./status";
 /** Drags shorter than this, in image pixels, are clicks rather than new boxes. */
 const MIN_SIDE = 3;
 
@@ -29,6 +34,8 @@ interface Props {
   onDecide: (images: string[], status: QaStatus, comment?: string) => Promise<boolean>;
   onMove: (images: string[], action: MoveAction, reason?: string) => Promise<boolean>;
   onSaved: () => Promise<void>;
+  /** A word was put on a box or taken off it: the ribbon's tag menu is now out of date. */
+  onTagged: () => void;
   onComment: (image: string, comments: number) => void;
   onClose: () => void;
 }
@@ -41,12 +48,66 @@ interface Edits {
 
 const NO_EDITS: Edits = { added: 0, removed: 0, relabelled: 0 };
 
+/** The words on one box: what is on it, what is already in use, and a place to invent one. */
+function BoxTags({ tags, known, onAdd, onRemove }: {
+  tags: string[];
+  known: string[];
+  onAdd: (tag: string) => void;
+  onRemove: (tag: string) => void;
+}) {
+  const [draft, setDraft] = useState("");
+  const listId = "granum-box-tags";
+  const submit = () => {
+    const tag = draft.trim();
+    if (!tag || tags.includes(tag)) {
+      setDraft("");
+      return;
+    }
+    onAdd(tag);
+    setDraft("");
+  };
+
+  return (
+    <div className="box-tags">
+      <div className="box-tag-row">
+        {tags.map((tag) => (
+          <span className="tag box-tag" key={tag}>
+            {tag}
+            <button className="tag-remove" onClick={() => onRemove(tag)} aria-label={`Remove ${tag}`}>×</button>
+          </span>
+        ))}
+        {tags.length === 0 && <span className="faint small">No words on this box</span>}
+      </div>
+      <div className="box-tag-add">
+        <input
+          type="text"
+          list={listId}
+          value={draft}
+          placeholder="occluded, check-this…"
+          aria-label="Tag this box"
+          maxLength={40}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            // The inspector's own keys would otherwise verify the image mid-word.
+            e.stopPropagation();
+            if (e.key === "Enter") submit();
+          }}
+        />
+        <datalist id={listId}>
+          {known.map((tag) => <option key={tag} value={tag} />)}
+        </datalist>
+        <button className="button subtle small" onClick={submit} disabled={!draft.trim()}>Add</button>
+      </div>
+    </div>
+  );
+}
+
 function colorFor(box: QaBox): string {
   return box.iscrowd ? CROWD_COLOR : labelColor(box.label ?? 0);
 }
 
 export function ImageInspector(props: Props) {
-  const { project, dataset, items, index, statuses, author, isolated, onIndex, onDecide, onMove, onSaved, onComment, onClose } = props;
+  const { project, dataset, items, index, statuses, author, isolated, onIndex, onDecide, onMove, onSaved, onTagged, onComment, onClose } = props;
   const item = items[index]!;
   const [detail, setDetail] = useState<QaImageDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -61,6 +122,10 @@ export function ImageInspector(props: Props) {
   const [drawLabel, setDrawLabel] = useState<number | null>(null);
   const [dragging, setDragging] = useState<{ x0: number; y0: number; x1: number; y1: number } | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  /** Object key -> that box's tags, as the service has them. */
+  const [boxTags, setBoxTags] = useState<Record<string, string[]>>({});
+  /** Tags already used anywhere in this dataset, offered rather than retyped. */
+  const [knownTags, setKnownTags] = useState<string[]>([]);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
   const noteRef = useRef<HTMLTextAreaElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
@@ -77,6 +142,7 @@ export function ImageInspector(props: Props) {
         if (!alive) return;
         setDetail(next);
         setBoxes(next.boxes);
+        setBoxTags(next.box_tags ?? {});
         setEdits(NO_EDITS);
         setPicked(null);
       })
@@ -85,6 +151,39 @@ export function ImageInspector(props: Props) {
       alive = false;
     };
   }, [project, dataset, item.table, item.image]);
+
+  useEffect(() => {
+    let alive = true;
+    api.tags(project, dataset)
+      .then((next) => alive && setKnownTags(Object.keys({ ...next.counts, ...next.object_counts })))
+      .catch(() => undefined);  // the words already in use are a convenience, not the feature
+    return () => {
+      alive = false;
+    };
+  }, [project, dataset]);
+
+  /** Put a word on one box, or take it off. The tag store is separate from the set, so this
+   *  does not make the image dirty and needs no new version. */
+  const tagBox = async (at: number, tag: string, on: boolean) => {
+    const box = boxes[at];
+    if (!box) return;
+    const key = objectKey(box, at);
+    const was = boxTags[key] ?? [];
+    // Shown at once, put back if the service refuses: a tag is a note, not a transaction.
+    setBoxTags({ ...boxTags, [key]: on ? [...was.filter((t) => t !== tag), tag] : was.filter((t) => t !== tag) });
+    try {
+      const next = await api.tagImages({
+        project, dataset, samples: [item.image], objects: [key],
+        ...(on ? { add: [tag] } : { remove: [tag] }), author,
+      });
+      setBoxTags(next.objects?.[item.image] ?? {});
+      setKnownTags(Object.keys({ ...next.counts, ...next.object_counts }));
+      onTagged();
+    } catch (e) {
+      setBoxTags({ ...boxTags, [key]: was });
+      setError(e instanceof Error ? e.message : String(e));
+    }
+  };
 
   const labels = detail?.labels ?? {};
   const labelIds = useMemo(() => Object.keys(labels).map(Number).sort((a, b) => a - b), [labels]);
@@ -460,6 +559,14 @@ export function ImageInspector(props: Props) {
               </span>
               <button className="icon-button" onClick={() => removeBox(picked!)} aria-label="Delete box" title="Delete box (Del)"><Icon name="trash" size={14} /></button>
             </div>
+          )}
+          {pickedBox && (
+            <BoxTags
+              tags={boxTags[objectKey(pickedBox, picked!)] ?? []}
+              known={knownTags}
+              onAdd={(tag) => void tagBox(picked!, tag, true)}
+              onRemove={(tag) => void tagBox(picked!, tag, false)}
+            />
           )}
           <ul className="qa-classes">
             {[...classCounts.entries()].sort((a, b) => b[1] - a[1]).map(([label, n]) => (

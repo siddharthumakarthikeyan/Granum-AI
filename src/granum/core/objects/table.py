@@ -360,6 +360,18 @@ class Table(GranumObject):
     def to_pydict(self) -> dict[str, list[Any]]:
         return self.to_arrow().to_pydict()
 
+    def summary(self, column: str) -> dict[str, Any]:
+        """What one column adds up to: bounds, mean, deviation, quantiles, distinct values.
+
+        The same readings the dashboard shows for the images a ribbon has left, asked here
+        of a whole column. Missing values are counted as missing rather than read as zero.
+        """
+        from granum.core.fields import summarize
+
+        if column not in self.columns:
+            raise TableError(f"no column {column!r}. Columns: {self.columns}")
+        return summarize(self.to_arrow().column(column).to_pylist())
+
     @property
     def columns(self) -> list[str]:
         return self.schema.names

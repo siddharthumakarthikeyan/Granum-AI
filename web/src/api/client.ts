@@ -5,7 +5,7 @@
  */
 
 import type { AugmentExample, AugmentRecipe, LicenceStatus,
-  BrowseResult, ComparisonReport, DatasetHealth, EmbeddingReport, EmbeddingScores, EmbeddingStatus, EvaluationExample, EvaluationReport, ExampleDataset, ExportResult, FindingsReport, FormatsReport, Health, QaEvent, QaVersionCounts, QaImageDetail, QaOverview, QaState, QaStatus, Release, TaskId, LibraryClass, LibraryProject, PullResult, ImageBoxes, ImageRounds, ImagesOverview, LearningReport, RemovedImage, VersionRef, ReviewEvent, TrainingResult, TrainingStatus, ImportResult, ImportSource, ImportSummary, Job, LineageGraph,
+  BrowseResult, ComparisonReport, DatasetHealth, EmbeddingReport, EmbeddingScores, EmbeddingStatus, EvaluationExample, EvaluationOutcomes, EvaluationReport, ExampleDataset, ExportResult, FindingsReport, FormatsReport, Health, QaEvent, QaVersionCounts, QaImageDetail, QaOverview, QaState, QaStatus, Release, TaskId, LibraryClass, LibraryProject, PullResult, ImageBoxes, ImageRounds, ImagesOverview, LearningReport, RemovedImage, VersionRef, ReviewEvent, TrainingResult, TrainingStatus, ImportResult, ImportSource, ImportSummary, Job, LineageGraph,
   ModelOptions, ObjectEntry, PreflightReport, PrelabelResult, TagOverview, ProjectCard, ProjectSummary, CommitResult, RowPage, RunMetadata, SavedView, ScreeningOptions, SimilarImages, TableMetadata,
 } from "./types";
 import type { CommitPayload } from "../store/editing";
@@ -237,6 +237,14 @@ export const api = {
     Object.fromEntries(Object.entries(params).filter(([, v]) => v !== undefined)) as Record<string, string | number>,
   ),
 
+  /** Every object a run got right, invented or missed, as rows to cut crops from. */
+  evaluationOutcomes: (params: {
+    url: string; split?: string; kinds?: string; labels?: string; confidence?: number; limit?: number;
+  }) => request<EvaluationOutcomes>(
+    "/api/run/evaluation/outcomes",
+    Object.fromEntries(Object.entries(params).filter(([, v]) => v !== undefined)) as Record<string, string | number>,
+  ),
+
   /** The neighbour graph: a second or so the first time, then served from the service's cache. */
   embeddingReport: (project: string, dataset: string, limit = 5000) =>
     request<EmbeddingReport>("/api/embeddings/report", { project, dataset, limit }),
@@ -273,7 +281,7 @@ export const api = {
   /** Words people have put on this dataset's images. */
   tags: (project: string, dataset: string) => request<TagOverview>("/api/tags", { project, dataset }),
 
-  tagImages: (payload: { project: string; dataset: string; samples: string[]; add?: string[]; remove?: string[]; author?: string }) =>
+  tagImages: (payload: { project: string; dataset: string; samples: string[]; add?: string[]; remove?: string[]; objects?: string[]; author?: string }) =>
     request<TagOverview & { images_tagged: Record<string, string[]> }>("/api/tags", undefined, payload),
 
   /** Named filter sets for this dataset. */
