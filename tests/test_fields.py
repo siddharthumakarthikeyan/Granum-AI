@@ -18,21 +18,21 @@ from granum.core.fields import (
 from granum.core.index import Index
 from granum.core.schemas import (
     BoolSchema,
+    CategoricalLabelSchema,
     EmbeddingSchema,
     ExampleIdSchema,
-    CategoricalLabelSchema,
     Float32Schema,
     ImageSchema,
-    Int32Schema,
     Int32ListSchema,
+    Int32Schema,
     SampleWeightSchema,
     StringSchema,
 )
 from granum.core.schemas.geometry import BoundingBoxes2DSchema
-from granum.service.cache import ByteCache
 from granum.core.url import Url
 from granum.errors import TableError
 from granum.service.app import create_app
+from granum.service.cache import ByteCache
 
 
 def P(path):
