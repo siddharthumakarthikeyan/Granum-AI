@@ -23,7 +23,6 @@ from __future__ import annotations
 import getpass
 import json
 import re
-import threading
 import uuid
 from collections.abc import Iterable
 from datetime import datetime, timezone
@@ -31,6 +30,8 @@ from typing import Any
 
 from granum.core.config import Config, get_config
 from granum.core.layout import ProjectLayout, sanitize
+from granum.core.qa import _append, _read
+from granum.core.storage import locked, workspace_lock
 from granum.core.url import Url, sample_key
 from granum.errors import GranumError
 
@@ -41,17 +42,8 @@ MAX_VIEWS = 200
 #: Objects of one image that may be tagged in one call.
 MAX_OBJECTS_PER_CALL = 500
 
-_locks: dict[str, threading.Lock] = {}
-_locks_guard = threading.Lock()
-
-
 class TagError(GranumError):
     """A tag or a view could not be recorded."""
-
-
-def _lock_for(key: str) -> threading.Lock:
-    with _locks_guard:
-        return _locks.setdefault(key, threading.Lock())
 
 
 def _who() -> str:
@@ -119,28 +111,12 @@ class TagStore:
             if marks else
             [{"sample": key, "add": added, "remove": removed, "author": person, "time": now} for key in keys]
         )
-        lines = "".join(json.dumps(event, separators=(",", ":")) + "\n" for event in events)
-        with _lock_for(str(self.url)):
-            self.url.parent.mkdir()
-            with self.url.fs.open(self.url.path, "ab") as handle:
-                handle.write(lines.encode("utf-8"))
+        _append(self.url, events)
         return {"images": 0 if marks else len(keys), "objects": len(marks),
                 "added": added, "removed": removed}
 
     def events(self) -> list[dict[str, Any]]:
-        if not self.url.exists():
-            return []
-        out = []
-        with _lock_for(str(self.url)):
-            text = self.url.read_text()
-        for line in text.splitlines():
-            try:
-                event = json.loads(line)
-            except json.JSONDecodeError:
-                continue  # a torn final line from an interrupted write
-            if isinstance(event, dict) and event.get("sample"):
-                out.append(event)
-        return out
+        return [event for event in _read(self.url) if event.get("sample")]
 
     @staticmethod
     def _apply(held: list[str], event: dict[str, Any]) -> None:
@@ -224,7 +200,7 @@ class ViewStore:
             "author": _who() if author is None else author,
             "time": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         }
-        with _lock_for(str(self.url)):
+        with workspace_lock(), locked(self.url):
             views = [v for v in self.all() if v["name"].lower() != label.lower()]
             if len(views) >= MAX_VIEWS:
                 raise TagError(f"a dataset keeps up to {MAX_VIEWS} views; delete one first")
@@ -234,7 +210,7 @@ class ViewStore:
         return view
 
     def delete(self, view_id: str) -> bool:
-        with _lock_for(str(self.url)):
+        with workspace_lock(), locked(self.url):
             views = self.all()
             kept = [v for v in views if v["id"] != view_id]
             if len(kept) == len(views):

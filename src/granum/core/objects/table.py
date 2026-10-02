@@ -25,7 +25,7 @@ from granum.core.objects.base import (
     read_object_payload,
     register_object_type,
     utcnow,
-    write_object_payload,
+    write_table_payload,
 )
 from granum.core.schemas import (
     BoolSchema,
@@ -146,14 +146,15 @@ def _take(arrow: pa.Table, indices: Sequence[int]) -> pa.Table:
 
 
 def _unique_url(base: Url, name: str) -> Url:
-    """Pick a table directory name that is not already taken."""
-    candidate = base / sanitize(name)
-    if not candidate.exists():
+    """Reserve a directory with exclusive mkdir; interrupted reservations are not reused."""
+    base.mkdir()
+    for index in range(10_000):
+        candidate = base / sanitize(name if index == 0 else f"{name}_{index}")
+        try:
+            candidate.mkdir(exist_ok=False)
+        except FileExistsError:
+            continue
         return candidate
-    for index in range(1, 10_000):
-        candidate = base / sanitize(f"{name}_{index}")
-        if not candidate.exists():
-            return candidate
     raise TableError(f"could not find a free table name near {name!r}")
 
 
@@ -256,6 +257,8 @@ class Table(GranumObject):
             if url is not None
             else _unique_url(layout.tables_dir(project_name, dataset_name), table_name)
         )
+        if url is not None:
+            target.mkdir(exist_ok=False)
         arrow = _build_arrow(schema, data)
 
         table = Table(
@@ -270,9 +273,7 @@ class Table(GranumObject):
             description=description,
             arrow=arrow,
         )
-        target.mkdir()
-        pq.write_table(arrow, (target / ROW_CACHE_FILENAME).path, filesystem=target.fs)
-        write_object_payload(target, table.to_dict())
+        write_table_payload(target, arrow, table.to_dict())
         return table
 
     def _derive(
@@ -286,6 +287,8 @@ class Table(GranumObject):
         description: str = "",
         name: str | None = None,
         edits: dict[str, Any] | None = None,
+        parents: tuple[Url, ...] | None = None,
+        provenance: dict[str, Any] | None = None,
     ) -> Table:
         """Write a new revision descending from this one."""
         layout = ProjectLayout(get_config().project_root)
@@ -300,14 +303,12 @@ class Table(GranumObject):
             dataset_name=self.dataset_name,
             schema=schema,
             row_count=arrow.num_rows,
-            parents=(self.url,),
-            producer={"op": op, "args": args or {}, **({"edits": edits} if edits else {})},
+            parents=parents if parents is not None else (self.url,),
+            producer={"op": op, "args": args or {}, **({"edits": edits} if edits else {}), **(provenance or {})},
             description=description,
             arrow=arrow,
         )
-        target.mkdir()
-        pq.write_table(arrow, (target / ROW_CACHE_FILENAME).path, filesystem=target.fs)
-        write_object_payload(target, table.to_dict())
+        write_table_payload(target, arrow, table.to_dict())
         return table
 
     # -- serialization ------------------------------------------------------
@@ -507,9 +508,8 @@ class Table(GranumObject):
             schema=self.schema,
             op="join_tables",
             args={"other": str(other.url.aliased())},
+            parents=(self.url, other.url),
         )
-        object.__setattr__(table, "parents", (self.url, other.url))
-        write_object_payload(table.url, table.to_dict())
         return table
 
     def set_values(self, column: str, values: dict[int, Any]) -> Table:
@@ -543,6 +543,7 @@ class Table(GranumObject):
         instance_properties: dict[str, dict[str, str]] | None = None,
         table_name: str | None = None,
         description: str = "",
+        provenance: dict[str, Any] | None = None,
     ) -> Table:
         """One new revision holding a whole editing session.
 
@@ -682,6 +683,7 @@ class Table(GranumObject):
             description=description,
             name=table_name,
             edits=sparse,
+            provenance=provenance,
         )
 
     def set_weights(self, weights: dict[int, float] | float) -> Table:
@@ -707,6 +709,8 @@ class Table(GranumObject):
                 layout.tables_dir(self.project_name, self.dataset_name), f"{self.name}_squashed"
             )
         )
+        if output_url is not None:
+            target.mkdir(exist_ok=False)
         arrow = self.to_arrow()
         table = Table(
             url=target,
@@ -721,9 +725,7 @@ class Table(GranumObject):
             description=self.description,
             arrow=arrow,
         )
-        target.mkdir()
-        pq.write_table(arrow, (target / ROW_CACHE_FILENAME).path, filesystem=target.fs)
-        write_object_payload(target, table.to_dict())
+        write_table_payload(target, arrow, table.to_dict())
         return table
 
     # -- value maps ---------------------------------------------------------

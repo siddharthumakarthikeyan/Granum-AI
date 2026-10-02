@@ -456,6 +456,6 @@ for a pilot write-up or a regression record.
 
 ## Performance
 
-With the dev server running, `http://localhost:5173/?bench=1000000` loads a million synthetic rows
-with no service needed. On an RTX PRO 4000 laptop GPU, pan, zoom and lasso hold 60 fps, and applying
-a lasso to a million rows takes about 115 ms.
+The historical `http://localhost:5173/?bench=1000000` demonstration renders synthetic points without a
+service. It is not an import, multi-epoch, geometry, browser-memory or shared-service capacity test.
+Use the [reproducible workflow measurements and enforced budgets](scaling.md) for deployment planning.

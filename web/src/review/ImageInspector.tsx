@@ -18,6 +18,8 @@ import type { QaBox, QaEvent, QaImage, QaImageDetail, QaState, QaStatus } from "
 import { Icon, formatNumber, formatWhen, plural } from "../components/ui";
 import { CROWD_COLOR, labelColor } from "../images/labelColors";
 import { STATUS_LABEL, objectKey, statusOf, type MoveAction } from "./status";
+import { editorDraftKey } from "../store/editorDrafts";
+import { useEditorDraft } from "../store/useEditorDraft";
 /** Drags shorter than this, in image pixels, are clicks rather than new boxes. */
 const MIN_SIDE = 3;
 
@@ -131,10 +133,19 @@ export function ImageInspector(props: Props) {
   const svgRef = useRef<SVGSVGElement>(null);
   const status = statusOf(statuses, item.image);
   const dirty = edits.added + edits.removed + edits.relabelled > 0;
+  const recovery = useEditorDraft(
+    editorDraftKey("review", project, dataset, item.image),
+    detail?.image === item.image && detail.table === item.table ? detail.table : null,
+    { boxes, edits, draft, needsNote }, dirty || Boolean(draft),
+    (saved) => { setBoxes(saved.boxes); setEdits(saved.edits); setDraft(saved.draft); setNeedsNote(saved.needsNote); },
+  );
+  const saveInFlight = useRef(false);
 
   useEffect(() => {
     let alive = true;
     setError(null);
+    setDetail(null);
+    setDraft("");
     setNeedsNote(false);
     setConfirmDelete(false);
     api.qaImage(project, dataset, item.table, item.image)
@@ -200,26 +211,37 @@ export function ImageInspector(props: Props) {
 
   // -- saving ---------------------------------------------------------------
   const save = async (): Promise<boolean> => {
+    if (saveInFlight.current || recovery.blocked) return false;
     if (!dirty || !detail?.box_column) return true;
+    if (draft.trim()) { setError("Post or clear the pending comment before saving box changes. Both are retained in your recovery draft."); return false; }
+    saveInFlight.current = true;
     setBusy(true);
     setSaveState("saving");
     try {
       const width = detail.width ?? 0;
       const height = detail.height ?? 0;
-      await api.commit({
+      const properties = detail.instance_properties ?? {};
+      const instances = boxes.map((box) => {
+        const stored = { ...box };
+        // Drawing computes these UI conveniences, but thin SDK schemas need not declare them.
+        // Keep every other annotation property intact, including masks and keypoints.
+        if (!("iscrowd" in properties)) delete stored.iscrowd;
+        if (!("area" in properties)) delete stored.area;
+        return stored;
+      });
+      const saved = await api.commit({
         url: detail.table,
-        values: { [detail.box_column]: { [String(detail.row)]: { width, height, instances: boxes } } },
+        values: { [detail.box_column]: { [String(detail.row)]: { width, height, instances } } },
         new_columns: {},
         value_maps: {},
         description: `Boxes edited in review: ${item.image.split("/").pop()}`,
       });
-      const parts = [
-        edits.added && `${edits.added} added`,
-        edits.removed && `${edits.removed} removed`,
-        edits.relabelled && `${edits.relabelled} relabelled`,
-      ].filter(Boolean);
-      await api.addQaComment({ project, dataset, sample: item.image, comment: `Edited boxes: ${parts.join(", ")}`, author, table: detail.table })
-        .catch(() => undefined);
+      // The server records the edit and invalidates review as part of this commit.
+      setDetail((was) => was && { ...was, table: saved.url });
+      if (!draft) {
+        try { await recovery.clear(); }
+        catch { setError("Changes are saved on the server, but the browser recovery copy could not be cleared. Reopen to export or discard the stale copy."); }
+      }
       setEdits(NO_EDITS);
       setSaveState("saved");
       window.setTimeout(() => setSaveState("idle"), 2500);
@@ -230,6 +252,7 @@ export function ImageInspector(props: Props) {
       setSaveState("idle");
       return false;
     } finally {
+      saveInFlight.current = false;
       setBusy(false);
     }
   };
@@ -251,6 +274,7 @@ export function ImageInspector(props: Props) {
   };
 
   const decide = async (next: QaStatus) => {
+    if (busy || recovery.blocked) return;
     const note = draft.trim();
     if (next === "rework" && !note) {
       setNeedsNote(true);
@@ -259,23 +283,38 @@ export function ImageInspector(props: Props) {
     }
     if (!(await save())) return;
     setBusy(true);
-    const ok = await onDecide([item.image], next, note);
-    setBusy(false);
-    if (!ok) return;
-    setDraft("");
-    setNeedsNote(false);
-    if (next === "reviewed" && index < items.length - 1) onIndex(index + 1);
-    else void reloadThread().catch(() => undefined);
+    try {
+      if (!(await onDecide([item.image], next, note))) return;
+      await recovery.clear();
+      setDraft("");
+      setNeedsNote(false);
+      if (next === "reviewed" && index < items.length - 1) onIndex(index + 1);
+      else await reloadThread();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy(false);
+    }
   };
 
   const moveImage = async (action: MoveAction) => {
+    if (busy || recovery.blocked) return;
     if (action !== "delete" && !(await save())) return;
-    await onMove([item.image], action, draft.trim());
-    setDraft("");
-    setConfirmDelete(false);
+    setBusy(true);
+    try {
+      if (!(await onMove([item.image], action, draft.trim()))) return;
+      await recovery.clear();
+      setDraft("");
+      setConfirmDelete(false);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy(false);
+    }
   };
 
   const comment = async () => {
+    if (busy || recovery.blocked) return;
     const text = draft.trim();
     if (!text) return;
     setBusy(true);
@@ -284,6 +323,7 @@ export function ImageInspector(props: Props) {
       setDetail((was) => was && { ...was, thread: done.thread });
       onComment(item.image, done.thread.filter((e) => e.comment).length);
       setDraft("");
+      if (!dirty) await recovery.clear();
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -353,10 +393,14 @@ export function ImageInspector(props: Props) {
 
   // -- keys -------------------------------------------------------------------
   // The latest handlers, for a key listener registered once.
-  const keys = useRef({ decide, go, close, index, picked, removeBox, save, moveImage, isolated, editable });
-  keys.current = { decide, go, close, index, picked, removeBox, save, moveImage, isolated, editable };
+  const keys = useRef({ decide, go, close, index, picked, removeBox, save, moveImage, isolated, editable, blocked: false });
+  keys.current = { decide, go, close, index, picked, removeBox, save, moveImage, isolated, editable, blocked: busy || recovery.blocked };
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
+      if (saveInFlight.current || keys.current.blocked) {
+        if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") event.preventDefault();
+        return;
+      }
       const target = event.target as HTMLElement;
       if (target.tagName === "TEXTAREA" || target.tagName === "INPUT" || target.tagName === "SELECT") {
         if (event.key === "Escape") target.blur();
@@ -385,14 +429,14 @@ export function ImageInspector(props: Props) {
 
   // Leaving the page with unsaved box edits would lose them.
   useEffect(() => {
-    if (!dirty) return;
+    if (!dirty && !draft) return;
     const warn = (event: BeforeUnloadEvent) => {
       event.preventDefault();
       event.returnValue = "";
     };
     window.addEventListener("beforeunload", warn);
     return () => window.removeEventListener("beforeunload", warn);
-  }, [dirty]);
+  }, [dirty, draft]);
 
   const name = item.image.split("/").pop() ?? item.image;
   const classCounts = new Map<string, number>();
@@ -405,8 +449,10 @@ export function ImageInspector(props: Props) {
   const fontSize = Math.max(10, Math.round(Math.max(width, height) / 70));
 
   return (
-    <div className="qa-inspector" role="dialog" aria-modal="true" aria-label={name}>
+    <div className="qa-inspector" role="dialog" aria-modal="true" aria-label={name}
+      {...(busy ? { inert: "" } : {})} aria-busy={busy}>
       <div className="qa-stage">
+        {recovery.banner}
         <div className="qa-stage-bar">
           <button className="icon-button" onClick={() => void go(index - 1)} disabled={index === 0 || busy} aria-label="Previous image"><Icon name="back" /></button>
           <span className="tabular small">{formatNumber(index + 1)} / {formatNumber(items.length)}</span>

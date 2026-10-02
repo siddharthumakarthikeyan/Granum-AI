@@ -233,6 +233,29 @@ def test_table_columns_describe_editability_and_classes(client):
     assert columns["weight"]["writable"] is True
 
 
+def test_commit_retry_is_idempotent_and_stale_writer_gets_conflict(client):
+    api, _, child, *_ = client
+    payload = {"url": str(child.url), "expected_head": str(child.url), "values": {"label": {"0": 1}}}
+    first = api.post("/api/table/commit", json=payload)
+    assert first.status_code == 200, first.text
+    retry = api.post("/api/table/commit", json=payload)
+    assert retry.status_code == 200 and retry.json()["url"] == first.json()["url"]
+    stale = api.post("/api/table/commit", json={**payload, "values": {"label": {"1": 0}}})
+    assert stale.status_code == 409 and "draft" in stale.json()["detail"]
+
+
+def test_approval_is_separate_from_verified_subset_and_requires_current_contents(client):
+    api, _, child, _, paths = client
+    base = {"project": "demo", "dataset": "train"}
+    version = api.post("/api/qa/release", json={**base, "name": "exploration", "mode": "all"}).json()["release"]
+    approve = {**base, "release_id": version["id"]}
+    assert version["approval"] == "exploratory"
+    assert api.post("/api/qa/approve", json=approve).status_code == 409
+    assert api.post("/api/qa/status", json={**base, "table": str(child.url), "samples": paths[:2], "status": "reviewed"}).status_code == 200
+    assert api.post("/api/qa/approve", json=approve).json()["release"]["approval"] == "approved"
+    assert api.get("/api/releases", params={"project": "demo"}).json()["releases"][0]["approval"] == "approved"
+
+
 def test_commit_writes_one_revision_and_indexes_it(client):
     api, table, _, run, _ = client
     response = api.post("/api/table/commit", json={
@@ -581,7 +604,7 @@ def test_ship_any_version_of_any_set(client):
     # The earlier, three-image version can ship on its own once its images are reviewed.
     older = api.get("/api/qa/version", params={**base, "table": str(table.url)}).json()
     assert older["images"] == 3 and older["ready"] is False
-    api.post("/api/qa/status", json={**base, "samples": paths, "status": "reviewed"})
+    api.post("/api/qa/status", json={**base, "table": str(table.url), "samples": paths, "status": "reviewed"})
     assert api.get("/api/qa/version", params={**base, "table": str(table.url)}).json()["ready"] is True
     shipped = api.post("/api/qa/ship", json={**base, "sets": {"initial": str(table.url)}, "note": "full"})
     assert shipped.status_code == 200, shipped.text

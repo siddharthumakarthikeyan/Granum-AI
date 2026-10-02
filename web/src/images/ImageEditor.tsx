@@ -13,6 +13,8 @@ import type { ImageRow, QaBox, QaImageDetail, TaskId, ValueMap } from "../api/ty
 import { Icon, formatNumber, plural } from "../components/ui";
 import { fileName } from "../review/status";
 import { CROWD_COLOR, labelColor } from "./labelColors";
+import { editorDraftKey } from "../store/editorDrafts";
+import { useEditorDraft } from "../store/useEditorDraft";
 
 type Tool = "select" | "box" | "polygon" | "keypoint";
 
@@ -150,7 +152,7 @@ function toInstance(shape: Shape, declared: Set<string>): QaBox {
   return out;
 }
 
-export function ImageEditor({ project, dataset, tasks, items, index, author, onIndex, onSaved, onClose }: {
+export function ImageEditor({ project, dataset, tasks, items, index, onIndex, onSaved, onClose }: {
   project: string;
   dataset: string;
   /** The project's types: they decide which drawing tools there are. */
@@ -186,6 +188,17 @@ export function ImageEditor({ project, dataset, tasks, items, index, author, onI
   const svgRef = useRef<SVGSVGElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const dirty = past.length > 0 || addedClasses;
+  const recovery = useEditorDraft(
+    editorDraftKey("annotations", project, dataset, item.image),
+    detail?.image === item.image && detail.table === item.table ? detail.table : null,
+    { shapes, labels, past, future, addedClasses, draft, tool, selected, newClass }, dirty || draft.length > 0 || Boolean(newClass),
+    (saved) => {
+      setShapes(saved.shapes); setLabels(saved.labels); setPast(saved.past); setFuture(saved.future);
+      setAddedClasses(saved.addedClasses); setTool(saved.tool); setSelected(saved.selected);
+      setDraft(saved.draft); setNewClass(saved.newClass);
+    },
+  );
+  const saveInFlight = useRef(false);
 
   const width = detail?.width ?? 0;
   const height = detail?.height ?? 0;
@@ -204,6 +217,7 @@ export function ImageEditor({ project, dataset, tasks, items, index, author, onI
   useEffect(() => {
     let alive = true;
     setError(null);
+    setDetail(null);
     api.qaImage(project, dataset, item.table, item.image)
       .then((next) => {
         if (!alive) return;
@@ -306,7 +320,10 @@ export function ImageEditor({ project, dataset, tasks, items, index, author, onI
 
   // -- saving ---------------------------------------------------------------
   const save = async (): Promise<boolean> => {
+    if (saveInFlight.current || recovery.blocked) return false;
+    if (draft.length) { setError("Finish or cancel the polygon before saving or leaving this image."); return false; }
     if (!dirty || !detail?.box_column) return true;
+    saveInFlight.current = true;
     setSaving("saving");
     setError(null);
     try {
@@ -315,7 +332,7 @@ export function ImageEditor({ project, dataset, tasks, items, index, author, onI
       if (shapes.some((s) => s.keypoints.length || Object.keys(s.extra).length) && !declared.has("coco_extra")) needs.coco_extra = "string";
       const keys = new Set([...declared, ...Object.keys(needs)]);
       const valueMap = Object.fromEntries(Object.entries(labels).map(([id, name]) => [id, { internal_name: name }])) as unknown as ValueMap;
-      await api.commit({
+      const saved = await api.commit({
         url: detail.table,
         values: { [detail.box_column]: { [String(detail.row)]: { width, height, instances: shapes.map((s) => toInstance(s, keys)) } } },
         new_columns: {},
@@ -323,11 +340,10 @@ export function ImageEditor({ project, dataset, tasks, items, index, author, onI
         instance_properties: Object.keys(needs).length ? { [detail.box_column]: needs } : {},
         description: `Annotations edited: ${fileName(item.image)}`,
       });
-      // An edited image needs another look before it counts as verified.
-      await api.setQaStatus({
-        project, dataset, samples: [item.image], status: "unreviewed", author, table: detail.table,
-        comment: `Edited annotations (${plural(shapes.length, "object")})`,
-      }).catch(() => undefined);
+      // The commit endpoint invalidates review and records attribution server-side.
+      setDetail((was) => was && { ...was, table: saved.url });
+      try { await recovery.clear(); }
+      catch { setError("Changes are saved on the server, but the browser recovery copy could not be cleared. Reopen to export or discard the stale copy."); }
       setPast([]);
       setFuture([]);
       setAddedClasses(false);
@@ -339,6 +355,8 @@ export function ImageEditor({ project, dataset, tasks, items, index, author, onI
       setError(e instanceof Error ? e.message : String(e));
       setSaving("idle");
       return false;
+    } finally {
+      saveInFlight.current = false;
     }
   };
 
@@ -565,10 +583,14 @@ export function ImageEditor({ project, dataset, tasks, items, index, author, onI
   };
 
   // -- keys -------------------------------------------------------------------
-  const keys = useRef({ undo, redo, save, go, close, removeSelected, index, draft, finishPolygon, fit });
-  keys.current = { undo, redo, save, go, close, removeSelected, index, draft, finishPolygon, fit };
+  const keys = useRef({ undo, redo, save, go, close, removeSelected, index, draft, finishPolygon, fit, blocked: false });
+  keys.current = { undo, redo, save, go, close, removeSelected, index, draft, finishPolygon, fit, blocked: saving === "saving" || recovery.blocked };
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
+      if (saveInFlight.current || keys.current.blocked) {
+        if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") event.preventDefault();
+        return;
+      }
       const target = event.target as HTMLElement;
       if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.tagName === "SELECT") {
         if (event.key === "Escape") target.blur();
@@ -683,8 +705,10 @@ export function ImageEditor({ project, dataset, tasks, items, index, author, onI
   const fontSize = px(12);
 
   return (
-    <div className="qa-inspector image-editor" role="dialog" aria-modal="true" aria-label={`Edit ${fileName(item.image)}`}>
+    <div className="qa-inspector image-editor" role="dialog" aria-modal="true" aria-label={`Edit ${fileName(item.image)}`}
+      {...(saving === "saving" ? { inert: "" } : {})} aria-busy={saving === "saving"}>
       <div className="qa-stage">
+        {recovery.banner}
         <div className="qa-stage-bar">
           <button className="icon-button" onClick={() => void go(index - 1)} disabled={index === 0 || saving === "saving"} aria-label="Previous image"><Icon name="back" /></button>
           <span className="tabular small">{formatNumber(index + 1)} / {formatNumber(items.length)}</span>

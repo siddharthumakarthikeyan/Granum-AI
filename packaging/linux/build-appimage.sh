@@ -7,6 +7,8 @@
 # Needs: curl, tar, Node.js 20+ (to build the dashboard). Build on the oldest Linux you want
 # to support (the bundled Python needs glibc 2.17+; Qt 6 needs glibc 2.28+).
 set -euo pipefail
+export PYTHONNOUSERSITE=1
+unset PYTHONPATH
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 PBS_TAG="${PBS_TAG:-20260901}"
@@ -39,6 +41,7 @@ say "building the granum wheel"
 "$PY" -m pip install --quiet --disable-pip-version-check build
 "$PY" -m build --wheel --outdir "$BUILD/wheel" "$REPO" >/dev/null
 WHEEL="$(ls "$BUILD"/wheel/granum-*.whl)"
+"$PY" -I "$REPO/tools/release_manifest.py" --wheel "$WHEEL" --version "$VERSION" >/dev/null
 
 # 3. Everything Granum needs, into the bundled Python.
 say "installing granum and its dependencies"
@@ -58,6 +61,7 @@ find "$APPDIR/usr/python" -type d \( -name __pycache__ -o -name tests -o -name t
 # Fail the build, not the user's first launch, if trimming broke anything.
 say "checking the bundle imports"
 PYTHONNOUSERSITE=1 "$PY" -c "import PySide6.QtWebEngineWidgets, PySide6.QtWebEngineCore, granum.service.app, granum.cli.window, pandas, pyarrow, PIL, fastapi, uvicorn; print('bundle imports ok')"
+"$PY" -I "$REPO/tools/smoke_package.py"
 
 # 5. Libraries Qt needs that desktop distributions do not always ship.
 for lib in libxcb-cursor.so.0 libxcb-icccm.so.4 libxcb-keysyms.so.1 libxcb-image.so.0 libxcb-render-util.so.0 libxcb-xkb.so.1 libxkbcommon-x11.so.0; do
@@ -80,4 +84,5 @@ fetch "https://github.com/AppImage/type2-runtime/releases/download/continuous/ru
 say "packing $(du -sh "$APPDIR" | cut -f1) into one file"
 ARCH=x86_64 "$CACHE/appimagetool" --appimage-extract-and-run --no-appstream --comp zstd \
   --runtime-file "$CACHE/runtime-x86_64" "$APPDIR" "$OUT" >/dev/null
+"$PY" -I "$REPO/tools/release_manifest.py" --wheel "$WHEEL" --version "$VERSION" --artifact "$OUT" >/dev/null
 say "done: $OUT ($(du -h "$OUT" | cut -f1))"

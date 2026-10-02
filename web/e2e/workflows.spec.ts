@@ -1,0 +1,88 @@
+import { expect, test } from "@playwright/test";
+
+test("images workspace loads and reports browser memory and filter latency", async ({ page }, info) => {
+  const failures: string[] = [];
+  page.on("pageerror", (e) => failures.push(e.message));
+  const start = Date.now();
+  await page.goto("/#/p/qualification/images?dataset=synthetic");
+  await expect(page.locator(".image-card").first()).toBeVisible();
+  const loadMs = Date.now() - start;
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send("Performance.enable");
+  const { metrics } = await cdp.send("Performance.getMetrics");
+  const heap = metrics.find((m: { name: string }) => m.name === "JSHeapUsedSize")?.value;
+  if (heap === undefined) throw new Error("Chromium did not report JS heap usage");
+  const filtering = Date.now();
+  await page.getByRole("group", { name: "Status", exact: true }).getByRole("button", { name: /^Verified/ }).click();
+  await expect(page.locator(".image-card")).toHaveCount(0);
+  const filterMs = Date.now() - filtering;
+  expect(failures).toEqual([]);
+  await info.attach("browser-measurement", { body: JSON.stringify({ images: Number(process.env.GRANUM_BENCHMARK_IMAGES ?? 120), loadMs, filterMs, heapMiB: heap / 1024**2 }), contentType: "application/json" });
+});
+
+test("annotation editor recovers a class draft after reload, then commits it", async ({ page, request }) => {
+  const overview = await (await request.get("/api/images?project=qualification&dataset=synthetic")).json();
+  const image = overview.images[0].image;
+  await page.goto(`/#/p/qualification/images?dataset=synthetic&edit=1&open=${encodeURIComponent(image)}`);
+  const editor = page.getByRole("dialog", { name: /Edit sample-/ });
+  await expect(editor).toBeVisible();
+  await editor.getByRole("button", { name: "Class", exact: true }).first().click();
+  await editor.getByPlaceholder("New class name").fill("recovered-class");
+  await editor.getByRole("button", { name: "Add", exact: true }).click();
+  await expect(editor.getByText(/Recovery copy saved/)).toBeVisible();
+  page.on("dialog", (dialog) => dialog.accept());
+  await page.reload();
+  await expect(page.getByRole("dialog", { name: "Recover unsaved annotations" })).toBeVisible();
+  await page.getByRole("button", { name: "Recover edits", exact: true }).click();
+  await expect(page.locator(".image-editor")).toContainText("recovered-class");
+  await page.route("**/api/table/commit", (route) => route.fulfill({ status: 409, json: { detail: "Qualification: stale edit refused" } }));
+  await page.keyboard.press("Control+s");
+  await expect(page.getByText("Qualification: stale edit refused")).toBeVisible();
+  await expect(page.getByText(/Recovery copy saved in this browser/)).toBeVisible();
+  await page.unroute("**/api/table/commit");
+  const committed = page.waitForResponse((response) => response.url().endsWith("/api/table/commit") && response.request().method() === "POST");
+  await page.keyboard.press("Control+s");
+  expect((await committed).status()).toBe(200);
+  await expect(page.getByText(/Recovery copy saved/)).toHaveCount(0);
+});
+
+test("review editor recovers boxes and a comment, retaining both across a failed save", async ({ page }) => {
+  await page.goto("/#/p/qualification/images?dataset=synthetic&review=1");
+  await page.locator(".image-card-frame").first().click();
+  const canvas = page.locator('.qa-inspector svg[viewBox="0 0 128 128"]');
+  await expect(canvas).toBeVisible();
+  const points = await canvas.evaluate((element) => {
+    const matrix = (element as SVGSVGElement).getScreenCTM()!;
+    const a = new DOMPoint(60, 70).matrixTransform(matrix);
+    const b = new DOMPoint(90, 100).matrixTransform(matrix);
+    return { ax: a.x, ay: a.y, bx: b.x, by: b.y };
+  });
+  await page.mouse.move(points.ax, points.ay);
+  await page.mouse.down();
+  await page.mouse.move(points.bx, points.by);
+  await page.mouse.up();
+  await expect(page.locator(".qa-side-title").filter({ hasText: "Boxes" })).toContainText("9");
+  const comment = page.getByPlaceholder("Comment, or the reason for rework / isolate / delete");
+  await comment.fill("Recovered review note");
+  await expect(page.getByText(/Recovery copy saved in this browser/)).toBeVisible();
+  page.on("dialog", (dialog) => dialog.accept());
+  await page.reload();
+  await page.locator(".image-card-frame").first().click();
+  await page.getByRole("button", { name: "Recover edits", exact: true }).click();
+  await expect(comment).toHaveValue("Recovered review note");
+  await expect(page.locator(".qa-side-title").filter({ hasText: "Boxes" })).toContainText("9");
+  await page.route("**/api/qa/comment", (route) => route.fulfill({ status: 503, json: { detail: "Qualification: save unavailable" } }));
+  await page.getByRole("button", { name: "Comment", exact: true }).click();
+  await expect(page.getByText("Qualification: save unavailable")).toBeVisible();
+  await expect(comment).toHaveValue("Recovered review note");
+  await page.unroute("**/api/qa/comment");
+  await page.getByRole("button", { name: "Comment", exact: true }).click();
+  await expect(page.locator(".qa-thread").getByText("Recovered review note")).toBeVisible();
+  await expect(comment).toHaveValue("");
+  await comment.focus();
+  await page.keyboard.press("Escape");
+  const saved = page.waitForResponse((response) => response.url().endsWith("/api/table/commit") && response.request().method() === "POST");
+  await page.keyboard.press("Control+s");
+  expect((await saved).status()).toBe(200);
+  await expect(page.getByText(/Recovery copy saved in this browser/)).toHaveCount(0);
+});

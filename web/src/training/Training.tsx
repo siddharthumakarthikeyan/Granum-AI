@@ -45,6 +45,7 @@ export function TrainDialog({ project, preset, onClose, onStarted }: {
   const [status, setStatus] = useState<TrainingStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [starting, setStarting] = useState(false);
+  const [exploratoryAccepted, setExploratoryAccepted] = useState(false);
 
   useEffect(() => {
     api.trainingStatus(project).then(setStatus).catch((e: Error) => setError(e.message));
@@ -52,6 +53,7 @@ export function TrainDialog({ project, preset, onClose, onStarted }: {
 
   /** Train on the train set, check on valid (else test) and hold out test, when a version has them. */
   const chooseRelease = useCallback((release: Release | undefined) => {
+    setExploratoryAccepted(false);
     setReleaseId(release?.id ?? "");
     const sets = Object.keys(release?.sets ?? {});
     const train = sets.find((n) => /^train/i.test(n)) ?? sets[0] ?? "";
@@ -89,6 +91,7 @@ export function TrainDialog({ project, preset, onClose, onStarted }: {
 
   const problem =
     releases && releases.length === 0 ? "No dataset version yet."
+      : release && release.approval !== "approved" && !exploratoryAccepted ? "Confirm exploratory training or approve this version first."
       : !trainUrl || !validUrl ? "Choose training and validation sets."
       : trainSet === validSet ? "Training and validation data must come from different sets."
       : testSet && (testSet === trainSet || testSet === validSet) ? "The test set must differ from the training and validation sets."
@@ -106,6 +109,8 @@ export function TrainDialog({ project, preset, onClose, onStarted }: {
         image_size: family?.supports_closer ? imageSize : 640,
         track_learning: trackLearning,
         compare_with: compareWith || null,
+        release_id: release?.id,
+        require_approved: release?.approval === "approved",
       });
       onStarted(job);
       onClose();
@@ -154,6 +159,14 @@ export function TrainDialog({ project, preset, onClose, onStarted }: {
 
       <div className="form-section">
         <h3>Data</h3>
+        {release && (release.approval === "approved" ? (
+          <p className="notice">Approved contents. The service enforces approval for this training request.</p>
+        ) : (
+          <label className="check-row notice">
+            <input type="checkbox" checked={exploratoryAccepted} onChange={(e) => setExploratoryAccepted(e.target.checked)} />
+            I understand this is exploratory training. This version has not passed the release approval gate.
+          </label>
+        ))}
         <label className="field">
           <span>Dataset version</span>
           <div className="select-wrap">

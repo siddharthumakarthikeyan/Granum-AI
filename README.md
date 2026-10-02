@@ -7,7 +7,7 @@
 
 <p align="center">
   <strong>The data workbench for computer-vision teams.</strong><br>
-  Import, review, fix and ship training data, then train on exactly what was approved and see which images the model struggles with.
+  Import, review and fix training data. Create exploratory versions, approve reviewed releases separately, and train on exact versioned inputs.
 </p>
 
 <p align="center">
@@ -20,9 +20,14 @@
 ---
 
 Granum keeps training data as **versioned tables** and model behaviour as **per-sample runs**.
-A score you don't like leads straight to the image behind it; fixing that image creates a new
-version that the next training run uses. Nothing is overwritten, every decision is recorded,
-and your data never leaves your machine.
+A score you want to investigate leads to the image behind it; a justified correction creates a new
+table version for a later experiment. The default workflow is local-first; optional cloud storage,
+authenticated sharing and configured training integrations extend that boundary.
+
+**Start with the [guided aerial-data course](https://granum.app/docs/course/start):** 120 real sample
+images, step-by-step explanations, actual screenshots, 10 captioned videos, real training/comparison
+results, two-image approval/export, and a verified backup/restore. It explains poor results honestly
+rather than treating a successful training process as a production model. [Lesson map](docs/getting-started.md).
 
 ## Contents
 
@@ -40,9 +45,10 @@ and your data never leaves your machine.
 
 ## Why Granum
 
-Most accuracy problems in production vision models are data problems: missing boxes, wrong
-classes, leaked duplicates between train and validation, unusable images. Teams find them late
-and fix them in spreadsheets and chat threads, with no record of what changed or why.
+Data problems can undermine vision models: missing boxes, inconsistent classes, leaked duplicates
+between train and validation, or unreadable images. A weak recipe, insufficient training or a mismatched
+evaluation policy can also produce poor scores. Granum helps inspect the evidence and record decisions
+instead of assuming every model failure is a label error.
 
 Granum is one local tool for the whole loop:
 
@@ -50,7 +56,7 @@ Granum is one local tool for the whole loop:
 |---|---|
 | A new dataset arrives with hidden issues | A **preflight** health check finds them before anything is imported, and you choose how each one is handled |
 | Labelling quality is checked ad hoc | A **Review** tab puts every image through *unreviewed → reviewed / rework*, with comments for the annotation team |
-| Nobody knows which data a model was trained on | Datasets are **shipped** as exact versions, and training accepts only shipped versions |
+| Nobody knows which data a model was trained on | Dashboard training selects exact **dataset versions**; exploratory use and explicit release approval are separate |
 | "Which images is the model getting wrong?" | Per-image metrics every epoch show which images were learned early, late, or never |
 | Fixes get lost or overwrite each other | Every change is a new **version** with its parent recorded, so you can always go back |
 
@@ -70,8 +76,10 @@ Granum is one local tool for the whole loop:
 3. **Review** every image. Reviewers mark images *Reviewed* or send them for *Rework* with a
    comment. Annotators fix boxes directly in the viewer. Problem images can be **isolated** so the
    rest can move on, or **deleted** (recoverably).
-4. **Ship** the dataset once every image is reviewed. The shipment records the exact version of each set.
-5. **Train** YOLO, RT-DETR or RF-DETR on shipped versions from the dashboard, on your GPU.
+4. **Version** the selected sets for exploration. **Approve** separately when every included image's
+  exact labels, schema and media match review evidence. Selecting a verified subset is not approval.
+5. **Train** YOLO, RT-DETR or RF-DETR on those versions. Approved-only training revalidates the approved
+  contents; exploratory training requires explicit acknowledgment in the dashboard.
 6. **Inspect** the run: mAP, precision and recall per epoch, and when each image was learned.
    Open the hard images, fix them, and ship the next version.
 
@@ -111,11 +119,12 @@ counts per set, example images and a recommended action. Imports are confined to
 <tr>
 <td width="50%" valign="top">
 
-**Ship, then train**
+**Freeze, approve deliberately, then train**
 
-Shipping is gated: the button stays disabled until every image in every set is reviewed. Training
-lists shipped versions only, and the service refuses anything else. Choose the detector family, weights,
-image size and epochs, and compare against an earlier run scored on the same labels.
+Creating a dataset version freezes selected inputs for exploration. Approval is a separate gate
+requiring matching review evidence for every included image's rows, schema and media. Approved-only
+training revalidates that gate; deliberate exploratory training requires dashboard acknowledgement.
+Compare runs only after checking evaluation identities, class mapping and scoring policy.
 
 </td>
 <td width="50%" valign="top">
@@ -141,7 +150,8 @@ history, open any version, and train on exactly the one you mean. Earlier versio
 
 - **Inspection workspace** for any dataset or run: linked rows, filters and charts; lasso a scatter
   to filter; per-box filters (class, area, confidence, matched); editing with undo and commit;
-  NMS; a patch view of every box. Holds 60 fps on a million rows.
+  NMS; a patch view of every box. [Measured workflows and defensive budgets](docs/scaling.md) replace
+  blanket capacity claims; a synthetic scatter demonstration is not end-to-end qualification.
 - **Training dynamics**: per-image F1 every epoch, grouped into *early*, *mid*, *late*, *forgotten* and *never learned*,
   with a round-by-round image viewer comparing labels and predictions.
 - **Python SDK**: add three lines to your own training loop to log per-sample metrics that join back
@@ -149,13 +159,22 @@ history, open any version, and train on exactly the one you mean. Earlier versio
 - **Formats**: COCO and YOLO import and export, image folders, Ultralytics and RF-DETR integrations.
 - **Storage**: local disk by default; S3, GCS and Azure through fsspec.
 - **Local and locked down**: loopback-only by default, Host and Origin checks, every path validated against configured roots.
+- **Shared access**: optional authenticated HTTPS with workspace-wide roles and server-derived authors;
+  no per-project tenancy or SSO. [Setup and operational limits](docs/hardening.md).
+- **Recovery and integrity**: primary editor browser drafts, stale-edit conflicts, idempotent commits,
+  local writer locks, media fingerprints and checksummed project backup/restore.
 
 ## Quick start
 
+For exact current UI actions and a downloadable real dataset, use the [guided course](https://granum.app/docs/course/start).
+Before installing, verify the artifact's source revision, SHA-256 and manifest against the maintainer's
+qualified release. An older file labelled 0.1.0 is not proof that it contains current source changes.
+If no qualified platform artifact is offered, request the intended pilot build. See [release qualification](docs/release-qualification.md).
+
 ### Download and run (Linux)
 
-1. Download **`Granum-0.1.0-x86_64.AppImage`** from the releases page. It is one file (about 250 MB)
-   with everything inside: Python, all libraries, the dashboard and its window.
+1. Obtain the qualified **`Granum-<version>-x86_64.AppImage`** and verify its manifest/checksum.
+  It bundles the core runtime and dashboard, not every training dependency or GPU driver.
 2. Make it executable and open it:
 
    ```bash
@@ -165,14 +184,16 @@ history, open any version, and train on exactly the one you mean. Earlier versio
 
    (or right-click → Properties → *Allow executing file as program*, then double-click).
 
-No internet connection, Python, Node.js or other packages are needed. On first launch Granum installs
-itself: a **Granum** entry in the application menu, a background service that starts at login, and its
-own window. The downloaded file can be deleted afterwards.
+Use the exact verified filename in place of the example above. The packaged core does not require a
+separate developer Python/Node install; platform runtime requirements still apply. The Linux installation
+flow registers a launcher and user service. Check status and retain the previous artifact for rollback.
 
-**Training** is the one part that downloads later: the first time you train, Granum offers to install
-PyTorch and Ultralytics (about 3 GB) into its own folder. Training on a GPU needs the NVIDIA driver.
+**Training** can download several gigabytes of packages into its add-on environment; pretrained weights,
+version checks and configured framework integrations may also use the network. CUDA requires a compatible
+NVIDIA driver. Core local import/review does not require a GPU.
 
-Everything you do is kept across restarts, reboots and upgrades:
+Confirmed project writes persist on disk. Unsaved recovery drafts belong to the browser profile and
+have acknowledged-storage limits; externally referenced media needs separate protection. Common Linux defaults:
 
 | What | Where |
 |---|---|
@@ -188,14 +209,14 @@ your data is kept.
 
 1. Download **`Granum-0.1.0-Setup.exe`** from the releases page (Windows 11, 64-bit; it also installs
    on Windows 10, where the dashboard opens in your web browser instead of its own window).
-2. Run it. It installs for your user only, without administrator rights, and adds **Granum** to the
-   Start menu (and optionally the desktop). The installer is not code-signed yet, so Windows SmartScreen
-   may warn first: choose *More info* → *Run anyway*.
+2. Verify the qualified artifact's checksum and publisher, then follow the per-user installer. If
+  Windows warns or the publisher is unexpected, stop and verify with the maintainer rather than
+  bypassing SmartScreen to follow a tutorial.
 
-No internet connection, Python or other packages are needed. Opening Granum starts its background
-service; closing the window stops it again unless an import, training or add-on install is still running.
-Training downloads PyTorch with CUDA and Ultralytics on first use, as on Linux (needs a recent NVIDIA
-driver for GPU training).
+The bundle includes the core runtime. Check the specific artifact's supported Windows versions and
+window/browser mode. Confirm service state before backup; closing a window during an active job is not
+proof that all writers stopped. Training dependencies and network behaviour have the same separate
+boundaries as on Linux.
 
 | What | Where |
 |---|---|
@@ -220,10 +241,14 @@ cd granum
 
 Then, in the dashboard:
 
-1. **Import data** → open your dataset folder → **Add all sets** → **Run preflight** → resolve findings → **Import**.
-2. **Review** → type your name → open images, mark *Reviewed* (`A`) or *Rework* (`R`), fix boxes.
-3. **Ship** when the progress bar reaches 100%.
-4. **Runs** → **Train model** → pick the shipped versions → **Start training**.
+1. **Create project** → choose the project type and **Select folder** → include intended splits →
+  choose image-check coverage → read preflight decisions → **Import**.
+2. **Images → Review/Edit** → inspect full images, record decisions and save justified corrections.
+  A save and a verification decision are different actions; do not bulk-verify unseen images.
+3. **Create dataset** to freeze the intended input. Use **Datasets → Approve…** separately for a
+  genuinely reviewed release, or explicitly acknowledge exploratory training.
+4. **Train** the exact version, inspect results and comparison compatibility, then export the intended
+  contents and rehearse a portable backup/restore. The course shows each step with real media.
 
 The same import from the command line:
 
@@ -251,7 +276,7 @@ for epoch in range(epochs):
     granum.log({"epoch": epoch, "train_loss": loss})
     granum.collect_metrics(table, collectors, predictor=predictor, constants={"epoch": epoch})
 
-# Train on the newest reviewed version, weighting out excluded samples
+# Read the newest working version; latest() is not an approval gate
 latest = granum.Table.from_names("aerial", "train", "initial").latest()
 loader = DataLoader(latest.with_transform(load), sampler=granum.create_weighted_sampler(latest))
 ```
@@ -325,8 +350,9 @@ granum/
 
 | Guide | What it covers |
 |---|---|
-| [Getting started](docs/getting-started.md) | Install, first import, first review, first training run |
-| [Review and shipping](docs/review-and-shipping.md) | Statuses, comments, box editing, isolate, delete, ship, keyboard shortcuts |
+| [Guided course](https://granum.app/docs/course/start) | Real sample, step-by-step learning, screenshots, captioned videos and actual results |
+| [Getting started](docs/getting-started.md) | Course map, build checks, safe setup and reference paths |
+| [Review and approval](docs/review-and-shipping.md) | Decisions, edits, recovery, exploratory versions and explicit approval |
 | [Importing data](docs/importing.md) | Preflight checks, resolutions, CLI import, data roots |
 | [Dashboard workspace](docs/dashboard.md) | Rows, filters, charts, editing, detection tools |
 | [Python SDK](docs/python-sdk.md) | Tables, runs, metrics, samplers, formats, integrations |
@@ -350,13 +376,23 @@ See [docs/development.md](docs/development.md) for conventions and the release b
 
 ## Status
 
-**Alpha (0.1).** The full loop (import, preflight, review, ship, train, inspect) works end to end
-on real detection datasets. Known limits:
+**Alpha (0.1).** The course records the real import/review/version/train/compare/approval/export/restore
+workflow on a small aerial subset. Its weak models are not deployment recommendations. Known limits:
 
-- Single-user local service: no authentication or per-user assignment yet; reviewer names are self-reported.
-- Boxes can be drawn, deleted and relabelled in the Review tab; moving and resizing are in the inspection workspace.
+- Local mode has self-reported names. Shared mode has authenticated roles but reads are workspace-wide;
+  per-project access, SSO and assignments are not implemented.
+- Both primary image editors keep recoverable drafts in the same browser profile; stale drafts are
+  blocked from replay. Drafts are not server backups or cross-device synchronization.
 - RT-DETR and RF-DETR training have been smoke-tested only.
-- The browser loads every row of a set; very large sets (100k+ images) are slow to open.
+- Guarded views refuse oversized inputs instead of silently truncating: 25,000 gallery images,
+  250,000 materialized rows, 128 MiB uncompressed Parquet, and browser JSON/row-data budgets.
+- Local durability and backup tests do not certify NFS/cloud concurrent writers or Windows power-loss behavior.
+- Licensing remains unrestricted in this alpha; usage is proprietary and pilots are manually agreed.
+- A small Linux YOLO26 nano GPU exercise and local restore are recorded in the course. Other GPUs,
+  frameworks and workload/platform combinations require separate qualification.
+- Check [build provenance and release qualification](docs/release-qualification.md): an old installer is
+  not proof of current source behavior. Windows signing, clean-machine installs and live commercial
+  qualification must be recorded separately from source tests and course recordings.
 
 ## License
 

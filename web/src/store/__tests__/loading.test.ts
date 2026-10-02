@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { RowPage } from "../../api/types";
-import { PAGE_SIZE, fetchAllRows } from "../store";
+import { MAX_BROWSER_ROWS, PAGE_SIZE, fetchAllRows } from "../store";
 
 function source(total: number) {
   const calls: number[] = [];
@@ -14,6 +14,20 @@ function source(total: number) {
 }
 
 describe("fetchAllRows", () => {
+  it("refuses oversized views before requesting more pages", async () => {
+    const { calls, fetchPage } = source(MAX_BROWSER_ROWS + 1);
+    await expect(fetchAllRows(fetchPage)).rejects.toThrow("browser budget");
+    expect(calls).toEqual([0]);
+  });
+
+  it("does not silently accept incomplete pages or a changed total", async () => {
+    const { fetchPage } = source(PAGE_SIZE + 1);
+    await expect(fetchAllRows(async (offset, limit) => {
+      const page = await fetchPage(offset, limit);
+      return offset ? { ...page, total: page.total + 1 } : page;
+    })).rejects.toThrow("changed");
+    await expect(fetchAllRows(async (offset, limit) => ({ ...await fetchPage(offset, limit), rows: [] }))).rejects.toThrow("incomplete");
+  });
   it("loads every row in order when the object spans many pages", async () => {
     const total = PAGE_SIZE * 16 + 7;
     const { calls, fetchPage } = source(total);

@@ -57,7 +57,8 @@ background on demand.
 
 ## Security model
 
-The service reads your data locally and serves it to the dashboard. Nothing is uploaded.
+Local-only service use keeps data on the configured machine. Cloud roots and explicitly configured
+shared access transfer data to the destinations/users you choose.
 
 - **Paths**: every client-supplied URL is checked before it is opened. Object URLs must sit under a
   scan root, media URLs must be referenced by an indexed table or a running preflight, and import
@@ -65,7 +66,13 @@ The service reads your data locally and serves it to the dashboard. Nothing is u
 - **Local access**: a service on 127.0.0.1 is still reachable from any web page open in the browser.
   Requests must carry a loopback `Host` (defeating DNS rebinding), cross-origin requests are refused
   unless allowed with `--allow-origin`, and writes must be JSON.
-- **No authentication yet.** Binding to another address prints a warning. Shared deployments are not supported.
+- **Local mode** rejects non-loopback peers. **Shared mode** requires authenticated HTTPS and assigns
+  workspace-wide roles; author names come from the authenticated account. Non-loopback startup without
+  the registry and TLS fails closed. All accounts can read every project; no tenancy or SSO is claimed.
+
+See [Operational hardening](hardening.md) for account provisioning, TLS, audit failures, backup/restore,
+stale-edit handling and unsupported NFS/cloud concurrency. `/api/access` reports the access scope;
+`/api/health` includes build identity and defensive view budgets.
 
 ## REST API
 
@@ -84,7 +91,9 @@ Interactive documentation is served at `http://127.0.0.1:8000/docs`.
 | Curation | `GET /api/reviews`, `POST /api/reviews`, `GET /api/reviews/history`, `POST /api/datasets/remove`, `GET /api/datasets/removed`, `POST /api/datasets/restore` |
 | Training | `GET /api/training/status`, `POST /api/training` |
 
-Example: ship one set, as a chosen version, once every image in it is reviewed.
+Legacy example: ship one set after every image is marked reviewed. This does **not** approve the release.
+Current approval is a separate `POST /api/qa/approve` operation over exact reviewed contents; approved-only
+training requests `release_id` and `require_approved: true`.
 
 ```bash
 curl -s "http://127.0.0.1:8000/api/qa?project=aerial&dataset=human_aerial" | jq '.ready'

@@ -15,7 +15,7 @@ import os
 import re
 from collections.abc import Iterator
 from dataclasses import dataclass
-from pathlib import PurePosixPath
+from pathlib import Path, PurePosixPath
 from typing import Any
 
 import fsspec
@@ -284,6 +284,11 @@ class Url:
             return False
 
     def mkdir(self, *, exist_ok: bool = True) -> Url:
+        if self.scheme == "file":
+            from granum.core.storage import durable_mkdir
+
+            durable_mkdir(Path(self.path), exist_ok=exist_ok)
+            return self
         fs = self.fs
         try:
             fs.makedirs(self.path, exist_ok=exist_ok)
@@ -297,6 +302,11 @@ class Url:
             return handle.read()
 
     def write_bytes(self, data: bytes) -> Url:
+        if self.scheme == "file":
+            from granum.core.storage import atomic_bytes
+
+            atomic_bytes(Path(self.path), data)
+            return self
         self.parent.mkdir()
         with self.fs.open(self.path, "wb") as handle:
             handle.write(data)

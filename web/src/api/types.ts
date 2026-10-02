@@ -550,6 +550,8 @@ export interface Release extends Shipment {
   version: number;
   /** "verified": unverified images were left out; "all": every image, verified or not. */
   mode: "all" | "verified";
+  approval: "exploratory" | "approved";
+  approval_record?: { author: string; time: string; policy: string };
   tasks?: TaskId[];
   augmentation?: AugmentRecipe;
 }

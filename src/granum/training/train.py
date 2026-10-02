@@ -256,6 +256,9 @@ def run_parameters(args: argparse.Namespace, train: Any, valid: Any) -> dict[str
         "valid_version": f"{valid.dataset_name}/{valid.name}",
         **({"test_version": f"{args.test.dataset_name}/{args.test.name}"} if getattr(args, "test", None) is not None else {}),
         "tracks_learning": bool(args.track_learning),
+        "release_id": getattr(args, "release_id", None),
+        "approval_required": bool(getattr(args, "require_approved", False)),
+        **({"release_approval": args.release_approval} if getattr(args, "release_approval", None) else {}),
         **({"compared_with": args.compare_with} if args.compare_with else {}),
     }
 
@@ -276,6 +279,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--track-learning", action="store_true")
     parser.add_argument("--compare-with", default=None, help="name of an earlier Run to score on the same labels")
     parser.add_argument("--work-dir", default=None)
+    parser.add_argument("--release-id", default=None)
+    parser.add_argument("--require-approved", action="store_true")
     args = parser.parse_args(argv)
     if args.version not in version_ids(args.family):
         parser.error(f"--version for {args.family} must be one of {version_ids(args.family)}")
@@ -290,6 +295,13 @@ def main(argv: list[str] | None = None) -> int:
     train = Table.from_url(args.train_table)
     valid = Table.from_url(args.valid_table)
     args.test = Table.from_url(args.test_table) if args.test_table else None
+    if args.require_approved:
+        from granum.core.qa import QaLog
+
+        release = QaLog(args.project, train.dataset_name).require_approved(
+            args.release_id, [str(t.url) for t in (train, valid, args.test) if t is not None],
+        )
+        args.release_approval = {k: release["approval_record"][k] for k in ("author", "time", "policy")}
 
     trainer = train_rfdetr if args.family == "rfdetr" else train_ultralytics
     run, best = trainer(args, train, valid, work)

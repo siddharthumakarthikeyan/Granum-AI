@@ -17,7 +17,7 @@ from typing import Any, ClassVar
 
 from granum.core.layout import INDEX_FILENAME, OBJECT_FILENAME
 from granum.core.url import Url
-from granum.errors import ImmutableError, ObjectNotFoundError
+from granum.errors import GranumError, ImmutableError, ObjectNotFoundError
 
 SCHEMA_VERSION = 1
 
@@ -68,16 +68,52 @@ def read_object_payload(url: Url) -> dict[str, Any]:
     target = Url(url) / OBJECT_FILENAME
     if not target.exists():
         raise ObjectNotFoundError(f"no Granum object at {url} (expected {OBJECT_FILENAME})")
-    return json.loads(target.read_text())
+    payload = json.loads(target.read_text())
+    if payload.get("format_version", 1) != SCHEMA_VERSION:
+        raise GranumError(f"unsupported object format {payload.get('format_version')}; upgrade Granum before opening {url}")
+    return payload
 
 
 def write_object_payload(url: Url, payload: dict[str, Any]) -> Url:
     """Write an object body, then touch the index markers above it."""
     url = Url(url)
     url.mkdir()
-    (url / OBJECT_FILENAME).write_text(json.dumps(payload, indent=2, sort_keys=False))
+    (url / OBJECT_FILENAME).write_text(json.dumps({"format_version": SCHEMA_VERSION, **payload}, indent=2, sort_keys=False))
     touch_index_markers(url.parent)
     return url
+
+
+def write_table_payload(url: Url, arrow: Any, payload: dict[str, Any]) -> None:
+    """Publish rows completely before making a new immutable table discoverable."""
+    import os
+    import tempfile
+    from pathlib import Path
+
+    import pyarrow.parquet as pq
+
+    from granum.core.layout import ROW_CACHE_FILENAME
+    from granum.core.storage import fsync_directory, workspace_lock
+
+    with workspace_lock():
+        if (url / OBJECT_FILENAME).exists():
+            raise GranumError(f"refusing to overwrite immutable table {url}")
+        url.mkdir()
+        target = url / ROW_CACHE_FILENAME
+        if url.scheme == "file":
+            fd, temporary = tempfile.mkstemp(prefix=".granum-rows-", dir=url.path)
+            try:
+                with os.fdopen(fd, "wb") as handle:
+                    pq.write_table(arrow, handle)
+                    handle.flush()
+                    os.fsync(handle.fileno())
+                os.replace(temporary, target.path)
+                fsync_directory(Path(url.path))
+            finally:
+                if os.path.exists(temporary):
+                    os.unlink(temporary)
+        else:
+            pq.write_table(arrow, target.path, filesystem=url.fs)
+        write_object_payload(url, payload)
 
 
 class Immutable:
