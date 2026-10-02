@@ -58,8 +58,11 @@ check `granum app status` before restarting anything while a job is running.
 
 ## Licence
 
-**"Read-only"** — the plan ended, the trial ran out, or the offline lease expired. Open **Licence** and
-sign in again. Your data is untouched; only changes are refused.
+The current unrestricted alpha does not enforce licence expiry. The messages below apply only to an
+older or explicitly licensed build. First record `granum build-info` and confirm the installed channel.
+
+**"Read-only"** — on a licensed build, the plan or offline lease may have expired. Contact support for
+that release. Your data is untouched; only changes are refused.
 
 **"This licence is for another computer"** — keys are issued per machine. Sign in on this machine to get
 its own, freeing a slot elsewhere with **Sign out** if the plan is full.

@@ -53,4 +53,11 @@ def site_from_env() -> dict[str, Any]:
         "version": os.environ.get("APP_VERSION", ""),
         "contact": os.environ.get("CONTACT_EMAIL", ""),
         "downloads": {"windows": os.environ.get("DOWNLOAD_WINDOWS_URL", ""), "linux": os.environ.get("DOWNLOAD_LINUX_URL", "")},
+        "checksums": {name: os.environ.get(f"DOWNLOAD_{name.upper()}_SHA256", "") for name in ("windows", "linux")},
+        "manifests": {name: os.environ.get(f"DOWNLOAD_{name.upper()}_MANIFEST_URL", "") for name in ("windows", "linux")},
+        "release": {
+            "channel": "unrestricted-alpha",
+            "source_revision": os.environ.get("APP_SOURCE_REVISION", ""),
+            "qualified": os.environ.get("APP_RELEASE_QUALIFIED") == "1",
+        },
     }

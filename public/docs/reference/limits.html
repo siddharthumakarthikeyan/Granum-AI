@@ -4,10 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Scale and limits · Granum documentation</title>
-  <meta name="description" content="What Granum handles comfortably, what is slow, and what it does not do.">
+  <meta name="description" content="Measured local workflows, enforced view budgets, and unqualified deployment limits.">
   <meta name="theme-color" content="#ffffff">
   <meta property="og:title" content="Scale and limits · Granum documentation">
-  <meta property="og:description" content="What Granum handles comfortably, what is slow, and what it does not do.">
+  <meta property="og:description" content="Measured local workflows, enforced view budgets, and unqualified deployment limits.">
   <meta property="og:type" content="article">
   <meta property="og:image" content="/assets/og.jpg">
   <link rel="canonical" href="https://granum.app/docs/reference/limits">
@@ -27,7 +27,7 @@
       <span class="doc-badge"><a href="/docs">Docs</a></span>
       <nav class="nav" id="nav" aria-label="Main">
         <a href="/#tour">Product</a>
-        <a href="/#plans">Pricing</a>
+        <a href="/#plans">Pilots</a>
         <a href="/docs/help/faq">FAQ</a>
       </nav>
       <div class="header-actions">
@@ -47,9 +47,24 @@
     <div class="doc-sidebar" id="doc-sidebar">
       <nav class="doc-nav" aria-label="Documentation">
 <a class="doc-nav-home" href="/docs">Start here</a>
+<div class="doc-nav-group"><p class="doc-nav-title">Guided aerial-data course</p><ul>
+<li><a href="/docs/course/start">Start the guided course</a></li>
+<li><a href="/docs/course/setup">1. Prepare the workspace</a></li>
+<li><a href="/docs/course/data">2. Understand the sample</a></li>
+<li><a href="/docs/course/import">3. Import with preflight</a></li>
+<li><a href="/docs/course/explore">4. Explore before changing labels</a></li>
+<li><a href="/docs/course/baseline">5. Freeze an exploratory baseline</a></li>
+<li><a href="/docs/course/review">6. Review, edit and recover</a></li>
+<li><a href="/docs/course/train">7. Train the first model</a></li>
+<li><a href="/docs/course/results">8. Read the model evidence</a></li>
+<li><a href="/docs/course/compare">9. Make a controlled comparison</a></li>
+<li><a href="/docs/course/handoff">10. Approve and export an excerpt</a></li>
+<li><a href="/docs/course/backup">11. Back up, restore and share safely</a></li>
+<li><a href="/docs/course/next">12. Move to your own project</a></li>
+</ul></div>
 <div class="doc-nav-group"><p class="doc-nav-title">Getting started</p><ul>
 <li><a href="/docs/start/install">Install Granum</a></li>
-<li><a href="/docs/start/activate">Sign in and licences</a></li>
+<li><a href="/docs/start/activate">Alpha access and licences</a></li>
 <li><a href="/docs/start/first-project">Your first project</a></li>
 <li><a href="/docs/start/the-loop">Run the loop once</a></li>
 </ul></div>
@@ -79,6 +94,7 @@
 <li><a href="/docs/guides/compare">Compare two runs</a></li>
 <li><a href="/docs/guides/projects">Manage projects</a></li>
 <li><a href="/docs/guides/python">Use Granum from Python</a></li>
+<li><a href="/docs/guides/operations">Operate a pilot workspace</a></li>
 </ul></div>
 <div class="doc-nav-group"><p class="doc-nav-title">Reference</p><ul>
 <li><a href="/docs/reference/screens">Map of the app</a></li>
@@ -100,59 +116,73 @@
       <article class="doc-article">
         <nav class="doc-crumb" aria-label="Breadcrumb"><a href="/docs">Documentation</a><span aria-hidden="true">/</span><a href="/docs#reference">Reference</a></nav>
         <h1>Scale and limits</h1>
-        <p class="doc-summary">What Granum handles comfortably, what is slow, and what it does not do.</p>
-        <h2 id="scale">Scale</h2>
-<p>Measured on one modern laptop with an NVIDIA GPU, on a real aerial dataset of 11,335 training and 547
-validation images with 621,000 boxes.</p>
+        <p class="doc-summary">Measured local workflows, enforced view budgets, and unqualified deployment limits.</p>
+        <h2 id="measured-not-universal">Measured, not universal</h2>
+<p>Qualification on 2 October 2026 used Linux x86-64, Python 3.10.12, Node 24.18.0 and headless Chromium
+153, on a host exposing 20 logical CPUs. The reproducible fixture uses unique 128×128 PNG paths,
+eight boxes per image and repeated synthetic values. It is not a real dense-data or GPU-training benchmark.</p>
 <table>
 <thead>
 <tr>
-<th>Operation</th>
-<th>Behaviour</th>
+<th>Workflow</th>
+<th>Observed result</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Opening a dataset of 12,000 images</td>
-<td>Under a second; the grid pages 120 at a time and box geometry loads a screenful at a time</td>
+<td>10,000 images, 12 epochs, 120,000 metric rows: collection without predictions</td>
+<td>0.257 seconds; 0.68 MiB Parquet</td>
 </tr>
 <tr>
-<td>Filtering, sorting, class filters</td>
-<td>Instant — done in the browser over one payload</td>
+<td>Same collection with predictions</td>
+<td>2.520 seconds; 0.90 MiB Parquet</td>
 </tr>
 <tr>
-<td>An edit saved</td>
-<td>One new version, well under a second</td>
+<td>Images API</td>
+<td>0.123 seconds; 2.55 MiB JSON</td>
 </tr>
 <tr>
-<td>Import preflight, all images</td>
-<td>Annotations are read in seconds; decoding every image dominates, so minutes for tens of thousands</td>
+<td>Joined run, cold / cached first page</td>
+<td>1.385 / 0.044 seconds; 6.08 MiB JSON</td>
 </tr>
 <tr>
-<td>A version of a set</td>
-<td>About 9 MB for 11,335 images with 621,000 boxes</td>
+<td>Whole benchmark process peak RSS, including fixture construction</td>
+<td>502 MiB</td>
 </tr>
 <tr>
-<td>Per-image metrics with boxes</td>
-<td>About 15 MB per round for 11,900 dense images; roughly 180 MB for a 12-round run</td>
-</tr>
-<tr>
-<td>Findings over a finished run</td>
-<td>A few seconds, then cached until the run changes</td>
-</tr>
-<tr>
-<td>A dataset version</td>
-<td>Instant; with augmentation, minutes and gigabytes</td>
+<td>Browser gallery, 10,000 images and 2 epochs</td>
+<td>495 ms to first visible card; 47 ms status-filter interaction; 12.6 MiB JS heap snapshot</td>
 </tr>
 </tbody>
 </table>
-<p>Where it gets slow: the browser holds one row per image, so a set of tens of thousands is comfortable
-and much beyond that is not. Very dense images — hundreds of boxes each — make the box overlay the cost
-rather than the images, which is why geometry is fetched a screenful at a time.</p>
+<p>These are individual measurements, not latency guarantees or percentile statistics. Synthetic repeated
+values compress unusually well. JS heap is not total browser memory or peak GPU memory. Collection time
+excludes inference and therefore is <strong>not a percentage of training overhead</strong>. The browser check loads
+gallery metadata and a visible screenful, not every full-resolution image or a full multi-epoch run.
+Both primary editors also passed reload recovery, failed-save retention and successful commit checks
+at 120 and 10,000 images in that browser suite.</p>
+<p>The run join was optimized to skip older epochs' unused geometry; the same cold API workload fell from
+16.3 seconds to 1.4 seconds. A million-point rendering demonstration does not qualify the complete workflow.</p>
+<h2 id="view-budgets">View budgets</h2>
+<ul>
+<li>Images workspace/review: <strong>25,000 images</strong> across the requested sets.</li>
+<li>Materialized inspection/analysis: <strong>250,000 rows</strong> and <strong>128 MiB uncompressed Parquet</strong> per guarded request.</li>
+<li>Browser JSON: <strong>64 MiB per response</strong>, with a <strong>64 MiB accumulated row-data budget</strong> for paged inspection.</li>
+<li>Inconsistent or incomplete pages, changed source revisions and oversized responses fail explicitly.
+  They are not silently displayed as complete data.</li>
+</ul>
+<p>These are defensive ceilings, not tested maximum capacities. Narrow the dataset, omit older epochs or
+heavy predictions, or use the SDK for larger offline analysis. Some background operations and media/backup
+work still materialize data and need their own memory planning; the service is not a streaming warehouse.</p>
 <h2 id="current-limits">Current limits</h2>
 <ul>
-<li><strong>One user at a time.</strong> No accounts, no permissions, no locking. Reviewer names are self-reported.</li>
-<li><strong>One machine.</strong> Projects are local; there is no shared server and no sync.</li>
+<li><strong>Local mode:</strong> loopback-only and self-reported authors; do not expose it as a public service.</li>
+<li><strong>Shared mode:</strong> authenticated HTTPS and workspace-wide viewer, annotator, reviewer and administrator
+  roles. All accounts read all projects. No SSO, per-project tenancy, assignment or sync platform.</li>
+<li><strong>Durability:</strong> coordinated local writers, immutable metadata-last publication, stale-edit checks and
+  checksummed project backup/restore. No distributed-writer guarantee for cloud stores or NFS.</li>
+<li><strong>Recovery:</strong> primary editor drafts are in the same browser profile. Clearing browser data, storage
+  failure or using another device can lose access to them. Stale drafts require export/reconciliation.</li>
 <li><strong>One training job at a time</strong> per machine.</li>
 <li><strong>Boxes.</strong> The importer reads COCO boxes; masks, keypoints and other fields are preserved and editable,
   but the checks, metrics, findings and training are box-based.</li>
@@ -172,26 +202,26 @@ rather than the images, which is why geometry is fetched a screenful at a time.<
   replace the tool your team already uses.</li>
 <li><strong>It will not tell you a label is wrong.</strong> It tells you which labels are worth your attention, and
   why. → <a href="/docs/concepts/evidence">What the evidence is worth</a></li>
-<li><strong>It does not upload anything.</strong> No telemetry, no images leaving the machine.
+<li><strong>No telemetry is added.</strong> Cloud storage and a shared service transfer data to destinations you configure.
   → <a href="/docs/help/privacy">Your data and privacy</a></li>
 </ul>
         <div class="doc-steps"><a class="doc-step prev" href="/docs/reference/files"><span>Previous</span>Files and settings</a><a class="doc-step next" href="/docs/reference/glossary"><span>Next</span>Glossary</a></div>
       </article>
-      <aside class="doc-toc" aria-label="On this page"><p>On this page</p><ul><li><a href="#scale">Scale</a></li><li><a href="#current-limits">Current limits</a></li><li><a href="#what-granum-deliberately-does-not-do">What Granum deliberately does not do</a></li></ul></aside>
+      <aside class="doc-toc" aria-label="On this page"><p>On this page</p><ul><li><a href="#measured-not-universal">Measured, not universal</a></li><li><a href="#view-budgets">View budgets</a></li><li><a href="#current-limits">Current limits</a></li><li><a href="#what-granum-deliberately-does-not-do">What Granum deliberately does not do</a></li></ul></aside>
     </main>
   </div>
 
   <footer class="doc-footer">
     <div class="wrap">
-      <p>© Granum. Your data stays on your computer.</p>
+    <p>© Granum. Local-first data workflows.</p>
       <p><a href="/">Product</a><a href="/download">Download</a><a href="/privacy">Privacy</a><a href="/docs/help/troubleshooting">Support</a></p>
     </div>
   </footer>
 
   <div class="doc-search" data-search-panel hidden>
     <div class="doc-search-box" role="dialog" aria-modal="true" aria-label="Search documentation">
-      <input type="search" placeholder="Search the documentation" autocomplete="off" spellcheck="false" data-search-input>
-      <ul data-search-results></ul>
+    <input type="search" aria-label="Search documentation" aria-controls="doc-search-results" placeholder="Search the documentation" autocomplete="off" spellcheck="false" data-search-input>
+    <ul id="doc-search-results" aria-label="Search results" aria-live="polite" data-search-results></ul>
       <p class="doc-search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move · <kbd>Enter</kbd> to open · <kbd>Esc</kbd> to close</p>
     </div>
   </div>

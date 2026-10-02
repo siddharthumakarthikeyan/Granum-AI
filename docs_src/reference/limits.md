@@ -1,32 +1,54 @@
 ---
 title: Scale and limits
-summary: What Granum handles comfortably, what is slow, and what it does not do.
+summary: Measured local workflows, enforced view budgets, and unqualified deployment limits.
 ---
 
-## Scale
+## Measured, not universal
 
-Measured on one modern laptop with an NVIDIA GPU, on a real aerial dataset of 11,335 training and 547
-validation images with 621,000 boxes.
+Qualification on 2 October 2026 used Linux x86-64, Python 3.10.12, Node 24.18.0 and headless Chromium
+153, on a host exposing 20 logical CPUs. The reproducible fixture uses unique 128×128 PNG paths,
+eight boxes per image and repeated synthetic values. It is not a real dense-data or GPU-training benchmark.
 
-| Operation | Behaviour |
+| Workflow | Observed result |
 |---|---|
-| Opening a dataset of 12,000 images | Under a second; the grid pages 120 at a time and box geometry loads a screenful at a time |
-| Filtering, sorting, class filters | Instant — done in the browser over one payload |
-| An edit saved | One new version, well under a second |
-| Import preflight, all images | Annotations are read in seconds; decoding every image dominates, so minutes for tens of thousands |
-| A version of a set | About 9 MB for 11,335 images with 621,000 boxes |
-| Per-image metrics with boxes | About 15 MB per round for 11,900 dense images; roughly 180 MB for a 12-round run |
-| Findings over a finished run | A few seconds, then cached until the run changes |
-| A dataset version | Instant; with augmentation, minutes and gigabytes |
+| 10,000 images, 12 epochs, 120,000 metric rows: collection without predictions | 0.257 seconds; 0.68 MiB Parquet |
+| Same collection with predictions | 2.520 seconds; 0.90 MiB Parquet |
+| Images API | 0.123 seconds; 2.55 MiB JSON |
+| Joined run, cold / cached first page | 1.385 / 0.044 seconds; 6.08 MiB JSON |
+| Whole benchmark process peak RSS, including fixture construction | 502 MiB |
+| Browser gallery, 10,000 images and 2 epochs | 495 ms to first visible card; 47 ms status-filter interaction; 12.6 MiB JS heap snapshot |
 
-Where it gets slow: the browser holds one row per image, so a set of tens of thousands is comfortable
-and much beyond that is not. Very dense images — hundreds of boxes each — make the box overlay the cost
-rather than the images, which is why geometry is fetched a screenful at a time.
+These are individual measurements, not latency guarantees or percentile statistics. Synthetic repeated
+values compress unusually well. JS heap is not total browser memory or peak GPU memory. Collection time
+excludes inference and therefore is **not a percentage of training overhead**. The browser check loads
+gallery metadata and a visible screenful, not every full-resolution image or a full multi-epoch run.
+Both primary editors also passed reload recovery, failed-save retention and successful commit checks
+at 120 and 10,000 images in that browser suite.
+
+The run join was optimized to skip older epochs' unused geometry; the same cold API workload fell from
+16.3 seconds to 1.4 seconds. A million-point rendering demonstration does not qualify the complete workflow.
+
+## View budgets
+
+- Images workspace/review: **25,000 images** across the requested sets.
+- Materialized inspection/analysis: **250,000 rows** and **128 MiB uncompressed Parquet** per guarded request.
+- Browser JSON: **64 MiB per response**, with a **64 MiB accumulated row-data budget** for paged inspection.
+- Inconsistent or incomplete pages, changed source revisions and oversized responses fail explicitly.
+  They are not silently displayed as complete data.
+
+These are defensive ceilings, not tested maximum capacities. Narrow the dataset, omit older epochs or
+heavy predictions, or use the SDK for larger offline analysis. Some background operations and media/backup
+work still materialize data and need their own memory planning; the service is not a streaming warehouse.
 
 ## Current limits
 
-- **One user at a time.** No accounts, no permissions, no locking. Reviewer names are self-reported.
-- **One machine.** Projects are local; there is no shared server and no sync.
+- **Local mode:** loopback-only and self-reported authors; do not expose it as a public service.
+- **Shared mode:** authenticated HTTPS and workspace-wide viewer, annotator, reviewer and administrator
+  roles. All accounts read all projects. No SSO, per-project tenancy, assignment or sync platform.
+- **Durability:** coordinated local writers, immutable metadata-last publication, stale-edit checks and
+  checksummed project backup/restore. No distributed-writer guarantee for cloud stores or NFS.
+- **Recovery:** primary editor drafts are in the same browser profile. Clearing browser data, storage
+  failure or using another device can lose access to them. Stale drafts require export/reconciliation.
 - **One training job at a time** per machine.
 - **Boxes.** The importer reads COCO boxes; masks, keypoints and other fields are preserved and editable,
   but the checks, metrics, findings and training are box-based.
@@ -46,5 +68,5 @@ rather than the images, which is why geometry is fetched a screenful at a time.
   replace the tool your team already uses.
 - **It will not tell you a label is wrong.** It tells you which labels are worth your attention, and
   why. → [What the evidence is worth](/docs/concepts/evidence)
-- **It does not upload anything.** No telemetry, no images leaving the machine.
+- **No telemetry is added.** Cloud storage and a shared service transfer data to destinations you configure.
   → [Your data and privacy](/docs/help/privacy)

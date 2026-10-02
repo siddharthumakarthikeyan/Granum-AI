@@ -4,10 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Install Granum · Granum documentation</title>
-  <meta name="description" content="One download per platform, no dependencies to manage, and everything kept in folders you can back up.">
+  <meta name="description" content="Check build provenance, install the platform artifact, verify the running service, and understand optional training dependencies.">
   <meta name="theme-color" content="#ffffff">
   <meta property="og:title" content="Install Granum · Granum documentation">
-  <meta property="og:description" content="One download per platform, no dependencies to manage, and everything kept in folders you can back up.">
+  <meta property="og:description" content="Check build provenance, install the platform artifact, verify the running service, and understand optional training dependencies.">
   <meta property="og:type" content="article">
   <meta property="og:image" content="/assets/og.jpg">
   <link rel="canonical" href="https://granum.app/docs/start/install">
@@ -27,7 +27,7 @@
       <span class="doc-badge"><a href="/docs">Docs</a></span>
       <nav class="nav" id="nav" aria-label="Main">
         <a href="/#tour">Product</a>
-        <a href="/#plans">Pricing</a>
+        <a href="/#plans">Pilots</a>
         <a href="/docs/help/faq">FAQ</a>
       </nav>
       <div class="header-actions">
@@ -47,9 +47,24 @@
     <div class="doc-sidebar" id="doc-sidebar">
       <nav class="doc-nav" aria-label="Documentation">
 <a class="doc-nav-home" href="/docs">Start here</a>
+<div class="doc-nav-group"><p class="doc-nav-title">Guided aerial-data course</p><ul>
+<li><a href="/docs/course/start">Start the guided course</a></li>
+<li><a href="/docs/course/setup">1. Prepare the workspace</a></li>
+<li><a href="/docs/course/data">2. Understand the sample</a></li>
+<li><a href="/docs/course/import">3. Import with preflight</a></li>
+<li><a href="/docs/course/explore">4. Explore before changing labels</a></li>
+<li><a href="/docs/course/baseline">5. Freeze an exploratory baseline</a></li>
+<li><a href="/docs/course/review">6. Review, edit and recover</a></li>
+<li><a href="/docs/course/train">7. Train the first model</a></li>
+<li><a href="/docs/course/results">8. Read the model evidence</a></li>
+<li><a href="/docs/course/compare">9. Make a controlled comparison</a></li>
+<li><a href="/docs/course/handoff">10. Approve and export an excerpt</a></li>
+<li><a href="/docs/course/backup">11. Back up, restore and share safely</a></li>
+<li><a href="/docs/course/next">12. Move to your own project</a></li>
+</ul></div>
 <div class="doc-nav-group"><p class="doc-nav-title">Getting started</p><ul>
 <li><a href="/docs/start/install" class="on" aria-current="page">Install Granum</a></li>
-<li><a href="/docs/start/activate">Sign in and licences</a></li>
+<li><a href="/docs/start/activate">Alpha access and licences</a></li>
 <li><a href="/docs/start/first-project">Your first project</a></li>
 <li><a href="/docs/start/the-loop">Run the loop once</a></li>
 </ul></div>
@@ -79,6 +94,7 @@
 <li><a href="/docs/guides/compare">Compare two runs</a></li>
 <li><a href="/docs/guides/projects">Manage projects</a></li>
 <li><a href="/docs/guides/python">Use Granum from Python</a></li>
+<li><a href="/docs/guides/operations">Operate a pilot workspace</a></li>
 </ul></div>
 <div class="doc-nav-group"><p class="doc-nav-title">Reference</p><ul>
 <li><a href="/docs/reference/screens">Map of the app</a></li>
@@ -100,49 +116,59 @@
       <article class="doc-article">
         <nav class="doc-crumb" aria-label="Breadcrumb"><a href="/docs">Documentation</a><span aria-hidden="true">/</span><a href="/docs#start">Getting started</a></nav>
         <h1>Install Granum</h1>
-        <p class="doc-summary">One download per platform, no dependencies to manage, and everything kept in folders you can back up.</p>
-        <p>Granum is a desktop application with a background service. The download contains everything it needs —
-Python, the libraries, the dashboard and its own window — so there is nothing to install alongside it and
-no internet connection required after the download.</p>
+        <p class="doc-summary">Check build provenance, install the platform artifact, verify the running service, and understand optional training dependencies.</p>
+        <p>Granum is a desktop application and local service. Packaged artifacts bundle the core Python runtime,
+libraries and dashboard; training support is installed separately. Platform window, filesystem and GPU
+requirements still matter. Start with the <a href="/docs/course/start">guided aerial course</a> for a complete
+first-use path with a real sample, screenshots and videos.</p>
+<h2 id="before-you-install">Before you install</h2>
+<p>Use the <a href="/download">download page</a> or an artifact supplied by the authorized pilot maintainer. Confirm
+the platform, source revision, build manifest and SHA-256. Do not infer that an old file includes current
+features merely because its version is also 0.1.0. If no qualified download is offered, request the
+intended pilot artifact rather than substituting an unverified one.</p>
+<p>The course was recorded from a Linux source checkout. It does not certify a clean-machine Windows
+installer, AppImage, signing status or every training environment. Proprietary usage permission remains
+required even though current alpha licence enforcement is unrestricted.</p>
 <h2 id="windows">Windows</h2>
 <ol>
-<li>Download the installer from the <a href="/download">download page</a>.</li>
-<li>Run it. It installs for your user only — no administrator rights needed — adds <strong>Granum</strong> to the
-   Start menu, and starts the background service.</li>
-<li>Launch <strong>Granum</strong>. The app opens in its own window.</li>
+<li>Obtain the 64-bit Windows installer and its matching manifest/checksum from the approved source.</li>
+<li>Verify the file, then follow its per-user installation flow. Launch <strong>Granum</strong> from the Start menu.</li>
+<li>Confirm the dashboard and service open and report the intended build and project root.</li>
 </ol>
-<p>Windows 10 and 11, 64-bit. If Windows shows <em>Windows protected your PC</em>, choose <strong>More info → Run
-anyway</strong>: the build is not yet signed with a commercial certificate, so SmartScreen has no reputation
-for it.</p>
+<p>Use the operating-system compatibility stated for that particular artifact. If Windows shows a
+security warning or an unexpected publisher, stop and verify with the maintainer. Do not bypass
+SmartScreen simply to follow a tutorial. A browser fallback and a native window are different
+presentation modes; qualify the one your pilot will use.</p>
 <h2 id="linux">Linux</h2>
-<p>Download <code>Granum-&lt;version&gt;-x86_64.AppImage</code>, then:</p>
-<pre><code class="language-bash">chmod +x Granum-*-x86_64.AppImage
-./Granum-*-x86_64.AppImage
+<p>Obtain and verify the x86-64 AppImage for your Linux distribution. Replace the example version in the
+commands below with the <strong>one exact verified file</strong>, rather than executing every matching download:</p>
+<pre><code class="language-bash">chmod +x Granum-0.1.0-x86_64.AppImage
+./Granum-0.1.0-x86_64.AppImage
 </code></pre>
-<p>On first launch Granum copies itself to <code>~/.local/share/granum/Granum.AppImage</code> (you can delete the
-download), adds itself to the application menu, sets up a service that starts at login, and opens its
-window.</p>
-<p>Requirements: 64-bit Linux from about 2020 onward — Ubuntu 22.04, Debian 12, Fedora 36 or newer — with a
-desktop. If the file fails with a FUSE error, run it once with <code>--appimage-extract-and-run</code>, or install
-<code>fuse3</code>.</p>
+<p>The Linux installation flow can register an application-menu entry and a user service, and place the
+installed app under <code>~/.local/share/granum</code>. Inspect the resulting status before deleting your verified
+download; retain the previous artifact if you need an upgrade rollback.</p>
+<p>Use a supported 64-bit desktop distribution qualified for the artifact. If an AppImage reports a FUSE
+problem, check its platform instructions; an extract-and-run mode may be available. Do not install
+unrelated system packages or run the application as root merely to suppress the error.</p>
 <div class="admonition note">
 <p class="admonition-title">The window and the browser</p>
-<p>Granum's window uses WebKitGTK, which most desktops already have. If it is missing, install it with
-<code>sudo apt install python3-gi gir1.2-webkit2-4.1</code>; until then Granum opens in your browser instead.
-Either way the dashboard is available at <code>http://127.0.0.1:8000</code>, and <code>granum open --browser</code> opens
-it there deliberately.</p>
 </div>
+<p><code>granum open --browser</code> deliberately opens the dashboard in a browser. The default local address
+  is <code>http://127.0.0.1:8000</code>; a configured port may differ. A browser and the desktop window can use
+  different profiles, so an unsaved recovery draft in one is not necessarily available in the other.</p>
 <h2 id="training-support">Training support</h2>
-<p>Importing, browsing, reviewing, editing and versioning work from the first launch, offline.</p>
-<p>Training needs PyTorch, which is roughly 3 GB with CUDA, so it is not in the download. The first time you
-open <strong>Train model</strong>, Granum offers <strong>Install training support</strong> and downloads it into
-<code>~/.local/share/granum/addons</code> — never into your system Python. This is the only step that needs the
-internet.</p>
-<p>GPU training needs an NVIDIA driver on the machine. Without a GPU, training still runs on the CPU; expect
-it to be slow enough that you will want a small model and a small dataset.</p>
+<p>Core import, browsing, review and versioning can operate on local files without training support.</p>
+<p>Training support can download several gigabytes of PyTorch/CUDA and model-family packages into the
+application's add-on environment. <strong>Train model</strong> offers <strong>Install training support</strong> when required.
+Model weights, package/version checks and configured third-party integrations may also use the network;
+dependency installation is not the only possible connection.</p>
+<p>CUDA training needs a compatible NVIDIA driver and runtime. CPU training can be slow; the course
+includes a no-GPU route using recorded evidence. Read the detected device and installation/training
+logs instead of assuming that an installed add-on means a model successfully ran.</p>
 <h2 id="where-your-work-is-kept">Where your work is kept</h2>
-<p>Everything is written to disk as you do it, not held in the browser. Closing the window, logging out,
-rebooting, upgrading or reinstalling keeps all of it.</p>
+<p>Confirmed saves write project records to disk. <strong>Unsaved edits are browser drafts</strong>, subject to storage
+acknowledgement, profile/origin and quota limits. Linked source images may live outside the project root.</p>
 <table>
 <thead>
 <tr>
@@ -168,48 +194,51 @@ rebooting, upgrading or reinstalling keeps all of it.</p>
 <td><code>~/.local/state/granum/service.log</code></td>
 </tr>
 <tr>
-<td>Window storage: your reviewer name, unsaved-edit recovery</td>
+<td>Desktop-window profile: preferences and recovery storage</td>
 <td><code>~/.local/share/granum/window</code></td>
 </tr>
 </tbody>
 </table>
-<p>To keep projects elsewhere, run <code>granum config project-root /path/to/granum</code> before installing. To back
-up, copy <code>~/granum</code> and <code>~/granum-training</code>. See <a href="/docs/reference/files">Files and settings</a> for the
-layout inside those folders.</p>
+<p>These are common Linux defaults, not a universal location for all installs. Windows uses user-profile,
+AppData and LocalAppData folders; an ordinary browser manages its own profile. Confirm your actual roots
+with the CLI and <a href="/docs/reference/files">Files and settings</a>.</p>
+<p>To keep projects elsewhere, configure the intended project root before creating work. For a portable
+backup, stop writers and use <a href="/docs/course/backup">backup/restore</a>. Merely copying the project directory
+can omit externally referenced images and weights.</p>
 <h2 id="check-the-install">Check the install</h2>
 <pre><code class="language-bash">granum app status      # service, port, project root, version
 granum version
+granum build-info      # build identity and provenance; inspect the actual artifact
 </code></pre>
-<p>On Linux the service is a systemd user unit: <code>systemctl --user status granum</code> (also <code>restart</code>, <code>stop</code>).
-It starts when you log in. To keep it running while you are logged out, enable lingering once with
-<code>sudo loginctl enable-linger $USER</code>.</p>
+<p>Where the Linux installer registered a systemd user unit, <code>systemctl --user status granum</code> reports it;
+<code>restart</code> and <code>stop</code> manage that service. Do not stop it during active writes or model jobs without
+understanding their outcome. On a foreground development service, inspect its terminal instead.</p>
 <h2 id="upgrade-and-uninstall">Upgrade and uninstall</h2>
-<ul>
-<li><strong>Windows</strong>: run the newer Setup.exe; it replaces the installed version. Uninstall from
-  <strong>Settings → Apps</strong>. Your data is kept.</li>
-<li><strong>Linux</strong>: open the newer AppImage once; it replaces the installed copy and restarts the service.
-  Uninstall with <code>~/.local/share/granum/Granum.AppImage app uninstall</code>. Your data is kept.</li>
-<li><strong>From source</strong>: <code>git pull &amp;&amp; ./install.sh</code> to upgrade, <code>./install.sh --uninstall</code> to remove.</li>
-</ul>
-<p>Uninstalling never touches <code>~/granum</code> or <code>~/granum-training</code>. Delete those folders yourself if you mean
-to remove the data too.</p>
-        <div class="doc-steps"><a class="doc-step prev" href="/docs"><span>Previous</span>Granum documentation</a><a class="doc-step next" href="/docs/start/activate"><span>Next</span>Sign in and licences</a></div>
+<p>Before upgrading, retain the previous artifact and rehearse a restore in a separate root. Verify the
+new build on your intended platform rather than replacing the only working copy without a rollback.</p>
+<p>Use the platform's installation/uninstallation flow: Windows <strong>Settings → Apps</strong>, or the Linux app's
+<code>app uninstall</code> command where supported. Project-data retention is not a backup guarantee. Inspect
+what the particular installer removes, and never delete project/media folders just to repair a launcher.</p>
+<p>Authorized developers can use the repository's installation and development instructions. Source builds
+and development environments are distinct from qualified customer artifacts.</p>
+<p>Next: <a href="/docs/course/setup">prepare the real sample</a>.</p>
+        <div class="doc-steps"><a class="doc-step prev" href="/docs/course/next"><span>Previous</span>12. Move to your own project</a><a class="doc-step next" href="/docs/start/activate"><span>Next</span>Alpha access and licences</a></div>
       </article>
-      <aside class="doc-toc" aria-label="On this page"><p>On this page</p><ul><li><a href="#windows">Windows</a></li><li><a href="#linux">Linux</a></li><li><a href="#training-support">Training support</a></li><li><a href="#where-your-work-is-kept">Where your work is kept</a></li><li><a href="#check-the-install">Check the install</a></li><li><a href="#upgrade-and-uninstall">Upgrade and uninstall</a></li></ul></aside>
+      <aside class="doc-toc" aria-label="On this page"><p>On this page</p><ul><li><a href="#before-you-install">Before you install</a></li><li><a href="#windows">Windows</a></li><li><a href="#linux">Linux</a></li><li><a href="#training-support">Training support</a></li><li><a href="#where-your-work-is-kept">Where your work is kept</a></li><li><a href="#check-the-install">Check the install</a></li><li><a href="#upgrade-and-uninstall">Upgrade and uninstall</a></li></ul></aside>
     </main>
   </div>
 
   <footer class="doc-footer">
     <div class="wrap">
-      <p>© Granum. Your data stays on your computer.</p>
+    <p>© Granum. Local-first data workflows.</p>
       <p><a href="/">Product</a><a href="/download">Download</a><a href="/privacy">Privacy</a><a href="/docs/help/troubleshooting">Support</a></p>
     </div>
   </footer>
 
   <div class="doc-search" data-search-panel hidden>
     <div class="doc-search-box" role="dialog" aria-modal="true" aria-label="Search documentation">
-      <input type="search" placeholder="Search the documentation" autocomplete="off" spellcheck="false" data-search-input>
-      <ul data-search-results></ul>
+    <input type="search" aria-label="Search documentation" aria-controls="doc-search-results" placeholder="Search the documentation" autocomplete="off" spellcheck="false" data-search-input>
+    <ul id="doc-search-results" aria-label="Search results" aria-live="polite" data-search-results></ul>
       <p class="doc-search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move · <kbd>Enter</kbd> to open · <kbd>Esc</kbd> to close</p>
     </div>
   </div>

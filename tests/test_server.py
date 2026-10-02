@@ -60,7 +60,10 @@ def server(request, tmp_path):
     service = LicenceService(_database(request.param, tmp_path), key, keys, mailer=mailer,
                              settings=Settings(trial_days=7, trial_projects=1, kid="t1"), clock=clock)
     site = {"version": "0.1.0", "contact": "hello@example.com",
-            "downloads": {"windows": "https://example.com/Granum-Setup.exe", "linux": ""}}
+            "downloads": {"windows": "https://example.com/Granum-Setup.exe", "linux": ""},
+            "checksums": {"windows": "a" * 64},
+            "manifests": {"windows": "https://example.com/Granum-Setup.exe.manifest.json"},
+            "release": {"qualified": True, "channel": "unrestricted-alpha", "source_revision": "b" * 40}}
     api = TestClient(create_app(service, admin_token="secret", site=site))
     return api, service, keys, clock, mailer
 
@@ -144,7 +147,8 @@ def test_a_paid_plan_covers_its_machines_and_moves_between_them(server):
 def test_downloads_need_a_real_email_proven_by_a_code(server):
     api, service, _keys, _clock, mailer = server
     site = api.get("/v1/site").json()
-    assert site == {"version": "0.1.0", "contact": "hello@example.com", "downloads": {"windows": True, "linux": False}}
+    assert site["version"] == "0.1.0" and site["downloads"] == {"windows": True, "linux": False}
+    assert site["release"] == {"qualified": True, "channel": "unrestricted-alpha", "source_revision": "b" * 40}
     assert api.post("/v1/download/code", json={"email": "bad"}).status_code == 400
 
     # A made-up or throwaway address gets no links: the code goes to the real inbox only.
@@ -157,6 +161,8 @@ def test_downloads_need_a_real_email_proven_by_a_code(server):
     code = mailer.sent[-1][1]
     got = api.post("/v1/download", json={"email": "Lead@Site.com", "code": code, "os": "windows", "name": "Lea", "company": "Site Ltd"})
     assert got.status_code == 200 and got.json()["downloads"] == {"windows": "https://example.com/Granum-Setup.exe"}
+    assert got.json()["checksums"]["windows"] == "a" * 64
+    assert got.json()["manifests"]["windows"].endswith(".manifest.json")
     account = service.db.row("SELECT source, name, company FROM accounts WHERE email = 'lead@site.com'")
     assert account == {"source": "website", "name": "Lea", "company": "Site Ltd"}
     assert service.db.value("SELECT COUNT(*) AS n FROM downloads WHERE email = 'lead@site.com'") == 1

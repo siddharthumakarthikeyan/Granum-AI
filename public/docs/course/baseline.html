@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>5. Freeze an exploratory baseline · Granum documentation</title>
+  <meta name="description" content="Preserve the full 120-image input before editing, and see why an immutable version is not the same thing as an approved release.">
+  <meta name="theme-color" content="#ffffff">
+  <meta property="og:title" content="5. Freeze an exploratory baseline · Granum documentation">
+  <meta property="og:description" content="Preserve the full 120-image input before editing, and see why an immutable version is not the same thing as an approved release.">
+  <meta property="og:type" content="article">
+  <meta property="og:image" content="/assets/og.jpg">
+  <link rel="canonical" href="https://granum.app/docs/course/baseline">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/docs/docs.css">
+  <script>document.documentElement.classList.remove("no-js");</script>
+</head>
+<body class="doc-body">
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header doc-header">
+    <div class="wrap">
+      <a class="brand" href="/" aria-label="Granum home"><img src="/assets/lockup-ink.svg" alt="Granum" width="128" height="32"></a>
+      <span class="doc-badge"><a href="/docs">Docs</a></span>
+      <nav class="nav" id="nav" aria-label="Main">
+        <a href="/#tour">Product</a>
+        <a href="/#plans">Pilots</a>
+        <a href="/docs/help/faq">FAQ</a>
+      </nav>
+      <div class="header-actions">
+        <button class="doc-search-button" type="button" data-search aria-label="Search documentation">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3 3"/></svg>
+          <span>Search</span><kbd>/</kbd>
+        </button>
+        <a class="btn primary small" href="/download">Download</a>
+        <button class="menu-button" type="button" aria-controls="doc-sidebar" aria-expanded="false" aria-label="Menu" data-sidebar-toggle>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="doc-shell">
+    <div class="doc-sidebar" id="doc-sidebar">
+      <nav class="doc-nav" aria-label="Documentation">
+<a class="doc-nav-home" href="/docs">Start here</a>
+<div class="doc-nav-group"><p class="doc-nav-title">Guided aerial-data course</p><ul>
+<li><a href="/docs/course/start">Start the guided course</a></li>
+<li><a href="/docs/course/setup">1. Prepare the workspace</a></li>
+<li><a href="/docs/course/data">2. Understand the sample</a></li>
+<li><a href="/docs/course/import">3. Import with preflight</a></li>
+<li><a href="/docs/course/explore">4. Explore before changing labels</a></li>
+<li><a href="/docs/course/baseline" class="on" aria-current="page">5. Freeze an exploratory baseline</a></li>
+<li><a href="/docs/course/review">6. Review, edit and recover</a></li>
+<li><a href="/docs/course/train">7. Train the first model</a></li>
+<li><a href="/docs/course/results">8. Read the model evidence</a></li>
+<li><a href="/docs/course/compare">9. Make a controlled comparison</a></li>
+<li><a href="/docs/course/handoff">10. Approve and export an excerpt</a></li>
+<li><a href="/docs/course/backup">11. Back up, restore and share safely</a></li>
+<li><a href="/docs/course/next">12. Move to your own project</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Getting started</p><ul>
+<li><a href="/docs/start/install">Install Granum</a></li>
+<li><a href="/docs/start/activate">Alpha access and licences</a></li>
+<li><a href="/docs/start/first-project">Your first project</a></li>
+<li><a href="/docs/start/the-loop">Run the loop once</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Concepts</p><ul>
+<li><a href="/docs/concepts/model">How Granum is organised</a></li>
+<li><a href="/docs/concepts/projects">Projects and project types</a></li>
+<li><a href="/docs/concepts/versions">Versions and lineage</a></li>
+<li><a href="/docs/concepts/dataset-versions">Dataset versions</a></li>
+<li><a href="/docs/concepts/verification">Verification and decisions</a></li>
+<li><a href="/docs/concepts/identity">Image identity</a></li>
+<li><a href="/docs/concepts/runs">Runs and metrics</a></li>
+<li><a href="/docs/concepts/evidence">What the evidence is worth</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Guides</p><ul>
+<li><a href="/docs/guides/import">Import data</a></li>
+<li><a href="/docs/guides/pull-from-projects">Build from existing projects</a></li>
+<li><a href="/docs/guides/browse">Browse images</a></li>
+<li><a href="/docs/guides/review">Review and verify</a></li>
+<li><a href="/docs/guides/edit">Edit annotations</a></li>
+<li><a href="/docs/guides/isolate-remove">Isolate, remove and restore</a></li>
+<li><a href="/docs/guides/dataset-versions">Create a dataset version</a></li>
+<li><a href="/docs/guides/augmentation">Augmentation</a></li>
+<li><a href="/docs/guides/train">Train a model</a></li>
+<li><a href="/docs/guides/runs">Read a run</a></li>
+<li><a href="/docs/guides/learning">Per-image learning</a></li>
+<li><a href="/docs/guides/findings">Work the Findings queue</a></li>
+<li><a href="/docs/guides/compare">Compare two runs</a></li>
+<li><a href="/docs/guides/projects">Manage projects</a></li>
+<li><a href="/docs/guides/python">Use Granum from Python</a></li>
+<li><a href="/docs/guides/operations">Operate a pilot workspace</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Reference</p><ul>
+<li><a href="/docs/reference/screens">Map of the app</a></li>
+<li><a href="/docs/reference/shortcuts">Keyboard shortcuts</a></li>
+<li><a href="/docs/reference/preflight">Import checks</a></li>
+<li><a href="/docs/reference/models">Models you can train</a></li>
+<li><a href="/docs/reference/files">Files and settings</a></li>
+<li><a href="/docs/reference/limits">Scale and limits</a></li>
+<li><a href="/docs/reference/glossary">Glossary</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Help</p><ul>
+<li><a href="/docs/help/troubleshooting">Troubleshooting</a></li>
+<li><a href="/docs/help/faq">Frequently asked questions</a></li>
+<li><a href="/docs/help/privacy">Your data and privacy</a></li>
+</ul></div>
+</nav>
+    </div>
+    <main class="doc-main" id="main">
+      <article class="doc-article">
+        <nav class="doc-crumb" aria-label="Breadcrumb"><a href="/docs">Documentation</a><span aria-hidden="true">/</span><a href="/docs#course">Guided aerial-data course</a></nav>
+        <h1>5. Freeze an exploratory baseline</h1>
+        <p class="doc-summary">Preserve the full 120-image input before editing, and see why an immutable version is not the same thing as an approved release.</p>
+        <p><strong>Goal:</strong> create <strong>aerial-baseline</strong> from the untouched imported working sets, before the next lesson's
+practice edit. Complete <a href="/docs/course/explore">Explore the data</a> first.</p>
+<h2 id="what-a-dataset-version-is-and-why-it-matters">What a dataset version is, and why it matters</h2>
+<p>The working collection can advance as you edit. A <strong>dataset version</strong> records an exact selection of
+table revisions and images for an experiment or handoff. A later edit does not silently change which
+table revision an earlier run used.</p>
+<p>Granum distinguishes two states:</p>
+<table>
+<thead>
+<tr>
+<th>State</th>
+<th>Meaning</th>
+<th>What it does not mean</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Exploratory</td>
+<td>A frozen input you can deliberately investigate</td>
+<td>Every included image was reviewed</td>
+</tr>
+<tr>
+<td>Approved</td>
+<td>An explicit gate accepted current review evidence for the exact included rows, schema and media</td>
+<td>Labels are infallible or the dataset is sufficient for deployment</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Verified-only</strong> is a selection policy. It still creates an exploratory version until you explicitly
+approve it. External image files also need protection: freezing references is not a filesystem snapshot
+that stops another program overwriting image bytes.</p>
+<h2 id="step-1-create-the-baseline">Step 1: create the baseline</h2>
+<ol>
+<li>Return to <strong>Images → aerial-mini</strong>. Clear filters so the context is easy to understand.</li>
+<li>Choose <strong>Create dataset</strong>. The dialog is titled <strong>Create exploratory dataset version</strong>.</li>
+<li>Enter <strong>aerial-baseline</strong> for <strong>Name</strong>.</li>
+<li>Enter a description such as: “Course baseline: 96 train / 24 valid. Unreviewed source labels;
+   exploratory only. No independent test; no added version-creation augmentation.”</li>
+<li>Explicitly choose <strong>Use entire dataset</strong>. Do not rely on defaults: once any images are verified,
+   the default selection can differ.</li>
+<li>Keep the existing 96/24 split and add no augmentation in this dialog.</li>
+<li>Read the included image counts, then choose <strong>Create dataset</strong>.</li>
+</ol>
+<figure class="doc-figure">
+<a href="/assets/course/14-create-baseline.webp"><img src="/assets/course/14-create-baseline.webp" alt="Create exploratory dataset version dialog names aerial-baseline and includes all 120 unreviewed images." width="1440" height="960" loading="lazy"></a>
+<figcaption>The description records the experiment boundary. “No added augmentation” here refers to version creation, not all possible trainer defaults.</figcaption>
+</figure>
+
+<h2 id="step-2-check-the-frozen-result">Step 2: check the frozen result</h2>
+<p>Open <strong>Datasets</strong>. Select aerial-baseline and inspect its contents: <strong>120 images, train 96, valid 24</strong>,
+with <strong>Exploratory</strong> status. Record its version and description. Numeric version labels and timestamps
+in your workspace may differ from the recording.</p>
+<figure class="doc-figure">
+<a href="/assets/course/15-exploratory-version.webp"><img src="/assets/course/15-exploratory-version.webp" alt="Datasets page lists aerial-baseline as Exploratory with 120 images and separate train and valid counts." width="1440" height="960" loading="lazy"></a>
+<figcaption>This is a reproducible input selection—not a release approval.</figcaption>
+</figure>
+
+<h2 id="step-3-understand-an-expected-refusal">Step 3: understand an expected refusal</h2>
+<p>Choose <strong>Approve…</strong>, then <strong>Check and approve</strong>. Because the included contents have not all been
+reviewed, approval should be refused. Read the reason and close the dialog. This is a successful
+demonstration of a safeguard, not something to bypass.</p>
+<figure class="doc-figure">
+<a href="/assets/course/16-approval-refused.webp"><img src="/assets/course/16-approval-refused.webp" alt="Approve exact dataset contents dialog refuses approval because the included images lack matching review evidence." width="1440" height="960" loading="lazy"></a>
+<figcaption>Do not bulk-verify images to remove this message. Later we approve only a genuinely inspected two-image excerpt.</figcaption>
+</figure>
+
+<h2 id="watch-the-baseline-and-refusal">Watch the baseline and refusal</h2>
+<figure class="doc-figure doc-video">
+<video controls preload="none" playsinline poster="/assets/course/15-exploratory-version.webp" aria-label="Recorded baseline creation and expected approval refusal" aria-describedby="baseline-video-caption">
+<source src="/assets/course/04-versions.mp4" type="video/mp4"><track kind="captions" src="/assets/course/04-versions.vtt" srclang="en" label="English" default>
+<a href="/assets/course/04-versions.mp4">Download the recording</a>.
+</video><figcaption id="baseline-video-caption">16 seconds · silent, with captions · the refusal is intentional.</figcaption>
+</figure>
+<details class="doc-transcript"><summary>Read the video transcript</summary>
+<ol><li>Freeze aerial-baseline from the entire dataset with no added version augmentation.</li><li>It appears as Exploratory; later training records its exact inputs.</li><li>Approval correctly refuses unreviewed contents. Do not verify images merely to dismiss the warning.</li></ol>
+</details>
+
+<h2 id="what-we-learn">What we learn</h2>
+<p>You can preserve an honest unreviewed baseline and still investigate it. Approval and exploration
+serve different purposes. A comparison is interpretable only when you know which inputs were frozen,
+what changed later, and which scoring labels were held constant.</p>
+<h2 id="checkpoint">Checkpoint</h2>
+<p><strong>aerial-baseline remains exploratory and contains all 120 images.</strong> It was created before the
+practice edit. Next: <a href="/docs/course/review">review, edit and recover</a>. Do not replace this version with
+the two-image excerpt when you reach training.</p>
+<h2 id="if-something-differs">If something differs</h2>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>What to do</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Only two images included</td>
+<td>You selected verified-only after doing review; create a clearly named full baseline from the intended original revisions</td>
+</tr>
+<tr>
+<td>A split disappeared</td>
+<td>Check included sets and image counts before creation; do not substitute train for validation</td>
+</tr>
+<tr>
+<td>Approval succeeds unexpectedly</td>
+<td>Inspect whether the contents already had valid review evidence from an earlier exercise</td>
+</tr>
+<tr>
+<td>Missing or changed media blocks approval</td>
+<td>Restore/protect the intended bytes or re-review changed contents; do not erase the integrity evidence</td>
+</tr>
+</tbody>
+</table>
+<p>Details: <a href="/docs/concepts/dataset-versions">Dataset versions</a> and <a href="/docs/concepts/verification">Verification</a>.</p>
+        <div class="doc-steps"><a class="doc-step prev" href="/docs/course/explore"><span>Previous</span>4. Explore before changing labels</a><a class="doc-step next" href="/docs/course/review"><span>Next</span>6. Review, edit and recover</a></div>
+      </article>
+      <aside class="doc-toc" aria-label="On this page"><p>On this page</p><ul><li><a href="#what-a-dataset-version-is-and-why-it-matters">What a dataset version is, and why it matters</a></li><li><a href="#step-1-create-the-baseline">Step 1: create the baseline</a></li><li><a href="#step-2-check-the-frozen-result">Step 2: check the frozen result</a></li><li><a href="#step-3-understand-an-expected-refusal">Step 3: understand an expected refusal</a></li><li><a href="#watch-the-baseline-and-refusal">Watch the baseline and refusal</a></li><li><a href="#what-we-learn">What we learn</a></li><li><a href="#checkpoint">Checkpoint</a></li><li><a href="#if-something-differs">If something differs</a></li></ul></aside>
+    </main>
+  </div>
+
+  <footer class="doc-footer">
+    <div class="wrap">
+    <p>© Granum. Local-first data workflows.</p>
+      <p><a href="/">Product</a><a href="/download">Download</a><a href="/privacy">Privacy</a><a href="/docs/help/troubleshooting">Support</a></p>
+    </div>
+  </footer>
+
+  <div class="doc-search" data-search-panel hidden>
+    <div class="doc-search-box" role="dialog" aria-modal="true" aria-label="Search documentation">
+    <input type="search" aria-label="Search documentation" aria-controls="doc-search-results" placeholder="Search the documentation" autocomplete="off" spellcheck="false" data-search-input>
+    <ul id="doc-search-results" aria-label="Search results" aria-live="polite" data-search-results></ul>
+      <p class="doc-search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move · <kbd>Enter</kbd> to open · <kbd>Esc</kbd> to close</p>
+    </div>
+  </div>
+
+  <script src="/docs/docs.js" defer></script>
+</body>
+</html>

@@ -88,7 +88,17 @@
     .then((r) => (r.ok ? r.json() : null))
     .then((site) => {
       if (!site) return;
-      if (site.version) $$("[data-version]").forEach((el) => { el.textContent = `Version ${site.version}`; });
+      const qualified = site.release?.qualified === true;
+      $$("[data-version]").forEach((el) => {
+        el.textContent = qualified ? `Alpha ${site.version} · ${site.release.source_revision.slice(0, 12)}` : "No qualified desktop release published";
+      });
+      const releaseNote = $("#release-note");
+      if (releaseNote) {
+        releaseNote.textContent = qualified
+          ? "Qualified alpha downloads are available below. Keep the source revision, manifest and SHA-256 checksum with the installer."
+          : "No qualified desktop download is currently published. Contact us for a pilot; do not assume an older installer contains the current source features.";
+        $("#submit").disabled = !qualified;
+      }
       if (site.contact) {
         $$("[data-contact-sentence]").forEach((el) => { el.textContent = ` by writing to ${site.contact}`; });
         $$("[data-contact]").forEach((el) => {
@@ -125,9 +135,9 @@
     const quoteError = $("#quote-error");
     const quoteSubmit = $("#quote-submit");
     const COPY = {
-      Single: ["Buy Granum Single.", "Send your details and we will email you an invoice with a payment link.", "Buy Single", 1],
-      Team: ["Buy Granum Team.", "Send your details and we will email you an invoice with a payment link.", "Buy Team", 5],
-      Enterprise: ["Granum Enterprise for your company.", "Tell us about your team and we will reply by email with a quote, usually within one business day.", "Request a quote", 10],
+      Single: ["Discuss an individual pilot.", "Describe your local workflow. Permission, support and any fees are agreed manually before a paid engagement.", "Discuss a pilot", 1],
+      Team: ["Discuss a team pilot.", "Define a supervised evaluation with explicit acceptance criteria. This request does not start a subscription.", "Discuss a pilot", 5],
+      Enterprise: ["Discuss your deployment requirements.", "A non-binding discovery request, not a promise of enterprise capabilities, SSO or project-level tenancy.", "Discuss requirements", 10],
     };
     const showPlan = (name, initial) => {
       const [title, lead, action, seats] = COPY[name] || COPY.Enterprise;
@@ -137,10 +147,9 @@
       quoteSubmit.textContent = name === "Enterprise" ? "Send request" : action;
       document.title = name === "Enterprise" ? "Request a quote: Granum" : `${action}: Granum`;
       $$(".plan-summary").forEach((el) => { el.hidden = el.dataset.for !== name; });
-      const fixed = name !== "Enterprise";
-      if (fixed || initial) computers.value = String(seats);
-      $("#q-billing-field").hidden = !fixed;
-      $("#q-computers-field").hidden = fixed;
+      if (initial) computers.value = String(seats);
+      $("#q-billing-field").hidden = false;
+      $("#q-computers-field").hidden = false;
     };
     const wanted = params.get("plan");
     if (wanted && COPY[wanted]) plan.value = wanted;
@@ -165,7 +174,6 @@
       if (!company.value.trim()) return fail("Enter your company.", company);
       const seats = parseInt(computers.value, 10);
       if (!(seats >= 1)) return fail("Enter how many computers you need.", computers);
-      const fixed = plan.value !== "Enterprise";
       const note = $("#q-message").value.trim();
       const body = {
         plan: plan.value,
@@ -173,7 +181,7 @@
         name: name.value.trim(),
         company: company.value.trim(),
         computers: seats,
-        message: (fixed ? `Billing: ${billingSelect.value}\n\n` : "") + note,
+        message: `Non-binding pilot request. Billing preference: ${billingSelect.value}\n\n` + note,
         website: $("#q-website").value,
       };
       quoteSubmit.disabled = true;
@@ -220,7 +228,7 @@
   const STEPS = {
     windows: [
       "Run the downloaded installer. It installs for your user only; no administrator rights needed.",
-      "If Windows shows <em>Windows protected your PC</em>, choose <strong>More info</strong>, then <strong>Run anyway</strong>.",
+      "The installer is unsigned. Verify its publisher, manifest and checksum, and follow your organization’s software policy before proceeding past a warning.",
       "Open Granum from the Start menu.",
     ],
     linux: [
@@ -237,7 +245,7 @@
     }
   };
 
-  const renderDone = (chosen, downloads, address) => {
+  const renderDone = (chosen, downloads, address, publication) => {
     const files = $("#files");
     files.textContent = "";
     const order = [chosen, ...Object.keys(downloads).filter((os) => os !== chosen)];
@@ -256,6 +264,18 @@
       meta.className = "meta";
       meta.textContent = LABEL[os] || os;
       text.append(name, meta);
+      const checksum = document.createElement("p");
+      checksum.className = "meta";
+      checksum.style.overflowWrap = "anywhere";
+      checksum.textContent = `SHA-256: ${publication.checksums?.[os] || "unavailable"}`;
+      text.append(checksum);
+      if (publication.manifests?.[os]) {
+        const manifest = document.createElement("a");
+        manifest.href = publication.manifests[os];
+        manifest.textContent = `Release manifest · ${publication.release.source_revision.slice(0, 12)}`;
+        manifest.rel = "noopener";
+        text.append(manifest);
+      }
       const link = document.createElement("a");
       link.className = os === chosen ? "btn primary small" : "btn small";
       link.href = url;
@@ -267,7 +287,7 @@
     if (!any) {
       const note = document.createElement("p");
       note.className = "muted";
-      note.textContent = "Downloads open very soon. We have saved your email and will write when they are up.";
+      note.textContent = "No qualified installer is published. Contact us for pilot access; this request did not start a trial or subscription.";
       files.append(note);
     }
     const steps = $("#steps");
@@ -363,7 +383,7 @@
     try {
       const body = await post("/v1/download", { ...pending, code: code.value });
       verify.hidden = true;
-      renderDone(pending.os, body.downloads || {}, pending.email);
+      renderDone(pending.os, body.downloads || {}, pending.email, body);
     } catch (e) {
       verifyError.textContent = e instanceof Error ? e.message : String(e);
       verifyError.hidden = false;

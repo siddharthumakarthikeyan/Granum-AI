@@ -1,0 +1,35 @@
+{
+  "chapter": "07-experiment",
+  "recorded": "2026-10-02T11:36:26.192Z",
+  "source": "Actual Granum dashboard with aerial-mini; no mocked metrics or API responses.",
+  "viewport": {
+    "width": 1440,
+    "height": 960
+  },
+  "duration": 14.88,
+  "shots": [
+    "25-candidate-recipe"
+  ],
+  "cues": [
+    {
+      "at": 0.3757212003872217,
+      "text": "Change one planned variable: 12 epochs instead of 3, on the same frozen dataset. This is a schedule experiment, not evidence that label edits helped."
+    },
+    {
+      "at": 7.292352371732816,
+      "text": "The earlier model will be rescored on the same validation labels. Comparing numbers from different label versions would confound the result."
+    }
+  ],
+  "capture_duration": 12.396,
+  "captured_cues": [
+    {
+      "at": 0.313,
+      "text": "Change one planned variable: 12 epochs instead of 3, on the same frozen dataset. This is a schedule experiment, not evidence that label edits helped."
+    },
+    {
+      "at": 6.075,
+      "text": "The earlier model will be rescored on the same validation labels. Comparing numbers from different label versions would confound the result."
+    }
+  ],
+  "caption_timing": "Original wall-clock cues scaled to encoded video duration; retained separately for provenance."
+}

@@ -1,0 +1,13 @@
+WEBVTT
+
+1
+00:00:00.637 --> 00:00:04.730
+Freeze aerial-baseline with the entire dataset and no added augmentation. Frozen does not mean approved.
+
+2
+00:00:04.730 --> 00:00:09.087
+The version appears as Exploratory. Training records the exact versions used, not whatever is edited later.
+
+3
+00:00:09.087 --> 00:00:15.080
+Approval correctly refuses unreviewed contents. Do not mark images verified just to make this warning disappear.

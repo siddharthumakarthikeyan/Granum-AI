@@ -1,57 +1,42 @@
 ---
-title: Sign in and licences
-summary: A free trial by email, plans counted per computer, and what changes when a licence ends.
+title: Alpha access and licences
+summary: The current unrestricted alpha, written usage permission, and manually agreed pilots.
 ---
 
-Granum checks a signed licence on each computer. Open **Licence** at the bottom of the sidebar to see
-what this computer has, when it ends, and how to change it.
+The current source and newly qualified **unrestricted-alpha** builds have licensing enforcement
+disabled. They do not require in-app activation, enforce a trial countdown, limit the number of
+projects for commercial reasons, or become read-only because a subscription expired.
 
-## Start a trial
+## Permission and pilots
 
-1. Open **Licence** and enter your email address.
-2. Granum sends a six-digit code. Enter it.
-3. The computer receives a licence: your plan if you have one, otherwise a **free trial — 7 days,
-   one project**.
+Granum remains proprietary. Removing a software quota does not grant usage, redistribution or
+source-code rights. Evaluation permission, pilot scope, support and any fees are agreed in writing.
+There is no automated checkout, automatic charge or active self-service subscription offer.
 
-The code is valid for ten minutes. One trial per email address and one per computer: a second address on
-the same machine, or the same address on a second machine, does not get another.
+Use [the pilot form](/quote) to discuss requirements. Submitting it is not a purchase or a grant of rights.
+Future releases may have different terms; they must disclose their enforcement policy explicitly.
 
-## Plans
+## Download verification is separate
 
-Plans are counted in computers, not seats. A plan for five computers is one licence that five machines
-can each claim a slot on. **Sign out** on the Licence page frees that machine's slot for another.
+The website emails a code to verify a download request. That code does not start an in-app trial.
+Downloads are published only after the operator supplies qualified release metadata, a source revision,
+an artifact manifest and a SHA-256 checksum. A version number alone does not identify the exact build.
 
-While the app is running and online it renews quietly every few hours. Away from the network it keeps
-working for **seven days** on the lease it already holds; the Licence page shows how much of that is left.
+Older installers may not contain the latest source changes. Check `granum build-info` or the service's
+`/api/health` build field against the manifest. An unstamped installer is not qualified as current.
 
-## What "read-only" means
+## Offline and shared use
 
-When a plan ends, a trial runs out or the offline lease expires, Granum turns read-only rather than
-locking you out. This is deliberate: your data is yours, and you should always be able to get it back.
+Local work needs no licence renewal in this alpha. Initial installation, optional model downloads and
+cloud data can still need a network connection.
 
-| Still works | Refused |
-|---|---|
-| Opening projects, browsing images and annotations | Importing or creating projects |
-| Reading runs, dynamics, findings and comparisons | Editing labels, verifying, commenting |
-| Exporting, copying files, the Python API for reading | Creating dataset versions, training |
+Shared-workspace authentication is separate from commercial licensing. A shared administrator creates
+password-based accounts and configures HTTPS. Roles govern writes, but every account can read the whole
+workspace. A machine licence is not a collaboration account or a tenant boundary.
 
-Sign in again, or install a new key, and everything resumes where it was.
+## Legacy licensing machinery
 
-!!! note "Clock changes"
-    The offline allowance is counted in running time on a monotonic clock, and Granum remembers the
-    latest time it has seen. Moving the system clock backwards does not return offline days; it makes
-    the app read-only until the clock is right again.
-
-## Keys entered by hand
-
-Computers that are never online can run on an **offline key** issued for a fixed period. Paste it into
-the Licence page under *Enter a licence key*. Offline keys never renew: when the end date passes, the app
-is read-only until a new key is installed.
-
-Every key is issued for one computer and carries that computer's id (the `GM-…` shown on the Licence
-page), so copying a key to another machine does not work.
-
-## What the licence server is told
-
-Only what an activation needs: your email address, the machine id, and the app version. No project names,
-no file paths, no images, no annotations, no metrics. See [Privacy](/docs/help/privacy).
+Signed keys, trial issuance, machine slots and renewal APIs remain implemented and tested for explicitly
+licensed builds. They do not describe the current alpha's restrictions. If an older build reports a
+licence error, record its build identity and contact support rather than assuming current alpha rules
+apply. See [Privacy](/docs/help/privacy).

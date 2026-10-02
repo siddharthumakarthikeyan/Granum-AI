@@ -1,0 +1,36 @@
+{
+  "chapter": "05-train",
+  "recorded": "2026-10-02T11:23:55.822Z",
+  "source": "Actual Granum dashboard with aerial-mini; no mocked metrics or API responses.",
+  "viewport": {
+    "width": 1440,
+    "height": 960
+  },
+  "duration": 13.64,
+  "shots": [
+    "17-training-recipe",
+    "18-training-started"
+  ],
+  "cues": [
+    {
+      "at": 0.30563380281690145,
+      "text": "Use YOLO nano, 640 pixels and 3 epochs for this small workflow exercise. Keep Test on None and record per-sample history."
+    },
+    {
+      "at": 5.617112676056338,
+      "text": "Training runs in a separate process. The run card reports progress and exposes the log; do not treat a running job as a finished result."
+    }
+  ],
+  "capture_duration": 12.496,
+  "captured_cues": [
+    {
+      "at": 0.28,
+      "text": "Use YOLO nano, 640 pixels and 3 epochs for this small workflow exercise. Keep Test on None and record per-sample history."
+    },
+    {
+      "at": 5.146,
+      "text": "Training runs in a separate process. The run card reports progress and exposes the log; do not treat a running job as a finished result."
+    }
+  ],
+  "caption_timing": "Original wall-clock cues scaled to encoded video duration; retained separately for provenance."
+}

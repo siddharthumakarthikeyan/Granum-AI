@@ -75,6 +75,31 @@ def create_app(service: LicenceService, *, admin_token: str = "", site: dict[str
     app = FastAPI(title="Granum licence server", docs_url=None, redoc_url=None, openapi_url=None)
     site = site or {}
 
+    def publication() -> dict[str, Any]:
+        import re
+        from urllib.parse import urlsplit
+
+        def https(value: str) -> bool:
+            try:
+                url = urlsplit(value)
+                return url.scheme == "https" and bool(url.hostname) and not url.username and not url.password
+            except ValueError:
+                return False
+
+        release = site.get("release") or {}
+        checksums = site.get("checksums") or {}
+        manifests = site.get("manifests") or {}
+        ready = (release.get("qualified") is True and release.get("channel") == "unrestricted-alpha"
+                 and bool(re.fullmatch(r"[0-9a-f]{40,64}", release.get("source_revision", "")))
+                 and bool(site.get("version")))
+        downloads = {name: url for name, url in (site.get("downloads") or {}).items()
+                     if ready and name in ("windows", "linux") and https(url)
+                     and re.fullmatch(r"[0-9a-fA-F]{64}", checksums.get(name, "")) and https(manifests.get(name, ""))}
+        return {"version": site.get("version"), "downloads": downloads,
+                "release": {"channel": "unrestricted-alpha", "source_revision": release.get("source_revision"), "qualified": bool(downloads)},
+                "checksums": {name: checksums[name] for name in downloads},
+                "manifests": {name: manifests[name] for name in downloads}}
+
     @app.exception_handler(Refused)
     async def refused(_request: Request, exc: Refused) -> JSONResponse:
         return JSONResponse({"detail": exc.message, "code": exc.code}, exc.status)
@@ -91,9 +116,9 @@ def create_app(service: LicenceService, *, admin_token: str = "", site: dict[str
     @app.get("/v1/site")
     def site_config() -> dict[str, Any]:
         """What the pages show: the version, whether downloads are up, how to get in touch."""
-        downloads = site.get("downloads") or {}
-        return {"version": site.get("version"), "contact": site.get("contact"),
-                "downloads": {os: bool(url) for os, url in downloads.items()}}
+        published = publication()
+        return {"version": published["version"], "contact": site.get("contact"), "release": published["release"],
+            "downloads": {name: name in published["downloads"] for name in ("windows", "linux")}}
 
     @app.post("/v1/download/code")
     def download_code(request: EmailRequest = Body(...)) -> dict[str, Any]:
@@ -104,8 +129,7 @@ def create_app(service: LicenceService, *, admin_token: str = "", site: dict[str
     def download(request: DownloadRequest = Body(...)) -> dict[str, Any]:
         """Step two: with the right code, record the email and give the installer links."""
         service.download(request.email, request.code, request.os, name=request.name, company=request.company)
-        downloads = site.get("downloads") or {}
-        return {"version": site.get("version"), "downloads": {os: url for os, url in downloads.items() if url}}
+        return publication()
 
     @app.post("/v1/quote")
     def quote(request: QuoteRequest = Body(...)) -> dict[str, Any]:

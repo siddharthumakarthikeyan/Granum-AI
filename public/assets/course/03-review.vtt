@@ -1,0 +1,25 @@
+WEBVTT
+
+1
+00:00:00.711 --> 00:00:04.974
+Inspect the full image: the one pedestrian already has a reasonable box. Do not manufacture a correction.
+
+2
+00:00:04.974 --> 00:00:09.148
+Practice only: temporarily relabel this object as people. Do not save this deliberate practice change.
+
+3
+00:00:09.148 --> 00:00:13.609
+Reload offers the draft from this browser profile. Recovery does not mean anything was committed to the dataset.
+
+4
+00:00:13.609 --> 00:00:18.445
+Restore the original pedestrian class before saving. This teaches recovery and versioning, not a claimed label-quality improvement.
+
+5
+00:00:18.445 --> 00:00:23.544
+Record what you inspected, then Verify only this image. Saving annotations and verifying their correctness are separate actions.
+
+6
+00:00:23.544 --> 00:00:29.440
+Record what you inspected, then Verify only this image. Saving annotations and verifying their correctness are separate actions.

@@ -68,8 +68,13 @@ class Section:
 #: The book's order. Everything in the sidebar, the section pages, the previous/next
 #: links and the search index comes from here.
 NAV: list[Section] = [
+    Section("course", "Guided aerial-data course",
+            "Start with a real sample. Every lesson explains the action, its evidence and its limits, with actual screenshots and captioned recordings.",
+            ["course/start", "course/setup", "course/data", "course/import", "course/explore",
+             "course/baseline", "course/review", "course/train", "course/results", "course/compare",
+             "course/handoff", "course/backup", "course/next"]),
     Section("start", "Getting started",
-            "Install Granum, sign in, and run the whole loop once on a small dataset.",
+            "Check alpha access, install a qualified build, and run the loop on a small dataset.",
             ["start/install", "start/activate", "start/first-project", "start/the-loop"]),
     Section("concepts", "Concepts",
             "The ideas the product is built on. Read these once and the rest of the app explains itself.",
@@ -80,7 +85,7 @@ NAV: list[Section] = [
             ["guides/import", "guides/pull-from-projects", "guides/browse", "guides/review", "guides/edit",
              "guides/isolate-remove", "guides/dataset-versions", "guides/augmentation", "guides/train",
              "guides/runs", "guides/learning", "guides/findings", "guides/compare", "guides/projects",
-             "guides/python"]),
+             "guides/python", "guides/operations"]),
     Section("reference", "Reference",
             "Look things up: every screen, every key, every check, every file.",
             ["reference/screens", "reference/shortcuts", "reference/preflight", "reference/models",
@@ -215,7 +220,7 @@ TEMPLATE = """<!doctype html>
       <span class="doc-badge"><a href="/docs">Docs</a></span>
       <nav class="nav" id="nav" aria-label="Main">
         <a href="/#tour">Product</a>
-        <a href="/#plans">Pricing</a>
+        <a href="/#plans">Pilots</a>
         <a href="/docs/help/faq">FAQ</a>
       </nav>
       <div class="header-actions">
@@ -249,15 +254,15 @@ TEMPLATE = """<!doctype html>
 
   <footer class="doc-footer">
     <div class="wrap">
-      <p>© Granum. Your data stays on your computer.</p>
+    <p>© Granum. Local-first data workflows.</p>
       <p><a href="/">Product</a><a href="/download">Download</a><a href="/privacy">Privacy</a><a href="/docs/help/troubleshooting">Support</a></p>
     </div>
   </footer>
 
   <div class="doc-search" data-search-panel hidden>
     <div class="doc-search-box" role="dialog" aria-modal="true" aria-label="Search documentation">
-      <input type="search" placeholder="Search the documentation" autocomplete="off" spellcheck="false" data-search-input>
-      <ul data-search-results></ul>
+    <input type="search" aria-label="Search documentation" aria-controls="doc-search-results" placeholder="Search the documentation" autocomplete="off" spellcheck="false" data-search-input>
+    <ul id="doc-search-results" aria-label="Search results" aria-live="polite" data-search-results></ul>
       <p class="doc-search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move · <kbd>Enter</kbd> to open · <kbd>Esc</kbd> to close</p>
     </div>
   </div>
@@ -302,7 +307,9 @@ def search_index() -> list[dict[str, object]]:
             "section": section.title if section else "Start here",
             "summary": page.summary,
             "headings": [h[2] for h in page.headings],
-            "text": text[:1800],
+            # Long lessons include troubleshooting and recovery guidance near the end.
+            # Index the whole article, not just its introductory paragraphs.
+            "text": text,
         })
     return out
 
@@ -311,6 +318,7 @@ PAGES: dict[str, Page] = {}
 
 
 def build() -> list[tuple[Path, str]]:
+    PAGES.clear()
     PAGES["index"] = Page(slug="index", title="Granum documentation",
                           summary="How to get your computer-vision data into shape, and what every screen is for.")
     for section in NAV:

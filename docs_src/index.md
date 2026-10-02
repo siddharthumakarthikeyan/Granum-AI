@@ -1,14 +1,21 @@
 ---
 title: Granum documentation
-summary: How to get your computer-vision data into shape, and what every screen is for.
+summary: Learn Granum end to end with a real dataset, actual screenshots and videos, then use the task guides and reference for daily work.
 ---
 
-Granum is a data workbench for computer-vision teams. It checks a dataset as you import it, gives
-everyone one place to look at, correct and verify every label, freezes what you agreed on into a
-dataset version, trains a detector on exactly that version, and then uses the model's own behaviour
-to point at the labels worth checking next.
+Granum connects images, annotations, human review and model measurements. The documentation starts
+with a real small dataset and explains not only **what to click**, but **why**, **what to look for**,
+**what the result means** and **when not to trust a conclusion**.
 
-It runs on your computer. Your images are never uploaded.
+<div class="course-intro">
+<p class="course-eyebrow">New to Granum? Start here.</p>
+<p><strong>One real dataset. The complete workflow.</strong></p>
+<p>12 guided steps · 120 aerial images · 35 actual screenshots · 10 captioned videos · no fabricated model results</p>
+<div class="course-actions"><a class="btn primary" href="/docs/course/start">Start the guided course</a><a class="btn" href="/assets/course/aerial-mini.zip" download>Download sample · 26.4 MiB</a></div>
+</div>
+
+The default workflow is local-first. Optional shared services, cloud roots and configured training
+integrations have separate access/network boundaries; see [Privacy](/docs/help/privacy).
 
 <figure class="doc-figure">
 <svg viewBox="0 0 880 150" role="img" aria-label="The loop: import, review, dataset version, train, findings, back to review">
@@ -44,16 +51,20 @@ It runs on your computer. Your images are never uploaded.
 ## Start with one of these
 
 <div class="doc-cards">
-<a class="doc-card" href="/docs/start/install"><strong>Install Granum</strong><span>Windows and Linux, the training add-on, and where your work is kept.</span></a>
-<a class="doc-card" href="/docs/start/the-loop"><strong>Run the loop once</strong><span>An hour end to end on a small dataset, so the whole product makes sense.</span></a>
+<a class="doc-card" href="/docs/course/start"><strong>Learn by doing</strong><span>A real sample from setup and import to review, training, approval, export and restore.</span></a>
+<a class="doc-card" href="/docs/start/install"><strong>Check your installation</strong><span>Build provenance, platform artifacts, the service and optional training support.</span></a>
 <a class="doc-card" href="/docs/concepts/model"><strong>How Granum thinks</strong><span>Projects, sets, versions and runs — the five ideas everything else rests on.</span></a>
-<a class="doc-card" href="/docs/reference/screens"><strong>Map of the app</strong><span>Every screen, what it is for, and where its buttons lead.</span></a>
+<a class="doc-card" href="/docs/guides/operations"><strong>Operate a pilot</strong><span>Approval, draft recovery, HTTPS roles, integrity and tested backup/restore procedures.</span></a>
 </div>
 
 ## How this documentation is organised
 
-**Getting started** is a path: install, sign in, make a project, then run the full loop once. Follow it
-in order the first time and you will have trained a model on data you verified yourself.
+**Guided aerial-data course** is the beginner path. It introduces the concepts, follows exact actions
+and gives checkpoints. It records two genuinely weak GPU runs and approves only two inspected images;
+it does not pretend that a successful workflow creates a production model or a fully reviewed sample.
+
+**Getting started** is the short installation and orientation reference. The complete hands-on lessons
+live in the course so there is one coherent first-use path rather than competing quick starts.
 
 **Concepts** explains the model behind the product — what a set is, what a version is, what makes a
 dataset version different from the images you are looking at, and how Granum keeps a metric attached to
@@ -69,7 +80,7 @@ models you can train, where files live on disk, what scales and what does not.
 **Help** covers what to do when something is wrong, the questions people ask most, and exactly what
 leaves your machine.
 
-!!! note "A note on tone"
-    These pages assume you know your own field: that you have trained a detector, that you know what
-    precision and recall are, and that you can tell a hard example from a wrong label. They explain
-    Granum, not computer vision.
+!!! note "Read, watch, then check"
+  The course assumes no previous Granum experience. It explains boxes, splits and common metrics
+  before using them. Videos are silent, captioned and accompanied by transcripts; screenshots open
+  at full size. Every lesson separates an observed result from what it does not prove.

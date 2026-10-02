@@ -1,0 +1,63 @@
+{
+  "chapter": "01-import",
+  "recorded": "2026-10-02T11:20:44.414Z",
+  "source": "Actual Granum dashboard with aerial-mini; no mocked metrics or API responses.",
+  "viewport": {
+    "width": 1440,
+    "height": 960
+  },
+  "duration": 21.56,
+  "shots": [
+    "01-source-folder",
+    "02-import-setup",
+    "03-preflight-summary",
+    "04-preflight-decision",
+    "05-import-complete"
+  ],
+  "cues": [
+    {
+      "at": 2.5047815319299485,
+      "text": "Create a new object-detection project. This course uses aerial-walkthrough."
+    },
+    {
+      "at": 5.658880240580223,
+      "text": "Choose the extracted aerial-mini folder. Keep both train and valid; there is no independent test set."
+    },
+    {
+      "at": 9.993382274898284,
+      "text": "Preflight checks 96 training and 24 validation images before writing the project."
+    },
+    {
+      "at": 13.049272952414647,
+      "text": "Read the ignore-region decision. Preserve regions as ignore/crowd; they are not ordinary target objects."
+    },
+    {
+      "at": 16.938501680523615,
+      "text": "The import report records the applied decisions. The original source files are unchanged."
+    }
+  ],
+  "capture_duration": 22.612,
+  "captured_cues": [
+    {
+      "at": 2.627,
+      "text": "Create a new object-detection project. This course uses aerial-walkthrough."
+    },
+    {
+      "at": 5.935,
+      "text": "Choose the extracted aerial-mini folder. Keep both train and valid; there is no independent test set."
+    },
+    {
+      "at": 10.481,
+      "text": "Preflight checks 96 training and 24 validation images before writing the project."
+    },
+    {
+      "at": 13.686,
+      "text": "Read the ignore-region decision. Preserve regions as ignore/crowd; they are not ordinary target objects."
+    },
+    {
+      "at": 17.765,
+      "text": "The import report records the applied decisions. The original source files are unchanged."
+    }
+  ],
+  "caption_timing": "Original wall-clock cues scaled to encoded video duration; retained separately for provenance."
+}

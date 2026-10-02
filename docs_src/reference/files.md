@@ -17,7 +17,7 @@ summary: Where everything lives on disk, every setting, and the command line.
     ├── imports/<id>.json                    preflight reports and the choices made
     └── example.json                         marks a project made from the example dataset
 
-~/granum-training/                           weights, exports and framework run folders
+~/granum-training/                           weights and framework run folders
 ~/.config/granum/config.granum.yaml          settings, incl. the pinned project root
 ~/.local/state/granum/service.log            service log
 ~/.local/share/granum/                       the installed app, its window storage, licence and add-ons
@@ -25,6 +25,11 @@ summary: Where everything lives on disk, every setting, and the command line.
 
 Everything is a plain file. Object descriptors are JSON, rows are Parquet, logs are JSON Lines. You can
 read any of it without Granum, which is the point.
+
+Dataset-version exports are written under the relevant project export directory. Unsaved editor
+drafts are in the active browser/desktop profile's IndexedDB, not in these Parquet/JSON project files.
+External image references can point outside the root; use [portable backup/restore](/docs/course/backup)
+rather than assuming a folder copy includes every dependency.
 
 ## Settings
 
@@ -58,6 +63,11 @@ granum import coco SPLIT=PATH... --project NAME [--dataset NAME] [--media full|s
 granum thumbnails create <table-or-run-url>
 granum config show | path | validate | project-root PATH
 granum version
+granum build-info
+granum integrity snapshot PROJECT --output FILE
+granum integrity verify FILE
+granum backup create PROJECT --output ARCHIVE
+granum backup restore ARCHIVE --name NAME
 ```
 
 Global options go before the command: `granum --project-root-url /data/granum service`.
@@ -75,9 +85,10 @@ It starts at login. `sudo loginctl enable-linger $USER` keeps it running while y
 
 ## Security model
 
-The service reads your data locally and serves it to the dashboard. Nothing is uploaded.
+The default local service reads data locally and serves it to the dashboard. Optional cloud roots,
+shared clients and configured training integrations extend that boundary; see [Privacy](/docs/help/privacy).
 
-Three rules make a local web service safe to leave running:
+Local-mode defence-in-depth checks include:
 
 - **Every URL is checked.** Object URLs must sit under a scan root, media must be referenced by an
   indexed table, and import sources must sit under a configured data root. Without that,
@@ -87,5 +98,10 @@ Three rules make a local web service safe to leave running:
 - **Writes must be JSON**, and cross-origin requests from origins not explicitly allowed are refused, so
   a page cannot make your browser change your data.
 
-There is no authentication: anyone who can reach the port can use it. Keep it on the loopback address —
-the default — unless you understand exactly what you are exposing.
+Local mode has no account authentication and rejects non-loopback peers. Non-loopback service binding
+requires an account registry and TLS. Shared mode applies workspace-wide roles and authenticated authors;
+all accounts can read every project. Keep credentials outside the project root and backups. Filesystem
+writers must use the same local workspace configuration; cloud/NFS multiwriter safety is not qualified.
+
+Shared TLS/account flags and audit/revocation procedures are documented in
+[Operate a pilot workspace](/docs/guides/operations).

@@ -4,10 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Your first project · Granum documentation</title>
-  <meta name="description" content="Create a project from a folder of COCO annotations, or from the built-in example dataset, and see what arrived.">
+  <meta name="description" content="Choose the guided real-data course, the generated shapes example or your own data, and understand what the import creates.">
   <meta name="theme-color" content="#ffffff">
   <meta property="og:title" content="Your first project · Granum documentation">
-  <meta property="og:description" content="Create a project from a folder of COCO annotations, or from the built-in example dataset, and see what arrived.">
+  <meta property="og:description" content="Choose the guided real-data course, the generated shapes example or your own data, and understand what the import creates.">
   <meta property="og:type" content="article">
   <meta property="og:image" content="/assets/og.jpg">
   <link rel="canonical" href="https://granum.app/docs/start/first-project">
@@ -27,7 +27,7 @@
       <span class="doc-badge"><a href="/docs">Docs</a></span>
       <nav class="nav" id="nav" aria-label="Main">
         <a href="/#tour">Product</a>
-        <a href="/#plans">Pricing</a>
+        <a href="/#plans">Pilots</a>
         <a href="/docs/help/faq">FAQ</a>
       </nav>
       <div class="header-actions">
@@ -47,9 +47,24 @@
     <div class="doc-sidebar" id="doc-sidebar">
       <nav class="doc-nav" aria-label="Documentation">
 <a class="doc-nav-home" href="/docs">Start here</a>
+<div class="doc-nav-group"><p class="doc-nav-title">Guided aerial-data course</p><ul>
+<li><a href="/docs/course/start">Start the guided course</a></li>
+<li><a href="/docs/course/setup">1. Prepare the workspace</a></li>
+<li><a href="/docs/course/data">2. Understand the sample</a></li>
+<li><a href="/docs/course/import">3. Import with preflight</a></li>
+<li><a href="/docs/course/explore">4. Explore before changing labels</a></li>
+<li><a href="/docs/course/baseline">5. Freeze an exploratory baseline</a></li>
+<li><a href="/docs/course/review">6. Review, edit and recover</a></li>
+<li><a href="/docs/course/train">7. Train the first model</a></li>
+<li><a href="/docs/course/results">8. Read the model evidence</a></li>
+<li><a href="/docs/course/compare">9. Make a controlled comparison</a></li>
+<li><a href="/docs/course/handoff">10. Approve and export an excerpt</a></li>
+<li><a href="/docs/course/backup">11. Back up, restore and share safely</a></li>
+<li><a href="/docs/course/next">12. Move to your own project</a></li>
+</ul></div>
 <div class="doc-nav-group"><p class="doc-nav-title">Getting started</p><ul>
 <li><a href="/docs/start/install">Install Granum</a></li>
-<li><a href="/docs/start/activate">Sign in and licences</a></li>
+<li><a href="/docs/start/activate">Alpha access and licences</a></li>
 <li><a href="/docs/start/first-project" class="on" aria-current="page">Your first project</a></li>
 <li><a href="/docs/start/the-loop">Run the loop once</a></li>
 </ul></div>
@@ -79,6 +94,7 @@
 <li><a href="/docs/guides/compare">Compare two runs</a></li>
 <li><a href="/docs/guides/projects">Manage projects</a></li>
 <li><a href="/docs/guides/python">Use Granum from Python</a></li>
+<li><a href="/docs/guides/operations">Operate a pilot workspace</a></li>
 </ul></div>
 <div class="doc-nav-group"><p class="doc-nav-title">Reference</p><ul>
 <li><a href="/docs/reference/screens">Map of the app</a></li>
@@ -100,20 +116,30 @@
       <article class="doc-article">
         <nav class="doc-crumb" aria-label="Breadcrumb"><a href="/docs">Documentation</a><span aria-hidden="true">/</span><a href="/docs#start">Getting started</a></nav>
         <h1>Your first project</h1>
-        <p class="doc-summary">Create a project from a folder of COCO annotations, or from the built-in example dataset, and see what arrived.</p>
+        <p class="doc-summary">Choose the guided real-data course, the generated shapes example or your own data, and understand what the import creates.</p>
         <p>A <strong>project</strong> is one body of work: a dataset, its versions, the reviews and comments on it, and every
 training run made from it. Most teams keep one project per problem — "aerial people", "shelf audit" —
 rather than one per experiment.</p>
-<h2 id="option-a-the-example-dataset">Option A: the example dataset</h2>
+<h2 id="recommended-the-real-data-course">Recommended: the real-data course</h2>
+<p>Follow <a href="/docs/course/start">the guided aerial course</a> for your first complete project. It includes a
+verified download of 120 real images (96 train, 24 valid), explains source taxonomy and holdout problems,
+and walks through actual import, review, recovery, training, comparison, approval, export and restore.
+Each stage has screenshots, a checkpoint and troubleshooting; the main application flows have captioned
+recordings and transcripts. The observed models are weak, and the course explains that honestly.</p>
+<p>The course's sample is <strong>not</strong> the built-in generated example below. Its source labels were not
+deliberately corrupted to make a demonstration work. It approves only two genuinely inspected images,
+not the full sample.</p>
+<h2 id="alternative-the-generated-example-dataset">Alternative: the generated example dataset</h2>
 <p>If you want to see the whole product before committing your own data, use the generated example. It is
 120 small images of coloured shapes, drawn on your machine, with deliberate label problems planted in
 them: boxes missing from shapes that are drawn, boxes carrying the wrong class, boxes far too large, one
 box with no width, and two training images copied into the validation set.</p>
-<p>Click <strong>Create project → Use the example dataset</strong>, or the <em>Try the example project</em> tile on the
-Projects screen. Example projects do not count towards your plan's project limit.</p>
-<p>Because you know what is wrong with it, the example is the honest way to judge whether the import
-checks, the review tools and Findings actually earn their place.</p>
-<h2 id="option-b-your-own-data">Option B: your own data</h2>
+<p>Choose the example-dataset action on project creation where your build offers it. This synthetic
+fixture is useful for learning known defects, not for measuring real-world model performance. The
+current unrestricted alpha does not enforce a paid-plan project limit.</p>
+<p>Knowing how the fixture was generated helps explain some expected findings. It does not replace
+testing your own data and environment.</p>
+<h2 id="bring-your-own-data">Bring your own data</h2>
 <p>Granum imports COCO detection annotations — one annotation file per set, images beside it, which is what
 Roboflow and most labelling tools export:</p>
 <pre><code>human_aerial/
@@ -135,7 +161,7 @@ Roboflow and most labelling tools export:</p>
 kept with the import, so how a dataset came to be is always inspectable. The full list is in
 <a href="/docs/guides/import">Import data</a>.</p>
 <h2 id="what-you-get">What you get</h2>
-<p>After the import, the sidebar has five places:</p>
+<p>After import, the project connects these main screens:</p>
 <table>
 <thead>
 <tr>
@@ -153,12 +179,20 @@ kept with the import, so how a dataset came to be is always inspectable. The ful
 <td>Every image with its annotations — and the browse, review and edit modes</td>
 </tr>
 <tr>
+<td><strong>Health</strong></td>
+<td>Available measurements of data risks and evidence coverage</td>
+</tr>
+<tr>
 <td><strong>Datasets</strong></td>
-<td>The dataset versions you have created; training uses these only</td>
+<td>Frozen exploratory versions and separately approved releases</td>
 </tr>
 <tr>
 <td><strong>Runs</strong></td>
 <td>Training runs, their charts and scores, and the comparison between two of them</td>
+</tr>
+<tr>
+<td><strong>Evaluation</strong></td>
+<td>Class/object outcomes under a selected scoring scope and threshold</td>
 </tr>
 <tr>
 <td><strong>Findings</strong></td>
@@ -166,26 +200,28 @@ kept with the import, so how a dataset came to be is always inspectable. The ful
 </tr>
 </tbody>
 </table>
-<p>All the sets land in one dataset, named after the folder that held them, with <code>train</code>, <code>valid</code> and <code>test</code>
-as splits inside it. Every image starts <strong>unverified</strong>.</p>
-<p>Next, see what that data actually looks like: <a href="/docs/start/the-loop">Run the loop once</a>.</p>
-        <div class="doc-steps"><a class="doc-step prev" href="/docs/start/activate"><span>Previous</span>Sign in and licences</a><a class="doc-step next" href="/docs/start/the-loop"><span>Next</span>Run the loop once</a></div>
+<p>The selected sets land in one dataset, normally named after the parent folder. Keep only genuine split
+roles; do not copy validation into a new test folder. Imported images start unverified; creating a
+dataset version does not automatically approve them.</p>
+<p>Next: <a href="/docs/course/import">import the course sample</a>, or use <a href="/docs/start/the-loop">the workflow overview</a>
+as a map for your own project.</p>
+        <div class="doc-steps"><a class="doc-step prev" href="/docs/start/activate"><span>Previous</span>Alpha access and licences</a><a class="doc-step next" href="/docs/start/the-loop"><span>Next</span>Run the loop once</a></div>
       </article>
-      <aside class="doc-toc" aria-label="On this page"><p>On this page</p><ul><li><a href="#option-a-the-example-dataset">Option A: the example dataset</a></li><li><a href="#option-b-your-own-data">Option B: your own data</a></li><li><a href="#what-you-get">What you get</a></li></ul></aside>
+      <aside class="doc-toc" aria-label="On this page"><p>On this page</p><ul><li><a href="#recommended-the-real-data-course">Recommended: the real-data course</a></li><li><a href="#alternative-the-generated-example-dataset">Alternative: the generated example dataset</a></li><li><a href="#bring-your-own-data">Bring your own data</a></li><li><a href="#what-you-get">What you get</a></li></ul></aside>
     </main>
   </div>
 
   <footer class="doc-footer">
     <div class="wrap">
-      <p>© Granum. Your data stays on your computer.</p>
+    <p>© Granum. Local-first data workflows.</p>
       <p><a href="/">Product</a><a href="/download">Download</a><a href="/privacy">Privacy</a><a href="/docs/help/troubleshooting">Support</a></p>
     </div>
   </footer>
 
   <div class="doc-search" data-search-panel hidden>
     <div class="doc-search-box" role="dialog" aria-modal="true" aria-label="Search documentation">
-      <input type="search" placeholder="Search the documentation" autocomplete="off" spellcheck="false" data-search-input>
-      <ul data-search-results></ul>
+    <input type="search" aria-label="Search documentation" aria-controls="doc-search-results" placeholder="Search the documentation" autocomplete="off" spellcheck="false" data-search-input>
+    <ul id="doc-search-results" aria-label="Search results" aria-live="polite" data-search-results></ul>
       <p class="doc-search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move · <kbd>Enter</kbd> to open · <kbd>Esc</kbd> to close</p>
     </div>
   </div>

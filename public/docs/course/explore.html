@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>4. Explore before changing labels · Granum documentation</title>
+  <meta name="description" content="Use the gallery, statistics, object patches, fields and Health to form testable questions rather than automatic cleanup rules.">
+  <meta name="theme-color" content="#ffffff">
+  <meta property="og:title" content="4. Explore before changing labels · Granum documentation">
+  <meta property="og:description" content="Use the gallery, statistics, object patches, fields and Health to form testable questions rather than automatic cleanup rules.">
+  <meta property="og:type" content="article">
+  <meta property="og:image" content="/assets/og.jpg">
+  <link rel="canonical" href="https://granum.app/docs/course/explore">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/docs/docs.css">
+  <script>document.documentElement.classList.remove("no-js");</script>
+</head>
+<body class="doc-body">
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header doc-header">
+    <div class="wrap">
+      <a class="brand" href="/" aria-label="Granum home"><img src="/assets/lockup-ink.svg" alt="Granum" width="128" height="32"></a>
+      <span class="doc-badge"><a href="/docs">Docs</a></span>
+      <nav class="nav" id="nav" aria-label="Main">
+        <a href="/#tour">Product</a>
+        <a href="/#plans">Pilots</a>
+        <a href="/docs/help/faq">FAQ</a>
+      </nav>
+      <div class="header-actions">
+        <button class="doc-search-button" type="button" data-search aria-label="Search documentation">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3 3"/></svg>
+          <span>Search</span><kbd>/</kbd>
+        </button>
+        <a class="btn primary small" href="/download">Download</a>
+        <button class="menu-button" type="button" aria-controls="doc-sidebar" aria-expanded="false" aria-label="Menu" data-sidebar-toggle>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="doc-shell">
+    <div class="doc-sidebar" id="doc-sidebar">
+      <nav class="doc-nav" aria-label="Documentation">
+<a class="doc-nav-home" href="/docs">Start here</a>
+<div class="doc-nav-group"><p class="doc-nav-title">Guided aerial-data course</p><ul>
+<li><a href="/docs/course/start">Start the guided course</a></li>
+<li><a href="/docs/course/setup">1. Prepare the workspace</a></li>
+<li><a href="/docs/course/data">2. Understand the sample</a></li>
+<li><a href="/docs/course/import">3. Import with preflight</a></li>
+<li><a href="/docs/course/explore" class="on" aria-current="page">4. Explore before changing labels</a></li>
+<li><a href="/docs/course/baseline">5. Freeze an exploratory baseline</a></li>
+<li><a href="/docs/course/review">6. Review, edit and recover</a></li>
+<li><a href="/docs/course/train">7. Train the first model</a></li>
+<li><a href="/docs/course/results">8. Read the model evidence</a></li>
+<li><a href="/docs/course/compare">9. Make a controlled comparison</a></li>
+<li><a href="/docs/course/handoff">10. Approve and export an excerpt</a></li>
+<li><a href="/docs/course/backup">11. Back up, restore and share safely</a></li>
+<li><a href="/docs/course/next">12. Move to your own project</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Getting started</p><ul>
+<li><a href="/docs/start/install">Install Granum</a></li>
+<li><a href="/docs/start/activate">Alpha access and licences</a></li>
+<li><a href="/docs/start/first-project">Your first project</a></li>
+<li><a href="/docs/start/the-loop">Run the loop once</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Concepts</p><ul>
+<li><a href="/docs/concepts/model">How Granum is organised</a></li>
+<li><a href="/docs/concepts/projects">Projects and project types</a></li>
+<li><a href="/docs/concepts/versions">Versions and lineage</a></li>
+<li><a href="/docs/concepts/dataset-versions">Dataset versions</a></li>
+<li><a href="/docs/concepts/verification">Verification and decisions</a></li>
+<li><a href="/docs/concepts/identity">Image identity</a></li>
+<li><a href="/docs/concepts/runs">Runs and metrics</a></li>
+<li><a href="/docs/concepts/evidence">What the evidence is worth</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Guides</p><ul>
+<li><a href="/docs/guides/import">Import data</a></li>
+<li><a href="/docs/guides/pull-from-projects">Build from existing projects</a></li>
+<li><a href="/docs/guides/browse">Browse images</a></li>
+<li><a href="/docs/guides/review">Review and verify</a></li>
+<li><a href="/docs/guides/edit">Edit annotations</a></li>
+<li><a href="/docs/guides/isolate-remove">Isolate, remove and restore</a></li>
+<li><a href="/docs/guides/dataset-versions">Create a dataset version</a></li>
+<li><a href="/docs/guides/augmentation">Augmentation</a></li>
+<li><a href="/docs/guides/train">Train a model</a></li>
+<li><a href="/docs/guides/runs">Read a run</a></li>
+<li><a href="/docs/guides/learning">Per-image learning</a></li>
+<li><a href="/docs/guides/findings">Work the Findings queue</a></li>
+<li><a href="/docs/guides/compare">Compare two runs</a></li>
+<li><a href="/docs/guides/projects">Manage projects</a></li>
+<li><a href="/docs/guides/python">Use Granum from Python</a></li>
+<li><a href="/docs/guides/operations">Operate a pilot workspace</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Reference</p><ul>
+<li><a href="/docs/reference/screens">Map of the app</a></li>
+<li><a href="/docs/reference/shortcuts">Keyboard shortcuts</a></li>
+<li><a href="/docs/reference/preflight">Import checks</a></li>
+<li><a href="/docs/reference/models">Models you can train</a></li>
+<li><a href="/docs/reference/files">Files and settings</a></li>
+<li><a href="/docs/reference/limits">Scale and limits</a></li>
+<li><a href="/docs/reference/glossary">Glossary</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Help</p><ul>
+<li><a href="/docs/help/troubleshooting">Troubleshooting</a></li>
+<li><a href="/docs/help/faq">Frequently asked questions</a></li>
+<li><a href="/docs/help/privacy">Your data and privacy</a></li>
+</ul></div>
+</nav>
+    </div>
+    <main class="doc-main" id="main">
+      <article class="doc-article">
+        <nav class="doc-crumb" aria-label="Breadcrumb"><a href="/docs">Documentation</a><span aria-hidden="true">/</span><a href="/docs#course">Guided aerial-data course</a></nav>
+        <h1>4. Explore before changing labels</h1>
+        <p class="doc-summary">Use the gallery, statistics, object patches, fields and Health to form testable questions rather than automatic cleanup rules.</p>
+        <p><strong>Goal:</strong> understand what is in the imported data and choose what to inspect next.
+Your <a href="/docs/course/import">import</a> should contain 96 train and 24 valid images.</p>
+<h2 id="what-these-views-are-for">What these views are for</h2>
+<p>The <strong>Images</strong> page is your working collection. <strong>Stats</strong> summarises the current selection. <strong>Patches</strong>
+compares individual labelled objects. <strong>Fields</strong> filters recorded attributes. <strong>Health</strong> summarises
+available measurements and their limitations. These are different views of evidence, not five
+independent approvals of the dataset.</p>
+<h2 id="step-1-find-your-way-around">Step 1: find your way around</h2>
+<ol>
+<li>Open <strong>aerial-walkthrough</strong>. The overview connects images, dataset versions and runs.</li>
+<li>Open <strong>Images</strong>, with <strong>aerial-mini</strong> selected.</li>
+<li>Start with all splits and no class, review-status or field filters. Confirm the total is 120.</li>
+<li>Choose <strong>train</strong>, then <strong>valid</strong>, and confirm 96 and 24 respectively.</li>
+<li>Return to all splits. Open a few full images and compare the labels with what is actually visible.
+   At this stage, look rather than edit.</li>
+</ol>
+<figure class="doc-figure">
+<a href="/assets/course/07-images.webp"><img src="/assets/course/07-images.webp" alt="Real aerial-mini gallery with image thumbnails, split controls and the Stats, Fields, Patches, Review and Edit actions." width="1440" height="960" loading="lazy"></a>
+<figcaption>A gallery filter changes what you see. It does not, on its own, define the membership of a future dataset version.</figcaption>
+</figure>
+
+<h2 id="step-2-ask-a-question-with-stats">Step 2: ask a question with Stats</h2>
+<p>Open <strong>Stats</strong>. Read the current scope before interpreting a number: all data or a filtered subset?
+Look at class counts and object sizes. Ask:</p>
+<ul>
+<li>Are a few classes much more common than the rest?</li>
+<li>Are there many small boxes that will become tiny when an image is resized for training?</li>
+<li>Is validation representative of the training conditions you want to measure?</li>
+<li>Is a class absent from a split, so that its performance cannot be estimated there?</li>
+</ul>
+<figure class="doc-figure">
+<a href="/assets/course/08-image-statistics.webp"><img src="/assets/course/08-image-statistics.webp" alt="Statistics panel beside the gallery displays measured class and object-size distributions for the working images." width="1440" height="960" loading="lazy"></a>
+<figcaption>Counts describe this dataset and filter scope. They do not decide which classes your application needs.</figcaption>
+</figure>
+
+<p>Do not immediately delete common classes to make a balanced chart. A class distribution may reflect
+real deployment—or a collection bias. That is a question for sampling and domain review, not a rule
+that “all bars should have the same height.”</p>
+<h2 id="step-3-compare-objects-with-patches">Step 3: compare objects with Patches</h2>
+<ol>
+<li>Close <strong>Stats</strong>, then choose <strong>Patches</strong>.</li>
+<li>Inspect repeated objects within a class. Look for obviously inconsistent naming or unexpected crops.</li>
+<li>Open an interesting object back in its full image. Context can reveal an occlusion, edge truncation
+   or annotation convention that the crop alone hides.</li>
+<li>Return to the gallery when done.</li>
+</ol>
+<figure class="doc-figure">
+<a href="/assets/course/09-patches.webp"><img src="/assets/course/09-patches.webp" alt="Actual object-patch grid shows individual cars, pedestrians and other labelled aerial objects rather than whole images." width="1440" height="960" loading="lazy"></a>
+<figcaption>Patches helps compare annotation consistency. The loaded page is a subset of objects, not necessarily all 7,500 source annotation objects at once.</figcaption>
+</figure>
+
+<p>Small or ambiguous patches are reasons to inspect the original image, not automatically wrong labels.
+Do not relabel “people” to “pedestrian” based only on a crop and the English words.</p>
+<h2 id="step-4-use-fields-without-losing-your-scope">Step 4: use Fields without losing your scope</h2>
+<p>Open <strong>Fields</strong>. Controls are generated from columns that actually exist. This COCO sample includes
+<strong>Image id</strong>, a numeric identifier—not a measurement of image quality. Its range controls are useful
+for locating a known sample, as in the review lesson. A richer dataset might also have camera, site
+or capture-time fields; the course does not invent those columns.</p>
+<p>After narrowing a view, use <strong>Clear</strong> in Fields and reset the split/class/status filters when you want
+the whole collection again. A zero-result view often means filters intersect to nothing, not that the
+images have been deleted.</p>
+<h2 id="step-5-read-health-as-a-coverage-report">Step 5: read Health as a coverage report</h2>
+<p>Open <strong>Health</strong> for aerial-mini. Read each check, its evidence and its scope. Some checks summarise
+measurements already available; a check marked <strong>not looked at</strong> has not become a pass simply because
+you opened this screen.</p>
+<figure class="doc-figure">
+<a href="/assets/course/10-health.webp"><img src="/assets/course/10-health.webp" alt="Actual Health report presents dataset risks and measurement coverage, including checks without enough evidence." width="1440" height="960" loading="lazy"></a>
+<figcaption>With only 24 validation images, small-support warnings are expected. A threshold is a triage policy, not a statistical law.</figcaption>
+</figure>
+
+<p>Similarity, uniqueness and duplicate analysis can require additional computed features. If a view
+offers to compute them, inspect the job and dependency requirements first. Similar-looking pairs are
+candidate duplicates; byte-identical files are a stronger but narrower finding. Neither detects every
+form of sequence leakage.</p>
+<h2 id="watch-the-exploration">Watch the exploration</h2>
+<figure class="doc-figure doc-video">
+<video controls preload="none" playsinline poster="/assets/course/09-patches.webp" aria-label="Recorded gallery, statistics, patches and Health tour" aria-describedby="explore-video-caption">
+<source src="/assets/course/02-browse.mp4" type="video/mp4"><track kind="captions" src="/assets/course/02-browse.vtt" srclang="en" label="English" default>
+<a href="/assets/course/02-browse.mp4">Download the recording</a>.
+</video><figcaption id="explore-video-caption">20 seconds · silent, with captions · real imported images.</figcaption>
+</figure>
+<details class="doc-transcript"><summary>Read the video transcript</summary>
+<ol><li>The overview connects working data, dataset versions and model runs.</li><li>Images is the working collection; filters do not define version membership.</li><li>Stats shows class imbalance and object sizes before a recipe is chosen.</li><li>Patches compares individual labels; inspect the full image before changing one.</li><li>Health flags measurable risks, not universal label correctness.</li></ol>
+</details>
+
+<h2 id="what-we-learn">What we learn</h2>
+<p>Write down at least two questions, such as “Will 640-pixel training preserve enough detail for these
+small objects?” and “Do the rare classes have enough validation examples?” These questions motivate
+experiments. They are not conclusions that a label or a model is wrong.</p>
+<h2 id="checkpoint">Checkpoint</h2>
+<p>You can recover the unfiltered 120-image view and explain the difference between image counts and
+object counts. You have questions to investigate, without silently deleting or relabelling anything.
+Next: <a href="/docs/course/baseline">freeze the baseline before review practice</a>.</p>
+<h2 id="if-something-differs">If something differs</h2>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>What to do</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Fewer images than expected</td>
+<td>Clear Fields, class, split and status filters; check loaded-page vs total counts</td>
+</tr>
+<tr>
+<td>Blank or broken thumbnails</td>
+<td>Check source-file locations and service permissions, not just annotation rows</td>
+</tr>
+<tr>
+<td>Duplicate analysis has no results</td>
+<td>Check whether the required features were computed; “not measured” is not “none exist”</td>
+</tr>
+<tr>
+<td>Health warning on a tiny split</td>
+<td>Read the minimum-support policy; do not copy train images into validation to silence it</td>
+</tr>
+<tr>
+<td>Patches shows only a few hundred objects</td>
+<td>Load more if needed; the grid is paginated for responsiveness</td>
+</tr>
+</tbody>
+</table>
+        <div class="doc-steps"><a class="doc-step prev" href="/docs/course/import"><span>Previous</span>3. Import with preflight</a><a class="doc-step next" href="/docs/course/baseline"><span>Next</span>5. Freeze an exploratory baseline</a></div>
+      </article>
+      <aside class="doc-toc" aria-label="On this page"><p>On this page</p><ul><li><a href="#what-these-views-are-for">What these views are for</a></li><li><a href="#step-1-find-your-way-around">Step 1: find your way around</a></li><li><a href="#step-2-ask-a-question-with-stats">Step 2: ask a question with Stats</a></li><li><a href="#step-3-compare-objects-with-patches">Step 3: compare objects with Patches</a></li><li><a href="#step-4-use-fields-without-losing-your-scope">Step 4: use Fields without losing your scope</a></li><li><a href="#step-5-read-health-as-a-coverage-report">Step 5: read Health as a coverage report</a></li><li><a href="#watch-the-exploration">Watch the exploration</a></li><li><a href="#what-we-learn">What we learn</a></li><li><a href="#checkpoint">Checkpoint</a></li><li><a href="#if-something-differs">If something differs</a></li></ul></aside>
+    </main>
+  </div>
+
+  <footer class="doc-footer">
+    <div class="wrap">
+    <p>© Granum. Local-first data workflows.</p>
+      <p><a href="/">Product</a><a href="/download">Download</a><a href="/privacy">Privacy</a><a href="/docs/help/troubleshooting">Support</a></p>
+    </div>
+  </footer>
+
+  <div class="doc-search" data-search-panel hidden>
+    <div class="doc-search-box" role="dialog" aria-modal="true" aria-label="Search documentation">
+    <input type="search" aria-label="Search documentation" aria-controls="doc-search-results" placeholder="Search the documentation" autocomplete="off" spellcheck="false" data-search-input>
+    <ul id="doc-search-results" aria-label="Search results" aria-live="polite" data-search-results></ul>
+      <p class="doc-search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move · <kbd>Enter</kbd> to open · <kbd>Esc</kbd> to close</p>
+    </div>
+  </div>
+
+  <script src="/docs/docs.js" defer></script>
+</body>
+</html>

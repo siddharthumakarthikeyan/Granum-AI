@@ -1,0 +1,13 @@
+WEBVTT
+
+1
+00:00:01.230 --> 00:00:05.790
+Check compatibility before reading the delta: same validation images, labels, class mapping and scoring policy.
+
+2
+00:00:05.790 --> 00:00:12.108
+Read improved, regressed and unchanged images, not just the average. More epochs is the planned change; no label-improvement claim follows.
+
+3
+00:00:12.108 --> 00:00:19.640
+The downloadable evidence records the actual numbers, including poor results. Approval of data is separate from accepting a model.

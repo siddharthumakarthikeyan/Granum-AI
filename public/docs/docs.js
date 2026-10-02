@@ -52,6 +52,8 @@
   var index = null;
   var loading = null;
   var active = 0;
+  var previousFocus = null;
+  var previousOverflow = "";
 
   function load() {
     if (index) return Promise.resolve(index);
@@ -65,6 +67,9 @@
   }
 
   function open() {
+    if (!panel.hidden) return;
+    previousFocus = document.activeElement;
+    previousOverflow = document.body.style.overflow;
     load().then(render);
     panel.hidden = false;
     document.body.style.overflow = "hidden";
@@ -75,7 +80,8 @@
 
   function close() {
     panel.hidden = true;
-    document.body.style.overflow = "";
+    document.body.style.overflow = previousOverflow;
+    if (previousFocus && previousFocus.isConnected) previousFocus.focus();
   }
 
   function score(page, terms) {
@@ -132,9 +138,13 @@
       if (i === 0) item.className = "on";
       var link = document.createElement("a");
       link.href = page.url;
-      link.innerHTML =
-        "<em>" + page.section + "</em><strong>" + page.title + "</strong><span>" +
-        (terms.length ? excerpt(page, terms) : page.summary) + "</span>";
+      // The index contains literal code examples too. Never interpret snippets as HTML.
+      [["em", page.section], ["strong", page.title],
+       ["span", terms.length ? excerpt(page, terms) : page.summary]].forEach(function (part) {
+        var element = document.createElement(part[0]);
+        element.textContent = part[1];
+        link.appendChild(element);
+      });
       item.appendChild(link);
       results.appendChild(item);
     });
@@ -166,6 +176,20 @@
 
   panel.addEventListener("click", function (event) {
     if (event.target === panel) close();
+  });
+
+  panel.addEventListener("keydown", function (event) {
+    if (event.key !== "Tab" || panel.hidden) return;
+    var focusable = panel.querySelectorAll("input, a[href]");
+    var first = focusable[0];
+    var last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
   });
 
   document.addEventListener("keydown", function (event) {

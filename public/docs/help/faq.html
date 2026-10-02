@@ -27,7 +27,7 @@
       <span class="doc-badge"><a href="/docs">Docs</a></span>
       <nav class="nav" id="nav" aria-label="Main">
         <a href="/#tour">Product</a>
-        <a href="/#plans">Pricing</a>
+        <a href="/#plans">Pilots</a>
         <a href="/docs/help/faq">FAQ</a>
       </nav>
       <div class="header-actions">
@@ -47,9 +47,24 @@
     <div class="doc-sidebar" id="doc-sidebar">
       <nav class="doc-nav" aria-label="Documentation">
 <a class="doc-nav-home" href="/docs">Start here</a>
+<div class="doc-nav-group"><p class="doc-nav-title">Guided aerial-data course</p><ul>
+<li><a href="/docs/course/start">Start the guided course</a></li>
+<li><a href="/docs/course/setup">1. Prepare the workspace</a></li>
+<li><a href="/docs/course/data">2. Understand the sample</a></li>
+<li><a href="/docs/course/import">3. Import with preflight</a></li>
+<li><a href="/docs/course/explore">4. Explore before changing labels</a></li>
+<li><a href="/docs/course/baseline">5. Freeze an exploratory baseline</a></li>
+<li><a href="/docs/course/review">6. Review, edit and recover</a></li>
+<li><a href="/docs/course/train">7. Train the first model</a></li>
+<li><a href="/docs/course/results">8. Read the model evidence</a></li>
+<li><a href="/docs/course/compare">9. Make a controlled comparison</a></li>
+<li><a href="/docs/course/handoff">10. Approve and export an excerpt</a></li>
+<li><a href="/docs/course/backup">11. Back up, restore and share safely</a></li>
+<li><a href="/docs/course/next">12. Move to your own project</a></li>
+</ul></div>
 <div class="doc-nav-group"><p class="doc-nav-title">Getting started</p><ul>
 <li><a href="/docs/start/install">Install Granum</a></li>
-<li><a href="/docs/start/activate">Sign in and licences</a></li>
+<li><a href="/docs/start/activate">Alpha access and licences</a></li>
 <li><a href="/docs/start/first-project">Your first project</a></li>
 <li><a href="/docs/start/the-loop">Run the loop once</a></li>
 </ul></div>
@@ -79,6 +94,7 @@
 <li><a href="/docs/guides/compare">Compare two runs</a></li>
 <li><a href="/docs/guides/projects">Manage projects</a></li>
 <li><a href="/docs/guides/python">Use Granum from Python</a></li>
+<li><a href="/docs/guides/operations">Operate a pilot workspace</a></li>
 </ul></div>
 <div class="doc-nav-group"><p class="doc-nav-title">Reference</p><ul>
 <li><a href="/docs/reference/screens">Map of the app</a></li>
@@ -102,13 +118,13 @@
         <h1>Frequently asked questions</h1>
         <p class="doc-summary">Short answers about data, teams, formats, models and cost.</p>
         <p><strong>Does anything leave my computer?</strong>
-No images, no labels, no metrics. The only requests Granum makes are licence activation and renewal,
-which carry your email address, a machine id and the app version, and downloading the training add-on and
-pretrained weights. → <a href="/docs/help/privacy">Your data and privacy</a></p>
+Local workflows do not upload datasets to Granum. Optional cloud storage, shared access and model/package
+downloads use the destinations you configure. The current alpha requires no licence-server activation
+or renewal. → <a href="/docs/help/privacy">Your data and privacy</a></p>
 <p><strong>Can two people work on the same project?</strong>
-Not at the same time, today. Granum is a single-user desktop application: one machine, one project root,
-no accounts. Reviewer names are recorded so you can see who did what among colleagues, but they are not
-credentials.</p>
+The current source supports HTTPS-authenticated shared access with workspace-wide roles and stale-edit
+checks. All accounts can read the whole workspace; it is not per-project tenancy or an assignment system.
+Local mode remains loopback-only with self-reported names. Check that your installer contains these changes.</p>
 <p><strong>What formats can I import?</strong>
 COCO JSON in the dashboard — one annotation file per set, which is what Roboflow, CVAT and Label Studio
 export. YOLO and class-per-folder image directories are available from Python.
@@ -117,8 +133,9 @@ export. YOLO and class-per-folder image directories are available from Python.
 Never. Granum records the path to each image and reads it. The only images it writes are augmented copies
 inside a dataset version.</p>
 <p><strong>Do I have to review everything before training?</strong>
-No, and usually you should not. Verify the validation set, skim the training set, train, and let
-<a href="/docs/guides/findings">Findings</a> tell you where the remaining effort belongs.</p>
+Not for an explicitly acknowledged exploratory version. <strong>Approval is separate</strong>: every included image's
+exact labels, schema and media must match review evidence. Approved-only training rechecks that evidence.
+<a href="/docs/guides/findings">Findings</a> helps prioritize further review; it does not automatically approve data.</p>
 <p><strong>Why can I only train on dataset versions?</strong>
 So that a result is attached to a fixed, named body of data that cannot change afterwards. It is the
 difference between "we trained on the training set" and a claim someone can check.
@@ -133,14 +150,17 @@ RF-DETR when you have few images. → <a href="/docs/reference/models">Models yo
 For training, effectively yes. Everything else — import, review, editing, versioning — runs happily
 without one.</p>
 <p><strong>What happens when my plan ends?</strong>
-Granum becomes read-only: you can open, read and export everything, but not change or train. Nothing is
-deleted or held hostage. → <a href="/docs/start/activate">Sign in and licences</a></p>
+The current unrestricted alpha has no enforced subscription expiry. Use and paid support remain subject
+to written agreement, and future terms may differ. No automatic checkout is active.
+→ <a href="/docs/start/activate">Alpha access and licences</a></p>
 <p><strong>Can I move my projects to another machine?</strong>
-Copy <code>~/granum</code> (and <code>~/granum-training</code> for weights). Images are referenced by absolute path, so they
-need to be at the same paths on the new machine.</p>
+Stop project writers, create a checksummed project snapshot with <code>granum backup create</code>, and restore it
+under a new project name with <code>granum backup restore</code>. Supported local media paths are relocated.
+External project/table dependencies are refused rather than silently omitted; environments and training
+caches are not a complete system backup. Rehearse on a disposable destination before relying on it.</p>
 <p><strong>Is there an API?</strong>
-A local REST service the dashboard itself uses, and the Python package underneath it. Both are for local
-tooling; neither is a hosted service.</p>
+A REST service and a Python SDK. The default is local; explicitly configured shared access requires
+authentication and HTTPS. Neither is a managed hosted service.</p>
 <p><strong>Does Granum support segmentation or keypoints?</strong>
 It stores, shows and edits masks and keypoints, and a project can declare those types. Checks, metrics
 and training are box-based today. → <a href="/docs/reference/limits">Scale and limits</a></p>
@@ -152,15 +172,15 @@ and training are box-based today. → <a href="/docs/reference/limits">Scale and
 
   <footer class="doc-footer">
     <div class="wrap">
-      <p>© Granum. Your data stays on your computer.</p>
+    <p>© Granum. Local-first data workflows.</p>
       <p><a href="/">Product</a><a href="/download">Download</a><a href="/privacy">Privacy</a><a href="/docs/help/troubleshooting">Support</a></p>
     </div>
   </footer>
 
   <div class="doc-search" data-search-panel hidden>
     <div class="doc-search-box" role="dialog" aria-modal="true" aria-label="Search documentation">
-      <input type="search" placeholder="Search the documentation" autocomplete="off" spellcheck="false" data-search-input>
-      <ul data-search-results></ul>
+    <input type="search" aria-label="Search documentation" aria-controls="doc-search-results" placeholder="Search the documentation" autocomplete="off" spellcheck="false" data-search-input>
+    <ul id="doc-search-results" aria-label="Search results" aria-live="polite" data-search-results></ul>
       <p class="doc-search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move · <kbd>Enter</kbd> to open · <kbd>Esc</kbd> to close</p>
     </div>
   </div>

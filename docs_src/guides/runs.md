@@ -12,11 +12,11 @@ its per-image views.
 Rounds along the bottom, one line per run, metric chosen at the top left. Two shapes are worth
 recognising:
 
-- **A curve still climbing at the last round** means the schedule was too short. Train longer before
-  concluding anything about the data.
-- **Validation flattening while training loss keeps falling** is the usual overfitting picture. On small
-  datasets it often means the model has memorised the training labels — including the wrong ones, which
-  is exactly when findings on the *training* split go quiet and held-out evidence matters.
+- **A curve still climbing at the last round** suggests investigating schedule length, convergence
+  and noise. It does not guarantee that more epochs will produce a useful detector.
+- **Validation flattening while training loss keeps falling** can indicate overfitting, but also inspect
+  support, split differences and measurement noise. It does not prove that particular labels are wrong.
+  Held-out evidence matters, especially when training-set findings become quiet.
 
 ## The columns
 
@@ -29,9 +29,11 @@ recognising:
 | **mAP50**, **mAP50-95**, **Precision**, **Recall** | The trainer's own metrics for the last round |
 | **Test mAP50** | The held-out score, when the run had a test set |
 
-The trainer's metrics are useful for watching progress, but they are computed differently by each
-framework. The number to compare across runs is the **final score** Granum computes itself, shown on the
-run and used by the comparison. → [Runs and metrics](/docs/concepts/runs)
+The trainer's metrics are useful for watching progress, but can differ from Granum's final checkpoint
+scoring and Evaluation of stored per-epoch predictions. Compare the same evaluator, label version,
+checkpoint definition, split and prediction/threshold policy. The dedicated comparison checks these
+boundaries; a metric name alone is not enough. The [course results](/docs/course/results) show an actual
+case where framework-history and final Granum mAP differ. → [Runs and metrics](/docs/concepts/runs)
 
 ## From a run to the images
 
@@ -39,8 +41,9 @@ run and used by the comparison. → [Runs and metrics](/docs/concepts/runs)
 - **Findings** ranks individual labels worth checking.
 - **Compare** puts this run beside the one before it.
 
-Opening a run itself gives the joined view: every per-image metric beside the sample it was measured on,
-filterable and sortable, with the images shown against their current labels where that join is safe.
+Opening a run gives the joined view: per-image metrics beside their recorded versioned input samples.
+Later working-label edits do not rewrite the historical measurement. Inspect the input version before
+interpreting a disagreement.
 
 !!! note "A run that produced nothing"
     A run cancelled before its first round finished has no metrics and no predictions, so the evidence

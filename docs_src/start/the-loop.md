@@ -1,10 +1,11 @@
 ---
 title: Run the loop once
-summary: Import, verify, freeze, train, read the evidence, fix, retrain — the whole product in about an hour.
+summary: A concise map of the workflow, with links to the complete real-data course and the evidence each stage should preserve.
 ---
 
-This is the shortest path through everything Granum does. Use the example dataset or a small dataset of
-your own — a few hundred images is plenty. Each step links to the guide that covers it properly.
+This is a workflow map, not a timed performance promise. For exact actions, a real downloadable sample,
+screenshots and captioned recordings, follow [the guided course](/docs/course/start). Human review,
+downloads and training take different amounts of time on different projects.
 
 <figure class="doc-figure">
 <svg viewBox="0 0 880 210" role="img" aria-label="The seven steps of the loop and what each one writes">
@@ -49,8 +50,8 @@ many images as you allow, and reports what it finds before anything is written: 
 not exist, categories that disagree between sets, zero-area boxes, images byte-identical across train and
 valid, and about twenty more.
 
-Do not skip past this. Two minutes here will explain results you would otherwise spend a week chasing.
-Change any option you disagree with, then import. → [Import data](/docs/guides/import)
+Read the coverage, counts, recommended choices and limitations. Record why you accept or change each
+decision, then import. → [Recorded sample import](/docs/course/import) · [Import reference](/docs/guides/import)
 
 ## 2. Look at what arrived
 
@@ -62,8 +63,9 @@ labelling convention held. Nothing you do here writes anything. → [Browse imag
 
 ## 3. Verify, and fix what is clearly wrong
 
-Turn on **Review** in the ribbon. Type your name in the reviewer box. Work through the images: select
-several and **Verify** them together, or open one, check it, and press <kbd>A</kbd> to verify and move on.
+Turn on **Review** in the ribbon. In local mode the reviewer name is self-reported; shared mode uses the
+authenticated account. Inspect the full image before verifying it. Use bulk verification only for a
+selection you actually inspected, not to bypass approval warnings.
 
 When labels are wrong, fix them. In review the inspector lets you draw, select and delete boxes; the
 **Edit** mode gives the full editor with moving, resizing, masks and keypoints. Every save writes a new
@@ -72,16 +74,20 @@ version of that set — nothing is overwritten.
 
 ## 4. Freeze a dataset version
 
-Click **Create dataset** in the Images header. Name it — "v1, first pass" — and choose whether it holds
-the whole dataset or only the images you verified.
+Click **Create dataset** in Images. Choose whole-dataset or verified-only selection and inspect the
+included counts. Both create an **exploratory** version. Explicit approval is a separate gate requiring
+matching review evidence for every included row, schema and media item.
 
-This is the line between "data we are working on" and "data we trained on". Training offers dataset
-versions only, and a version never changes afterwards. → [Create a dataset version](/docs/guides/dataset-versions)
+This separates working data from recorded experiment inputs. Protect externally referenced image bytes
+too; a frozen table does not stop another program overwriting media. When measuring an intervention,
+freeze the baseline before changing labels. → [Course baseline](/docs/course/baseline)
 
 ## 5. Train
 
-Open **Runs → Train model**. Pick the dataset version, which set to train on and which to validate on,
-a model (YOLO nano is the right first choice), and how many rounds.
+Choose **Train** on the intended dataset version. Confirm train, validation and genuine test roles,
+model, image size and schedule. Exploratory training requires acknowledgement; approved-only training
+rechecks approval and release membership. The course uses a small YOLO recipe as an exercise, not a
+universal best model. → [Recorded training](/docs/course/train)
 
 Leave **Record per-sample metrics and predictions every epoch** on. It costs some disk and makes the
 next two steps possible. → [Train a model](/docs/guides/train)
@@ -90,19 +96,22 @@ next two steps possible. → [Train a model](/docs/guides/train)
 
 When the run finishes you have three things:
 
-- **Runs** — the scores per round, and the final score computed the same way for every model family, so
-  runs actually compare. → [Read a run](/docs/guides/runs)
-- **Samples** — how each image was learned: early, mid, late, unstable, never. Images that are never
-  learned are where wrong labels concentrate. → [Per-image learning](/docs/guides/learning)
+- **Runs** — framework history and separately recorded final scores. Comparability still requires
+  matching inputs and evaluator policy. → [Read a run](/docs/guides/runs)
+- **Samples** — per-image behaviour across recorded observations. Not learned is not proof of a wrong
+  label or permission to delete a hard example. → [Per-image learning](/docs/guides/learning)
 - **Findings** — a ranked queue of individual labels the model disagreed with, round after round, once it
   was competent on the set: missing labels, wrong classes, loose boxes. → [Findings](/docs/guides/findings)
 
-Findings is the one to start with. It takes you to a specific box in a specific image with the evidence
-for why it is there, and records what you decided.
+Start with evidence coverage and model competence. Findings may be empty because the model is too weak
+to support useful accusations. Inspect objects and images before changing labels. The course's
+[actual weak baseline](/docs/course/results) demonstrates this case rather than inventing a populated queue.
 
 ## 7. Fix, freeze, train again — then compare
 
-Work the queue, fix what is wrong, create a second dataset version, and train again on it.
+Make a justified, recorded change. If labels change, create a new version; if the experiment changes
+only the recipe, retain the same frozen input. The course compares three vs twelve epochs without
+claiming a label improvement.
 
 Now open **Compare runs** and put the two side by side. Granum checks first that the comparison means
 anything — same evaluation set, same scoring rules — and then shows which images improved, which
@@ -111,7 +120,13 @@ because with the data changed underneath that is not something anyone can honest
 what moved and says plainly what the comparison is worth. → [Compare two runs](/docs/guides/compare)
 
 !!! tip "What a good first loop looks like"
-    An hour on the example dataset, or an afternoon on a real one. You should finish with two dataset
-    versions, two runs, a handful of recorded review decisions, and a comparison report you could show
-    someone. If you got a number that went up but cannot say what changed in the data, go back to step 4:
-    freezing a version is what makes the rest legible.
+  You can explain the inputs, planned change, measured result and limits—even when the model is bad.
+  Approve only genuinely reviewed contents, export in the recipient's required format, and verify
+  a separate restore. The course ends with an approved two-image excerpt, not a false claim that the
+  whole sample or either model is production ready.
+
+## 8. Approve, deliver and verify recovery
+
+Use [the scoped handoff](/docs/course/handoff) to separate selection, approval and export. Use
+[the backup rehearsal](/docs/course/backup) to preserve project history and prove media can be restored.
+A copied COCO export and a project backup serve different purposes.

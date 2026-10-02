@@ -59,8 +59,9 @@ preflight, then the review step with the split slider, then import. With a proje
 
 ## Licence
 
-What this computer's licence allows, when it ends, the machine id, sign-in by email, sign-out, and a box
-for a key entered by hand. → [Sign in and licences](/docs/start/activate)
+The legacy activation/key screen is hidden when enforcement is disabled. Current unrestricted-alpha
+builds need no in-app licence activation. Shared-workspace login is separate.
+→ [Alpha access and licences](/docs/start/activate)
 
 ## Addresses
 

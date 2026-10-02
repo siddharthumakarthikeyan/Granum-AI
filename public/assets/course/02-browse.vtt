@@ -1,0 +1,21 @@
+WEBVTT
+
+1
+00:00:00.119 --> 00:00:03.314
+The project overview connects working data, dataset versions and model runs.
+
+2
+00:00:03.314 --> 00:00:06.822
+Images is the working collection. Filtering changes the view, not membership in a dataset version.
+
+3
+00:00:06.822 --> 00:00:10.235
+Open Stats to inspect class imbalance and object sizes before choosing a training recipe.
+
+4
+00:00:10.235 --> 00:00:14.633
+Patches shows individual labelled objects. Use it to compare label consistency; inspect the full image before changing a label.
+
+5
+00:00:14.633 --> 00:00:19.800
+Health flags measurable dataset risks. A clean report is not proof that every label is correct.

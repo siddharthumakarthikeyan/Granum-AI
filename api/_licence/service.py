@@ -246,13 +246,13 @@ class LicenceService:
         if mine is not None:
             seated = self.db.row("SELECT 1 AS yes FROM activations WHERE lid = :lid AND machine = :machine", lid=mine["lid"], machine=machine)
             if not seated:
-                raise Refused(409, "This email's free trial was used on another computer. Buy a plan to continue.", "trial_used")
+                raise Refused(409, "This email's legacy trial was used on another computer. Contact support to arrange access.", "trial_used")
             if not self._live(mine):
-                raise Refused(402, "Your free trial has ended. Buy a plan on the website to continue.", "trial_ended")
+                raise Refused(402, "Your legacy trial has ended. Contact support to arrange access.", "trial_ended")
             self._seat(mine, machine, app_version)
             return self._answer(mine, machine)
         if self.db.row("SELECT email FROM trials WHERE machine = :machine", machine=machine) is not None:
-            raise Refused(409, "This computer has already had a free trial. Buy a plan to continue.", "trial_used")
+            raise Refused(409, "This computer has already had a legacy trial. Contact support to arrange access.", "trial_used")
         lid = f"T-{uuid.uuid4().hex[:12].upper()}"
         self.db.run("INSERT INTO licences(lid, email, customer, plan, kind, created, expires, machines, max_projects) "
                     "VALUES (:lid, :email, :email, 'Free trial', 'trial', :now, :expires, 1, :projects)",

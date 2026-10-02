@@ -63,5 +63,11 @@ forty versions, not four hundred. If you are making a large sweep of edits, expe
 grow; it is the record of who changed what.
 
 !!! note "Unsaved work is recoverable"
-    Edits live in the browser until they are saved, and are kept in local storage as you make them. If
-    the window closes with unsaved changes, Granum offers them back when you return to that image.
+    Both primary image editors keep acknowledged recovery copies in IndexedDB, in the same browser
+    profile and origin. Clearing site data, quota failures or a crash before acknowledgement can lose
+    drafts. A stale base disables automatic replay; export and reconcile against the latest revision.
+    Failed server saves retain the draft. Browser recovery is not a server backup or cross-device sync.
+
+Follow the [recorded recovery exercise](/docs/course/review) for exact actions, the real dialog,
+screenshots and a captioned video. That exercise restores its practice relabel before saving; it does
+not manufacture a source-label correction.

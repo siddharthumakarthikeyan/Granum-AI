@@ -33,14 +33,17 @@ class Mailer:
             message.set_content(
                 f"Your Granum download code is {code}\n\n"
                 "Enter it on the download page to get the installer. It expires in 10 minutes.\n"
-                "Then sign in inside Granum with this same email to start your 7-day free trial.\n\n"
+                "The current unrestricted alpha has no application activation step or automatic expiry.\n"
+                "This code verifies your download email; it is not a shared-workspace password.\n"
+                "Usage permission is governed by the proprietary licence.\n\n"
                 "If you did not ask for it, ignore this email.\n"
             )
         else:
             message["Subject"] = f"Your Granum sign-in code: {code}"
             message.set_content(
                 f"Your Granum sign-in code is {code}\n\n"
-                "Enter it in Granum to activate this computer. It expires in 10 minutes.\n"
+                "For an older activation-enabled build, enter it in the licence sign-in screen. It expires in 10 minutes.\n"
+                "The current unrestricted alpha does not require application activation.\n"
                 "If you did not ask for it, ignore this email.\n"
             )
         self._send(message)

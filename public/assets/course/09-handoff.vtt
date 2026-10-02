@@ -1,0 +1,17 @@
+WEBVTT
+
+1
+00:00:00.723 --> 00:00:05.892
+Create a verified-only excerpt: just the two images actually inspected. This is not approval of the other 118 images.
+
+2
+00:00:05.892 --> 00:00:11.150
+Approval pins those exact annotations and media. It records a review decision; it does not certify model quality or dataset size.
+
+3
+00:00:11.150 --> 00:00:16.463
+Export COCO with Copy them for a portable handoff. Linked images break when the original files are unavailable.
+
+4
+00:00:16.463 --> 00:00:23.880
+Confirm the output folder and the one-image train and valid splits. An export is not a backup of reviews, runs or approval history.

@@ -55,7 +55,11 @@ All three are append-only JSON Lines, keyed by **image reference** rather than r
 makes a verification survive: delete ten images, create four versions, and the judgement someone made
 about a given photograph is still attached to that photograph.
 
-!!! warning "There is no authentication"
-    Reviewer names are self-reported and anyone who can reach the service can verify, edit or create a
-    dataset version. Granum is a single-user desktop application today; treat the names as a record of
-    who did what among people you trust, not as an access control system.
+Review status alone does not approve a dataset release. Approval requires matching review evidence for
+the exact rows, schema and media bytes of every included image. Label or media changes invalidate that
+evidence; an exploratory version can still be used deliberately without claiming approval.
+
+!!! warning "Local names and shared identities differ"
+    Local mode accepts loopback clients and self-reported names. Shared mode requires authenticated
+    HTTPS accounts and derives authors from those accounts, with write permissions by role. Every
+    shared account can read the whole workspace; this is not per-project tenancy or an assignment system.

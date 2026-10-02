@@ -4,10 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Granum documentation</title>
-  <meta name="description" content="How to get your computer-vision data into shape, and what every screen is for.">
+  <meta name="description" content="Learn Granum end to end with a real dataset, actual screenshots and videos, then use the task guides and reference for daily work.">
   <meta name="theme-color" content="#ffffff">
   <meta property="og:title" content="Granum documentation">
-  <meta property="og:description" content="How to get your computer-vision data into shape, and what every screen is for.">
+  <meta property="og:description" content="Learn Granum end to end with a real dataset, actual screenshots and videos, then use the task guides and reference for daily work.">
   <meta property="og:type" content="article">
   <meta property="og:image" content="/assets/og.jpg">
   <link rel="canonical" href="https://granum.app/docs">
@@ -27,7 +27,7 @@
       <span class="doc-badge"><a href="/docs">Docs</a></span>
       <nav class="nav" id="nav" aria-label="Main">
         <a href="/#tour">Product</a>
-        <a href="/#plans">Pricing</a>
+        <a href="/#plans">Pilots</a>
         <a href="/docs/help/faq">FAQ</a>
       </nav>
       <div class="header-actions">
@@ -47,9 +47,24 @@
     <div class="doc-sidebar" id="doc-sidebar">
       <nav class="doc-nav" aria-label="Documentation">
 <a class="doc-nav-home on" href="/docs">Start here</a>
+<div class="doc-nav-group"><p class="doc-nav-title">Guided aerial-data course</p><ul>
+<li><a href="/docs/course/start">Start the guided course</a></li>
+<li><a href="/docs/course/setup">1. Prepare the workspace</a></li>
+<li><a href="/docs/course/data">2. Understand the sample</a></li>
+<li><a href="/docs/course/import">3. Import with preflight</a></li>
+<li><a href="/docs/course/explore">4. Explore before changing labels</a></li>
+<li><a href="/docs/course/baseline">5. Freeze an exploratory baseline</a></li>
+<li><a href="/docs/course/review">6. Review, edit and recover</a></li>
+<li><a href="/docs/course/train">7. Train the first model</a></li>
+<li><a href="/docs/course/results">8. Read the model evidence</a></li>
+<li><a href="/docs/course/compare">9. Make a controlled comparison</a></li>
+<li><a href="/docs/course/handoff">10. Approve and export an excerpt</a></li>
+<li><a href="/docs/course/backup">11. Back up, restore and share safely</a></li>
+<li><a href="/docs/course/next">12. Move to your own project</a></li>
+</ul></div>
 <div class="doc-nav-group"><p class="doc-nav-title">Getting started</p><ul>
 <li><a href="/docs/start/install">Install Granum</a></li>
-<li><a href="/docs/start/activate">Sign in and licences</a></li>
+<li><a href="/docs/start/activate">Alpha access and licences</a></li>
 <li><a href="/docs/start/first-project">Your first project</a></li>
 <li><a href="/docs/start/the-loop">Run the loop once</a></li>
 </ul></div>
@@ -79,6 +94,7 @@
 <li><a href="/docs/guides/compare">Compare two runs</a></li>
 <li><a href="/docs/guides/projects">Manage projects</a></li>
 <li><a href="/docs/guides/python">Use Granum from Python</a></li>
+<li><a href="/docs/guides/operations">Operate a pilot workspace</a></li>
 </ul></div>
 <div class="doc-nav-group"><p class="doc-nav-title">Reference</p><ul>
 <li><a href="/docs/reference/screens">Map of the app</a></li>
@@ -100,12 +116,19 @@
       <article class="doc-article">
         <nav class="doc-crumb" aria-label="Breadcrumb"><a href="/docs">Documentation</a></nav>
         <h1>Granum documentation</h1>
-        <p class="doc-summary">How to get your computer-vision data into shape, and what every screen is for.</p>
-        <p>Granum is a data workbench for computer-vision teams. It checks a dataset as you import it, gives
-everyone one place to look at, correct and verify every label, freezes what you agreed on into a
-dataset version, trains a detector on exactly that version, and then uses the model's own behaviour
-to point at the labels worth checking next.</p>
-<p>It runs on your computer. Your images are never uploaded.</p>
+        <p class="doc-summary">Learn Granum end to end with a real dataset, actual screenshots and videos, then use the task guides and reference for daily work.</p>
+        <p>Granum connects images, annotations, human review and model measurements. The documentation starts
+with a real small dataset and explains not only <strong>what to click</strong>, but <strong>why</strong>, <strong>what to look for</strong>,
+<strong>what the result means</strong> and <strong>when not to trust a conclusion</strong>.</p>
+<div class="course-intro">
+<p class="course-eyebrow">New to Granum? Start here.</p>
+<p><strong>One real dataset. The complete workflow.</strong></p>
+<p>12 guided steps · 120 aerial images · 35 actual screenshots · 10 captioned videos · no fabricated model results</p>
+<div class="course-actions"><a class="btn primary" href="/docs/course/start">Start the guided course</a><a class="btn" href="/assets/course/aerial-mini.zip" download>Download sample · 26.4 MiB</a></div>
+</div>
+
+<p>The default workflow is local-first. Optional shared services, cloud roots and configured training
+integrations have separate access/network boundaries; see <a href="/docs/help/privacy">Privacy</a>.</p>
 <figure class="doc-figure">
 <svg viewBox="0 0 880 150" role="img" aria-label="The loop: import, review, dataset version, train, findings, back to review">
   <defs>
@@ -139,15 +162,18 @@ to point at the labels worth checking next.</p>
 
 <h2 id="start-with-one-of-these">Start with one of these</h2>
 <div class="doc-cards">
-<a class="doc-card" href="/docs/start/install"><strong>Install Granum</strong><span>Windows and Linux, the training add-on, and where your work is kept.</span></a>
-<a class="doc-card" href="/docs/start/the-loop"><strong>Run the loop once</strong><span>An hour end to end on a small dataset, so the whole product makes sense.</span></a>
+<a class="doc-card" href="/docs/course/start"><strong>Learn by doing</strong><span>A real sample from setup and import to review, training, approval, export and restore.</span></a>
+<a class="doc-card" href="/docs/start/install"><strong>Check your installation</strong><span>Build provenance, platform artifacts, the service and optional training support.</span></a>
 <a class="doc-card" href="/docs/concepts/model"><strong>How Granum thinks</strong><span>Projects, sets, versions and runs — the five ideas everything else rests on.</span></a>
-<a class="doc-card" href="/docs/reference/screens"><strong>Map of the app</strong><span>Every screen, what it is for, and where its buttons lead.</span></a>
+<a class="doc-card" href="/docs/guides/operations"><strong>Operate a pilot</strong><span>Approval, draft recovery, HTTPS roles, integrity and tested backup/restore procedures.</span></a>
 </div>
 
 <h2 id="how-this-documentation-is-organised">How this documentation is organised</h2>
-<p><strong>Getting started</strong> is a path: install, sign in, make a project, then run the full loop once. Follow it
-in order the first time and you will have trained a model on data you verified yourself.</p>
+<p><strong>Guided aerial-data course</strong> is the beginner path. It introduces the concepts, follows exact actions
+and gives checkpoints. It records two genuinely weak GPU runs and approves only two inspected images;
+it does not pretend that a successful workflow creates a production model or a fully reviewed sample.</p>
+<p><strong>Getting started</strong> is the short installation and orientation reference. The complete hands-on lessons
+live in the course so there is one coherent first-use path rather than competing quick starts.</p>
 <p><strong>Concepts</strong> explains the model behind the product — what a set is, what a version is, what makes a
 dataset version different from the images you are looking at, and how Granum keeps a metric attached to
 the image it was measured on. These pages are short and worth reading once; they save you from guessing
@@ -159,34 +185,35 @@ models you can train, where files live on disk, what scales and what does not.</
 <p><strong>Help</strong> covers what to do when something is wrong, the questions people ask most, and exactly what
 leaves your machine.</p>
 <div class="admonition note">
-<p class="admonition-title">A note on tone</p>
-<p>These pages assume you know your own field: that you have trained a detector, that you know what
-precision and recall are, and that you can tell a hard example from a wrong label. They explain
-Granum, not computer vision.</p>
-</div><div class="doc-sections">
-<section class="doc-section"><h2 id="start">Getting started</h2><p class="doc-section-blurb">Install Granum, sign in, and run the whole loop once on a small dataset.</p><ul><li><a href="/docs/start/install">Install Granum</a><span>One download per platform, no dependencies to manage, and everything kept in folders you can back up.</span></li><li><a href="/docs/start/activate">Sign in and licences</a><span>A free trial by email, plans counted per computer, and what changes when a licence ends.</span></li><li><a href="/docs/start/first-project">Your first project</a><span>Create a project from a folder of COCO annotations, or from the built-in example dataset, and see what arrived.</span></li><li><a href="/docs/start/the-loop">Run the loop once</a><span>Import, verify, freeze, train, read the evidence, fix, retrain — the whole product in about an hour.</span></li></ul></section>
+<p class="admonition-title">Read, watch, then check</p>
+</div>
+<p>The course assumes no previous Granum experience. It explains boxes, splits and common metrics
+  before using them. Videos are silent, captioned and accompanied by transcripts; screenshots open
+  at full size. Every lesson separates an observed result from what it does not prove.</p><div class="doc-sections">
+<section class="doc-section"><h2 id="course">Guided aerial-data course</h2><p class="doc-section-blurb">Start with a real sample. Every lesson explains the action, its evidence and its limits, with actual screenshots and captioned recordings.</p><ul><li><a href="/docs/course/start">Start the guided course</a><span>Learn Granum on a real aerial dataset: import, inspect, review, train, compare, approve, export and restore, with recorded examples.</span></li><li><a href="/docs/course/setup">1. Prepare the workspace</a><span>Check the installed build, download and verify the real sample, and separate source data, project records and backups.</span></li><li><a href="/docs/course/data">2. Understand the sample</a><span>Learn images, boxes, classes and splits, then examine the real taxonomy and duplicated-holdout problems in the supplied export.</span></li><li><a href="/docs/course/import">3. Import with preflight</a><span>Import both splits, read the real findings, choose duplicate-class and ignore-region handling, and verify the written result.</span></li><li><a href="/docs/course/explore">4. Explore before changing labels</a><span>Use the gallery, statistics, object patches, fields and Health to form testable questions rather than automatic cleanup rules.</span></li><li><a href="/docs/course/baseline">5. Freeze an exploratory baseline</a><span>Preserve the full 120-image input before editing, and see why an immutable version is not the same thing as an approved release.</span></li><li><a href="/docs/course/review">6. Review, edit and recover</a><span>Inspect two real images, practise recovery without leaving a false label, and separate annotation saves from human review decisions.</span></li><li><a href="/docs/course/train">7. Train the first model</a><span>Train a deliberately small YOLO baseline on the frozen 96/24 input, understand the recipe, and check that the run really finished.</span></li><li><a href="/docs/course/results">8. Read the model evidence</a><span>Interpret runs, sample dynamics, evaluation objects and findings using the actual weak baseline, including its zero operating-point scores.</span></li><li><a href="/docs/course/compare">9. Make a controlled comparison</a><span>Change the training schedule from three to twelve epochs on the same frozen data, then inspect compatibility, actual deltas and uncertainty.</span></li><li><a href="/docs/course/handoff">10. Approve and export an excerpt</a><span>Approve exactly the two inspected images and export a portable COCO copy, without calling the remaining sample reviewed or the model ready.</span></li><li><a href="/docs/course/backup">11. Back up, restore and share safely</a><span>Stop writers, verify media, create a portable project snapshot and inspect a separate restored workspace before trusting the backup.</span></li><li><a href="/docs/course/next">12. Move to your own project</a><span>Turn the course into a repeatable team practice with a labelling policy, independent evaluation data, review criteria and rollout evidence.</span></li></ul></section>
+<section class="doc-section"><h2 id="start">Getting started</h2><p class="doc-section-blurb">Check alpha access, install a qualified build, and run the loop on a small dataset.</p><ul><li><a href="/docs/start/install">Install Granum</a><span>Check build provenance, install the platform artifact, verify the running service, and understand optional training dependencies.</span></li><li><a href="/docs/start/activate">Alpha access and licences</a><span>The current unrestricted alpha, written usage permission, and manually agreed pilots.</span></li><li><a href="/docs/start/first-project">Your first project</a><span>Choose the guided real-data course, the generated shapes example or your own data, and understand what the import creates.</span></li><li><a href="/docs/start/the-loop">Run the loop once</a><span>A concise map of the workflow, with links to the complete real-data course and the evidence each stage should preserve.</span></li></ul></section>
 <section class="doc-section"><h2 id="concepts">Concepts</h2><p class="doc-section-blurb">The ideas the product is built on. Read these once and the rest of the app explains itself.</p><ul><li><a href="/docs/concepts/model">How Granum is organised</a><span>Five ideas — project, dataset, set, version, run — and how they fit together.</span></li><li><a href="/docs/concepts/projects">Projects and project types</a><span>What a project holds, how its type changes the tools, and how to organise several.</span></li><li><a href="/docs/concepts/versions">Versions and lineage</a><span>Why every change writes a new version, what that costs, and how to read the history.</span></li><li><a href="/docs/concepts/dataset-versions">Dataset versions</a><span>The frozen, named datasets that training uses — why they exist and what goes into one.</span></li><li><a href="/docs/concepts/verification">Verification and decisions</a><span>The two kinds of judgement Granum records — is this image checked, and is this label right — and who made them.</span></li><li><a href="/docs/concepts/identity">Image identity</a><span>Why a metric stays attached to the image it was measured on, and the one rule that keeps it true.</span></li><li><a href="/docs/concepts/runs">Runs and metrics</a><span>What a training run records, what a round is, and why Granum scores every model the same way.</span></li><li><a href="/docs/concepts/evidence">What the evidence is worth</a><span>How Granum turns a model&#x27;s behaviour into candidates for review — and where it refuses to draw conclusions.</span></li></ul></section>
-<section class="doc-section"><h2 id="guides">Guides</h2><p class="doc-section-blurb">Step-by-step for each job: bring data in, make it right, freeze it, train on it, judge the result.</p><ul><li><a href="/docs/guides/import">Import data</a><span>Preflight checks, what each finding means, re-cutting splits, and adding data to a project.</span></li><li><a href="/docs/guides/pull-from-projects">Build from existing projects</a><span>Pick classes out of projects you already have and make a new dataset from them.</span></li><li><a href="/docs/guides/browse">Browse images</a><span>Filters, ordering, annotations, and the full-screen viewer with per-class isolation.</span></li><li><a href="/docs/guides/review">Review and verify</a><span>Work through a dataset image by image or in bulk, with comments, rework and a progress bar.</span></li><li><a href="/docs/guides/edit">Edit annotations</a><span>Draw, move, relabel and delete boxes, masks and keypoints — and what each save writes.</span></li><li><a href="/docs/guides/isolate-remove">Isolate, remove and restore</a><span>Set images aside, take them out of a set, and put them back.</span></li><li><a href="/docs/guides/dataset-versions">Create a dataset version</a><span>Freeze what you agreed on into the named dataset that training uses.</span></li><li><a href="/docs/guides/augmentation">Augmentation</a><span>Generate augmented copies into a dataset version, and see exactly what the model will see.</span></li><li><a href="/docs/guides/train">Train a model</a><span>Choose data, model and schedule; watch the run; know what it is doing to your machine.</span></li><li><a href="/docs/guides/runs">Read a run</a><span>Scores per round, the framework-neutral final score, and where each number comes from.</span></li><li><a href="/docs/guides/learning">Per-image learning</a><span>Which images the model learned early, late, unstably or never — and what to do with each group.</span></li><li><a href="/docs/guides/findings">Work the Findings queue</a><span>A ranked list of labels worth checking, the evidence for each, and a decision you record.</span></li><li><a href="/docs/guides/compare">Compare two runs</a><span>Improved, regressed, unchanged and unmatched images — and what the comparison is worth.</span></li><li><a href="/docs/guides/projects">Manage projects</a><span>Rename, delete, back up and move projects; keep several without losing track.</span></li><li><a href="/docs/guides/python">Use Granum from Python</a><span>The same objects the app uses, for scripted imports, custom metrics and your own training loop.</span></li></ul></section>
-<section class="doc-section"><h2 id="reference">Reference</h2><p class="doc-section-blurb">Look things up: every screen, every key, every check, every file.</p><ul><li><a href="/docs/reference/screens">Map of the app</a><span>Every screen, what it is for, and what its controls do.</span></li><li><a href="/docs/reference/shortcuts">Keyboard shortcuts</a><span>Every key, by screen.</span></li><li><a href="/docs/reference/preflight">Import checks</a><span>Every preflight check, what it means, and which option to choose.</span></li><li><a href="/docs/reference/models">Models you can train</a><span>YOLO, RT-DETR and RF-DETR — sizes, hardware and when each is the right choice.</span></li><li><a href="/docs/reference/files">Files and settings</a><span>Where everything lives on disk, every setting, and the command line.</span></li><li><a href="/docs/reference/limits">Scale and limits</a><span>What Granum handles comfortably, what is slow, and what it does not do.</span></li><li><a href="/docs/reference/glossary">Glossary</a><span>The words this product uses, and exactly what each one means.</span></li></ul></section>
+<section class="doc-section"><h2 id="guides">Guides</h2><p class="doc-section-blurb">Step-by-step for each job: bring data in, make it right, freeze it, train on it, judge the result.</p><ul><li><a href="/docs/guides/import">Import data</a><span>Preflight checks, what each finding means, re-cutting splits, and adding data to a project.</span></li><li><a href="/docs/guides/pull-from-projects">Build from existing projects</a><span>Pick classes out of projects you already have and make a new dataset from them.</span></li><li><a href="/docs/guides/browse">Browse images</a><span>Filters, ordering, annotations, and the full-screen viewer with per-class isolation.</span></li><li><a href="/docs/guides/review">Review and verify</a><span>Work through a dataset image by image or in bulk, with comments, rework and a progress bar.</span></li><li><a href="/docs/guides/edit">Edit annotations</a><span>Draw, move, relabel and delete boxes, masks and keypoints — and what each save writes.</span></li><li><a href="/docs/guides/isolate-remove">Isolate, remove and restore</a><span>Set images aside, take them out of a set, and put them back.</span></li><li><a href="/docs/guides/dataset-versions">Create a dataset version</a><span>Freeze what you agreed on into the named dataset that training uses.</span></li><li><a href="/docs/guides/augmentation">Augmentation</a><span>Generate augmented copies into a dataset version, and see exactly what the model will see.</span></li><li><a href="/docs/guides/train">Train a model</a><span>Choose data, model and schedule; watch the run; know what it is doing to your machine.</span></li><li><a href="/docs/guides/runs">Read a run</a><span>Scores per round, the framework-neutral final score, and where each number comes from.</span></li><li><a href="/docs/guides/learning">Per-image learning</a><span>Which images the model learned early, late, unstably or never — and what to do with each group.</span></li><li><a href="/docs/guides/findings">Work the Findings queue</a><span>A ranked list of labels worth checking, the evidence for each, and a decision you record.</span></li><li><a href="/docs/guides/compare">Compare two runs</a><span>Improved, regressed, unchanged and unmatched images — and what the comparison is worth.</span></li><li><a href="/docs/guides/projects">Manage projects</a><span>Rename, delete, back up and move projects; keep several without losing track.</span></li><li><a href="/docs/guides/python">Use Granum from Python</a><span>The same objects the app uses, for scripted imports, custom metrics and your own training loop.</span></li><li><a href="/docs/guides/operations">Operate a pilot workspace</a><span>Approval, browser recovery, authenticated shared access, audit failures, integrity checks, portable backups and safe upgrade rehearsal.</span></li></ul></section>
+<section class="doc-section"><h2 id="reference">Reference</h2><p class="doc-section-blurb">Look things up: every screen, every key, every check, every file.</p><ul><li><a href="/docs/reference/screens">Map of the app</a><span>Every screen, what it is for, and what its controls do.</span></li><li><a href="/docs/reference/shortcuts">Keyboard shortcuts</a><span>Every key, by screen.</span></li><li><a href="/docs/reference/preflight">Import checks</a><span>Every preflight check, what it means, and which option to choose.</span></li><li><a href="/docs/reference/models">Models you can train</a><span>YOLO, RT-DETR and RF-DETR — sizes, hardware and when each is the right choice.</span></li><li><a href="/docs/reference/files">Files and settings</a><span>Where everything lives on disk, every setting, and the command line.</span></li><li><a href="/docs/reference/limits">Scale and limits</a><span>Measured local workflows, enforced view budgets, and unqualified deployment limits.</span></li><li><a href="/docs/reference/glossary">Glossary</a><span>The words this product uses, and exactly what each one means.</span></li></ul></section>
 <section class="doc-section"><h2 id="help">Help</h2><p class="doc-section-blurb">When something is wrong, or you want to know how Granum handles your data.</p><ul><li><a href="/docs/help/troubleshooting">Troubleshooting</a><span>The service, the window, training, imports and licences, when they do not behave.</span></li><li><a href="/docs/help/faq">Frequently asked questions</a><span>Short answers about data, teams, formats, models and cost.</span></li><li><a href="/docs/help/privacy">Your data and privacy</a><span>What stays on your computer, what leaves it, and when.</span></li></ul></section>
 </div>
-        <div class="doc-steps"><a class="doc-step next" href="/docs/start/install"><span>Next</span>Install Granum</a></div>
+        <div class="doc-steps"><a class="doc-step next" href="/docs/course/start"><span>Next</span>Start the guided course</a></div>
       </article>
-      <aside class="doc-toc" aria-label="On this page"><p>On this page</p><ul><li><a href="#start-with-one-of-these">Start with one of these</a></li><li><a href="#how-this-documentation-is-organised">How this documentation is organised</a></li><li><a href="#start">Getting started</a></li><li><a href="#concepts">Concepts</a></li><li><a href="#guides">Guides</a></li><li><a href="#reference">Reference</a></li><li><a href="#help">Help</a></li></ul></aside>
+      <aside class="doc-toc" aria-label="On this page"><p>On this page</p><ul><li><a href="#start-with-one-of-these">Start with one of these</a></li><li><a href="#how-this-documentation-is-organised">How this documentation is organised</a></li><li><a href="#course">Guided aerial-data course</a></li><li><a href="#start">Getting started</a></li><li><a href="#concepts">Concepts</a></li><li><a href="#guides">Guides</a></li><li><a href="#reference">Reference</a></li><li><a href="#help">Help</a></li></ul></aside>
     </main>
   </div>
 
   <footer class="doc-footer">
     <div class="wrap">
-      <p>© Granum. Your data stays on your computer.</p>
+    <p>© Granum. Local-first data workflows.</p>
       <p><a href="/">Product</a><a href="/download">Download</a><a href="/privacy">Privacy</a><a href="/docs/help/troubleshooting">Support</a></p>
     </div>
   </footer>
 
   <div class="doc-search" data-search-panel hidden>
     <div class="doc-search-box" role="dialog" aria-modal="true" aria-label="Search documentation">
-      <input type="search" placeholder="Search the documentation" autocomplete="off" spellcheck="false" data-search-input>
-      <ul data-search-results></ul>
+    <input type="search" aria-label="Search documentation" aria-controls="doc-search-results" placeholder="Search the documentation" autocomplete="off" spellcheck="false" data-search-input>
+    <ul id="doc-search-results" aria-label="Search results" aria-live="polite" data-search-results></ul>
       <p class="doc-search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move · <kbd>Enter</kbd> to open · <kbd>Esc</kbd> to close</p>
     </div>
   </div>

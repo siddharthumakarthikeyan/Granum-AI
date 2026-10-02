@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>3. Import with preflight · Granum documentation</title>
+  <meta name="description" content="Import both splits, read the real findings, choose duplicate-class and ignore-region handling, and verify the written result.">
+  <meta name="theme-color" content="#ffffff">
+  <meta property="og:title" content="3. Import with preflight · Granum documentation">
+  <meta property="og:description" content="Import both splits, read the real findings, choose duplicate-class and ignore-region handling, and verify the written result.">
+  <meta property="og:type" content="article">
+  <meta property="og:image" content="/assets/og.jpg">
+  <link rel="canonical" href="https://granum.app/docs/course/import">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/docs/docs.css">
+  <script>document.documentElement.classList.remove("no-js");</script>
+</head>
+<body class="doc-body">
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header doc-header">
+    <div class="wrap">
+      <a class="brand" href="/" aria-label="Granum home"><img src="/assets/lockup-ink.svg" alt="Granum" width="128" height="32"></a>
+      <span class="doc-badge"><a href="/docs">Docs</a></span>
+      <nav class="nav" id="nav" aria-label="Main">
+        <a href="/#tour">Product</a>
+        <a href="/#plans">Pilots</a>
+        <a href="/docs/help/faq">FAQ</a>
+      </nav>
+      <div class="header-actions">
+        <button class="doc-search-button" type="button" data-search aria-label="Search documentation">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3 3"/></svg>
+          <span>Search</span><kbd>/</kbd>
+        </button>
+        <a class="btn primary small" href="/download">Download</a>
+        <button class="menu-button" type="button" aria-controls="doc-sidebar" aria-expanded="false" aria-label="Menu" data-sidebar-toggle>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="doc-shell">
+    <div class="doc-sidebar" id="doc-sidebar">
+      <nav class="doc-nav" aria-label="Documentation">
+<a class="doc-nav-home" href="/docs">Start here</a>
+<div class="doc-nav-group"><p class="doc-nav-title">Guided aerial-data course</p><ul>
+<li><a href="/docs/course/start">Start the guided course</a></li>
+<li><a href="/docs/course/setup">1. Prepare the workspace</a></li>
+<li><a href="/docs/course/data">2. Understand the sample</a></li>
+<li><a href="/docs/course/import" class="on" aria-current="page">3. Import with preflight</a></li>
+<li><a href="/docs/course/explore">4. Explore before changing labels</a></li>
+<li><a href="/docs/course/baseline">5. Freeze an exploratory baseline</a></li>
+<li><a href="/docs/course/review">6. Review, edit and recover</a></li>
+<li><a href="/docs/course/train">7. Train the first model</a></li>
+<li><a href="/docs/course/results">8. Read the model evidence</a></li>
+<li><a href="/docs/course/compare">9. Make a controlled comparison</a></li>
+<li><a href="/docs/course/handoff">10. Approve and export an excerpt</a></li>
+<li><a href="/docs/course/backup">11. Back up, restore and share safely</a></li>
+<li><a href="/docs/course/next">12. Move to your own project</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Getting started</p><ul>
+<li><a href="/docs/start/install">Install Granum</a></li>
+<li><a href="/docs/start/activate">Alpha access and licences</a></li>
+<li><a href="/docs/start/first-project">Your first project</a></li>
+<li><a href="/docs/start/the-loop">Run the loop once</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Concepts</p><ul>
+<li><a href="/docs/concepts/model">How Granum is organised</a></li>
+<li><a href="/docs/concepts/projects">Projects and project types</a></li>
+<li><a href="/docs/concepts/versions">Versions and lineage</a></li>
+<li><a href="/docs/concepts/dataset-versions">Dataset versions</a></li>
+<li><a href="/docs/concepts/verification">Verification and decisions</a></li>
+<li><a href="/docs/concepts/identity">Image identity</a></li>
+<li><a href="/docs/concepts/runs">Runs and metrics</a></li>
+<li><a href="/docs/concepts/evidence">What the evidence is worth</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Guides</p><ul>
+<li><a href="/docs/guides/import">Import data</a></li>
+<li><a href="/docs/guides/pull-from-projects">Build from existing projects</a></li>
+<li><a href="/docs/guides/browse">Browse images</a></li>
+<li><a href="/docs/guides/review">Review and verify</a></li>
+<li><a href="/docs/guides/edit">Edit annotations</a></li>
+<li><a href="/docs/guides/isolate-remove">Isolate, remove and restore</a></li>
+<li><a href="/docs/guides/dataset-versions">Create a dataset version</a></li>
+<li><a href="/docs/guides/augmentation">Augmentation</a></li>
+<li><a href="/docs/guides/train">Train a model</a></li>
+<li><a href="/docs/guides/runs">Read a run</a></li>
+<li><a href="/docs/guides/learning">Per-image learning</a></li>
+<li><a href="/docs/guides/findings">Work the Findings queue</a></li>
+<li><a href="/docs/guides/compare">Compare two runs</a></li>
+<li><a href="/docs/guides/projects">Manage projects</a></li>
+<li><a href="/docs/guides/python">Use Granum from Python</a></li>
+<li><a href="/docs/guides/operations">Operate a pilot workspace</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Reference</p><ul>
+<li><a href="/docs/reference/screens">Map of the app</a></li>
+<li><a href="/docs/reference/shortcuts">Keyboard shortcuts</a></li>
+<li><a href="/docs/reference/preflight">Import checks</a></li>
+<li><a href="/docs/reference/models">Models you can train</a></li>
+<li><a href="/docs/reference/files">Files and settings</a></li>
+<li><a href="/docs/reference/limits">Scale and limits</a></li>
+<li><a href="/docs/reference/glossary">Glossary</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Help</p><ul>
+<li><a href="/docs/help/troubleshooting">Troubleshooting</a></li>
+<li><a href="/docs/help/faq">Frequently asked questions</a></li>
+<li><a href="/docs/help/privacy">Your data and privacy</a></li>
+</ul></div>
+</nav>
+    </div>
+    <main class="doc-main" id="main">
+      <article class="doc-article">
+        <nav class="doc-crumb" aria-label="Breadcrumb"><a href="/docs">Documentation</a><span aria-hidden="true">/</span><a href="/docs#course">Guided aerial-data course</a></nav>
+        <h1>3. Import with preflight</h1>
+        <p class="doc-summary">Import both splits, read the real findings, choose duplicate-class and ignore-region handling, and verify the written result.</p>
+        <p><strong>Goal:</strong> create aerial-walkthrough with the expected train/valid split and a record of the import
+decisions. First complete <a href="/docs/course/data">Understand the sample</a>.</p>
+<h2 id="what-preflight-is-and-why-we-use-it">What preflight is, and why we use it</h2>
+<p>Preflight inspects structure, annotations and the selected image-check coverage <strong>before import</strong>.
+It can find broken references, invalid boxes, repeated classes and possible leakage. For actionable
+findings it presents choices rather than quietly assuming that every source convention is correct.</p>
+<p>Preflight is not a full human label review. Passing it does not make a release approved.</p>
+<h2 id="step-1-choose-the-project-and-both-splits">Step 1: choose the project and both splits</h2>
+<ol>
+<li>In the sidebar choose <strong>Create project</strong>.</li>
+<li>Enter <strong>aerial-walkthrough</strong> as the project name. Use a new name if you already have this project;
+   do not overwrite unrelated work to follow the screenshots.</li>
+<li>Choose <strong>Object detection</strong>.</li>
+<li>Choose <strong>Select folder</strong> and navigate to the extracted aerial-mini folder.</li>
+<li>Confirm that <strong>train</strong> and <strong>valid</strong> are found, then choose <strong>Use 2 splits</strong>. Do not select only
+   the train folder's contents and accidentally omit validation.</li>
+<li>For <strong>Image check</strong>, choose <strong>All images</strong>. The sample is small enough to inspect all 120 files.</li>
+<li>Select <strong>Create project</strong> to run preflight. The flow then shows the report and its import confirmation.</li>
+</ol>
+<figure class="doc-figure">
+<a href="/assets/course/01-source-folder.webp"><img src="/assets/course/01-source-folder.webp" alt="Folder picker identifies train and valid and offers Use 2 splits." width="1440" height="960" loading="lazy"></a>
+<figcaption>Select the parent sample folder, keeping both detected splits.</figcaption>
+</figure>
+<figure class="doc-figure">
+<a href="/assets/course/02-import-setup.webp"><img src="/assets/course/02-import-setup.webp" alt="Import setup for aerial-walkthrough with object detection and All images selected." width="1440" height="960" loading="lazy"></a>
+<figcaption>All images checks media coverage; Annotations only would not establish that image bytes can be read.</figcaption>
+</figure>
+
+<h2 id="step-2-reconcile-the-summary">Step 2: reconcile the summary</h2>
+<p>Read the split totals before resolving warnings. You should see <strong>96 train images, 24 valid images,
+7,500 annotation objects and 13 source categories</strong>. There should be no test split.</p>
+<p>If these differ, stop here and check the selected directory and archive checksum. Importing first and
+explaining a surprising count later makes mistakes harder to trace.</p>
+<figure class="doc-figure">
+<a href="/assets/course/03-preflight-summary.webp"><img src="/assets/course/03-preflight-summary.webp" alt="Actual preflight report shows the 96-image training and 24-image validation sources and their annotation totals." width="1440" height="960" loading="lazy"></a>
+<figcaption>The report describes the source before decisions such as duplicate-category merging are applied.</figcaption>
+</figure>
+
+<h2 id="step-3-read-each-decision">Step 3: read each decision</h2>
+<ol>
+<li>Read the finding title, severity, counts and example—not just its recommended action.</li>
+<li>For duplicate <strong>people</strong> category names, retain the duplicate-name merge. The unused ID 0 and used
+   ID 9 do not need to remain two separate classes with the same display name.</li>
+<li>For <strong>A category looks like an ignore marker, not an object</strong>, choose <strong>Mark as ignore regions</strong>.
+   This preserves the boxes and marks them as crowd/ignore rather than ordinary positive targets.</li>
+<li>Read any sequence/grouping or leakage warnings. Do not “fix” independence by arbitrarily moving
+   sliders or suppressing a warning. The source test duplication and selection limitations remain
+   documented even when this small subset has no byte-identical cross-split pairs.</li>
+<li>Read all other findings. If your build proposes a different action, compare its build identity
+   and the source evidence before proceeding.</li>
+</ol>
+<figure class="doc-figure">
+<a href="/assets/course/04-preflight-decision.webp"><img src="/assets/course/04-preflight-decision.webp" alt="Ignore-marker finding explains why ignored regions should be retained as crowd or ignore regions instead of target objects." loading="lazy"></a>
+<figcaption>This is an interpretation decision, not deletion of difficult objects. Preserve individually labelled pedestrians and vehicles.</figcaption>
+</figure>
+
+<h2 id="step-4-import-and-inspect-the-result">Step 4: import and inspect the result</h2>
+<p>Select <strong>Import</strong>, then wait for <strong>Imported into aerial-walkthrough</strong>. Read the applied decisions.
+The import writes versioned tables and the import report; it does not rewrite the original COCO files.
+Open the project. The working dataset should be <strong>aerial-mini</strong> with the two original split sizes.</p>
+<figure class="doc-figure">
+<a href="/assets/course/05-import-complete.webp"><img src="/assets/course/05-import-complete.webp" alt="Successful real import into aerial-walkthrough with the completed split results." width="1440" height="960" loading="lazy"></a>
+<figcaption>Completion is a write result, not a statement that all labels have been reviewed.</figcaption>
+</figure>
+
+<h2 id="watch-the-actual-import">Watch the actual import</h2>
+<figure class="doc-figure doc-video">
+<video controls preload="none" playsinline poster="/assets/course/03-preflight-summary.webp" aria-label="Recorded import and preflight demonstration" aria-describedby="import-video-caption">
+<source src="/assets/course/01-import.mp4" type="video/mp4">
+<track kind="captions" src="/assets/course/01-import.vtt" srclang="en" label="English" default>
+Your browser cannot play this video. <a href="/assets/course/01-import.mp4">Download the recording</a>.
+</video>
+<figcaption id="import-video-caption">22 seconds · silent, with captions · actual local import. Pause to read each finding.</figcaption>
+</figure>
+<details class="doc-transcript"><summary>Read the video transcript</summary>
+<ol><li>Create a new object-detection project named aerial-walkthrough.</li><li>Choose the extracted aerial-mini folder. Keep train and valid; there is no independent test.</li><li>Preflight checks 96 training and 24 validation images before writing the project.</li><li>Read the ignore-region decision and preserve those regions as ignore/crowd.</li><li>The completion report records applied decisions; original source files are unchanged.</li></ol>
+</details>
+
+<h2 id="what-we-learn">What we learn</h2>
+<p>You can distinguish a source count from a post-import class mapping, an automatic structural check
+from a human judgement, and a recorded choice from an unexplained silent transformation. Those
+distinctions matter when another person asks why a model saw a particular label set.</p>
+<h2 id="checkpoint">Checkpoint</h2>
+<p>The project contains <strong>120 images</strong>, split 96/24. The source is untouched, duplicate-name handling is
+recorded, and ignore boxes are retained with crowd/ignore semantics. You have not marked the dataset
+verified or approved. Next: <a href="/docs/course/explore">explore the working data</a>.</p>
+<h2 id="if-something-differs">If something differs</h2>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>What to check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>One split or no splits detected</td>
+<td>Select the extracted parent folder containing both COCO files</td>
+</tr>
+<tr>
+<td>Missing or unreadable images</td>
+<td>File permissions, extraction completeness and relative image references</td>
+</tr>
+<tr>
+<td>Different totals</td>
+<td>Course archive vs full source; nested duplicate folders; checksum</td>
+</tr>
+<tr>
+<td>A blocking finding</td>
+<td>Resolve it or obtain a correct source export; do not invent coordinates to bypass it</td>
+</tr>
+<tr>
+<td>Import fails during writing</td>
+<td>Preserve the error/log and inspect whether a project was created before retrying with a new name</td>
+</tr>
+</tbody>
+</table>
+<p>See the <a href="/docs/reference/preflight">preflight reference</a> for individual check meanings.</p>
+        <div class="doc-steps"><a class="doc-step prev" href="/docs/course/data"><span>Previous</span>2. Understand the sample</a><a class="doc-step next" href="/docs/course/explore"><span>Next</span>4. Explore before changing labels</a></div>
+      </article>
+      <aside class="doc-toc" aria-label="On this page"><p>On this page</p><ul><li><a href="#what-preflight-is-and-why-we-use-it">What preflight is, and why we use it</a></li><li><a href="#step-1-choose-the-project-and-both-splits">Step 1: choose the project and both splits</a></li><li><a href="#step-2-reconcile-the-summary">Step 2: reconcile the summary</a></li><li><a href="#step-3-read-each-decision">Step 3: read each decision</a></li><li><a href="#step-4-import-and-inspect-the-result">Step 4: import and inspect the result</a></li><li><a href="#watch-the-actual-import">Watch the actual import</a></li><li><a href="#what-we-learn">What we learn</a></li><li><a href="#checkpoint">Checkpoint</a></li><li><a href="#if-something-differs">If something differs</a></li></ul></aside>
+    </main>
+  </div>
+
+  <footer class="doc-footer">
+    <div class="wrap">
+    <p>© Granum. Local-first data workflows.</p>
+      <p><a href="/">Product</a><a href="/download">Download</a><a href="/privacy">Privacy</a><a href="/docs/help/troubleshooting">Support</a></p>
+    </div>
+  </footer>
+
+  <div class="doc-search" data-search-panel hidden>
+    <div class="doc-search-box" role="dialog" aria-modal="true" aria-label="Search documentation">
+    <input type="search" aria-label="Search documentation" aria-controls="doc-search-results" placeholder="Search the documentation" autocomplete="off" spellcheck="false" data-search-input>
+    <ul id="doc-search-results" aria-label="Search results" aria-live="polite" data-search-results></ul>
+      <p class="doc-search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move · <kbd>Enter</kbd> to open · <kbd>Esc</kbd> to close</p>
+    </div>
+  </div>
+
+  <script src="/docs/docs.js" defer></script>
+</body>
+</html>

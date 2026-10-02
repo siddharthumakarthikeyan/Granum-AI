@@ -18,7 +18,7 @@
       <a class="brand" href="/" aria-label="Granum home"><img src="/assets/lockup-ink.svg" alt="Granum" width="128" height="32"></a>
       <nav class="nav" id="nav" aria-label="Main">
         <a href="/#tour">Product</a>
-        <a href="/#trial">Free trial</a>
+        <a href="/#trial">Alpha access</a>
         <a href="/#plans">Pricing</a>
         <a href="/docs">Docs</a>
         <a href="/#faq">FAQ</a>
@@ -38,24 +38,25 @@
       <p class="updated">Applies to the Granum website, the download page and the Granum app.</p>
 
       <h2>Your datasets</h2>
-      <p>Granum runs on your computer. Your images, labels, models and projects stay there. We never receive them.</p>
+      <p>Local-only workflows keep your images, labels, models and projects where you configure them. Optional cloud storage, shared-service access and material you explicitly send for support cross that boundary. The current alpha adds no dataset telemetry.</p>
 
       <h2>What we collect</h2>
       <ul>
         <li><strong>On the download page:</strong> your email address, and your name and company if you give them, with the operating system you chose and the time.</li>
-        <li><strong>When you buy a plan or ask for a quote:</strong> your email address, name and company, the plan, the number of computers and your message.</li>
-        <li><strong>When you sign in inside the app:</strong> your email address, a one-time sign-in code, an identifier for the computer (a one-way hash of the operating system's install ID, not a hardware serial number), and the app version.</li>
-        <li><strong>While the licence renews:</strong> the licence key, which contains the above, and the time of each renewal.</li>
+        <li><strong>When you request a pilot:</strong> your email address, name and company, the requested pilot category, the number of computers and your message.</li>
+        <li><strong>Only for explicit activation in older or separately licensed builds:</strong> email, one-time sign-in code, a hashed machine identifier and app version. The current unrestricted alpha does not require this activation.</li>
+        <li><strong>Only when those licensed builds renew:</strong> the licence key and renewal time. No renewal is required by the current alpha.</li>
+        <li><strong>In your own shared workspace:</strong> authenticated account names, roles and operation audit records are stored on your service, not automatically sent to Granum.</li>
       </ul>
 
       <h2>Why</h2>
-      <p>To send you the installer, to answer purchase and quote requests, to run your free trial and plans (one trial per person and per computer, and the number of computers on a plan), to email sign-in codes, and to reply when you write to us. We do not sell or share this data, and we do not send marketing email unless you ask for it.</p>
+      <p>To verify downloads, answer pilot and support requests, and operate any separately agreed licensed access. Download verification does not start a subscription. We do not sell this data or send marketing email unless you ask; hosting and email providers process the requests as described below.</p>
 
       <h2>Where it is kept</h2>
-      <p>On our hosting provider (Vercel) and database provider (Neon), and our email provider for sign-in codes. Records are kept while you have a trial or plan with us, and deleted on request after that.</p>
+      <p>Website records use our hosting provider (Vercel), database provider (Neon), and email provider. Contact us about retained download, pilot or legacy licensing records and deletion requests. Your configured shared-workspace records and browser drafts are managed on your systems.</p>
 
       <h2>Your choices</h2>
-      <p>You can ask for a copy of what we hold about you, for it to be corrected, or for it to be deleted<span data-contact-sentence></span>. Deleting your record ends any trial or plan tied to it.</p>
+      <p>You can ask for a copy of what we hold about you, for it to be corrected, or for it to be deleted<span data-contact-sentence></span>. Deleting a record can end separately licensed access tied to it; the current alpha has no enforced subscription countdown.</p>
     </article>
   </main>
   <footer class="site-footer">
@@ -67,11 +68,11 @@
         </div>
         <div>
           <h4>Product</h4>
-          <ul><li><a href="/#tour">Product tour</a></li><li><a href="/#plans">Pricing</a></li><li><a href="/docs">Documentation</a></li><li><a href="/#faq">FAQ</a></li></ul>
+          <ul><li><a href="/#tour">Product tour</a></li><li><a href="/#plans">Pilots</a></li><li><a href="/docs">Documentation</a></li><li><a href="/#faq">FAQ</a></li></ul>
         </div>
         <div>
           <h4>Get started</h4>
-          <ul><li><a href="/download">Download</a></li><li><a href="/#trial">Free trial</a></li><li><a href="/docs/start/install">Install guide</a></li></ul>
+          <ul><li><a href="/download">Download</a></li><li><a href="/#trial">Alpha access</a></li><li><a href="/docs/start/install">Install guide</a></li></ul>
         </div>
         <div>
           <h4>Company</h4>

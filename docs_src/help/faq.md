@@ -4,14 +4,14 @@ summary: Short answers about data, teams, formats, models and cost.
 ---
 
 **Does anything leave my computer?**
-No images, no labels, no metrics. The only requests Granum makes are licence activation and renewal,
-which carry your email address, a machine id and the app version, and downloading the training add-on and
-pretrained weights. → [Your data and privacy](/docs/help/privacy)
+Local workflows do not upload datasets to Granum. Optional cloud storage, shared access and model/package
+downloads use the destinations you configure. The current alpha requires no licence-server activation
+or renewal. → [Your data and privacy](/docs/help/privacy)
 
 **Can two people work on the same project?**
-Not at the same time, today. Granum is a single-user desktop application: one machine, one project root,
-no accounts. Reviewer names are recorded so you can see who did what among colleagues, but they are not
-credentials.
+The current source supports HTTPS-authenticated shared access with workspace-wide roles and stale-edit
+checks. All accounts can read the whole workspace; it is not per-project tenancy or an assignment system.
+Local mode remains loopback-only with self-reported names. Check that your installer contains these changes.
 
 **What formats can I import?**
 COCO JSON in the dashboard — one annotation file per set, which is what Roboflow, CVAT and Label Studio
@@ -23,8 +23,9 @@ Never. Granum records the path to each image and reads it. The only images it wr
 inside a dataset version.
 
 **Do I have to review everything before training?**
-No, and usually you should not. Verify the validation set, skim the training set, train, and let
-[Findings](/docs/guides/findings) tell you where the remaining effort belongs.
+Not for an explicitly acknowledged exploratory version. **Approval is separate**: every included image's
+exact labels, schema and media must match review evidence. Approved-only training rechecks that evidence.
+[Findings](/docs/guides/findings) helps prioritize further review; it does not automatically approve data.
 
 **Why can I only train on dataset versions?**
 So that a result is attached to a fixed, named body of data that cannot change afterwards. It is the
@@ -44,16 +45,19 @@ For training, effectively yes. Everything else — import, review, editing, vers
 without one.
 
 **What happens when my plan ends?**
-Granum becomes read-only: you can open, read and export everything, but not change or train. Nothing is
-deleted or held hostage. → [Sign in and licences](/docs/start/activate)
+The current unrestricted alpha has no enforced subscription expiry. Use and paid support remain subject
+to written agreement, and future terms may differ. No automatic checkout is active.
+→ [Alpha access and licences](/docs/start/activate)
 
 **Can I move my projects to another machine?**
-Copy `~/granum` (and `~/granum-training` for weights). Images are referenced by absolute path, so they
-need to be at the same paths on the new machine.
+Stop project writers, create a checksummed project snapshot with `granum backup create`, and restore it
+under a new project name with `granum backup restore`. Supported local media paths are relocated.
+External project/table dependencies are refused rather than silently omitted; environments and training
+caches are not a complete system backup. Rehearse on a disposable destination before relying on it.
 
 **Is there an API?**
-A local REST service the dashboard itself uses, and the Python package underneath it. Both are for local
-tooling; neither is a hosted service.
+A REST service and a Python SDK. The default is local; explicitly configured shared access requires
+authentication and HTTPS. Neither is a managed hosted service.
 
 **Does Granum support segmentation or keypoints?**
 It stores, shows and edits masks and keypoints, and a project can declare those types. Checks, metrics

@@ -76,7 +76,11 @@ def test_every_internal_link_and_anchor_resolves():
     for path in sorted(PUBLIC.rglob("*.html")):
         page = f"/{path.relative_to(PUBLIC).as_posix()}"
         for href in HREF.findall(path.read_text(encoding="utf-8")):
-            if href.startswith(("http://", "https://", "mailto:", "#")):
+            if href.startswith(("http://", "https://", "mailto:")):
+                continue
+            if href.startswith("#"):
+                if href[1:] not in targets[page]:
+                    broken.append(f"{page} -> {href} (no such local anchor)")
                 continue
             target, _, fragment = href.partition("#")
             target = (target.split("?")[0] or "/").rstrip("/") or "/"

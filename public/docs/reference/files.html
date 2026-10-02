@@ -27,7 +27,7 @@
       <span class="doc-badge"><a href="/docs">Docs</a></span>
       <nav class="nav" id="nav" aria-label="Main">
         <a href="/#tour">Product</a>
-        <a href="/#plans">Pricing</a>
+        <a href="/#plans">Pilots</a>
         <a href="/docs/help/faq">FAQ</a>
       </nav>
       <div class="header-actions">
@@ -47,9 +47,24 @@
     <div class="doc-sidebar" id="doc-sidebar">
       <nav class="doc-nav" aria-label="Documentation">
 <a class="doc-nav-home" href="/docs">Start here</a>
+<div class="doc-nav-group"><p class="doc-nav-title">Guided aerial-data course</p><ul>
+<li><a href="/docs/course/start">Start the guided course</a></li>
+<li><a href="/docs/course/setup">1. Prepare the workspace</a></li>
+<li><a href="/docs/course/data">2. Understand the sample</a></li>
+<li><a href="/docs/course/import">3. Import with preflight</a></li>
+<li><a href="/docs/course/explore">4. Explore before changing labels</a></li>
+<li><a href="/docs/course/baseline">5. Freeze an exploratory baseline</a></li>
+<li><a href="/docs/course/review">6. Review, edit and recover</a></li>
+<li><a href="/docs/course/train">7. Train the first model</a></li>
+<li><a href="/docs/course/results">8. Read the model evidence</a></li>
+<li><a href="/docs/course/compare">9. Make a controlled comparison</a></li>
+<li><a href="/docs/course/handoff">10. Approve and export an excerpt</a></li>
+<li><a href="/docs/course/backup">11. Back up, restore and share safely</a></li>
+<li><a href="/docs/course/next">12. Move to your own project</a></li>
+</ul></div>
 <div class="doc-nav-group"><p class="doc-nav-title">Getting started</p><ul>
 <li><a href="/docs/start/install">Install Granum</a></li>
-<li><a href="/docs/start/activate">Sign in and licences</a></li>
+<li><a href="/docs/start/activate">Alpha access and licences</a></li>
 <li><a href="/docs/start/first-project">Your first project</a></li>
 <li><a href="/docs/start/the-loop">Run the loop once</a></li>
 </ul></div>
@@ -79,6 +94,7 @@
 <li><a href="/docs/guides/compare">Compare two runs</a></li>
 <li><a href="/docs/guides/projects">Manage projects</a></li>
 <li><a href="/docs/guides/python">Use Granum from Python</a></li>
+<li><a href="/docs/guides/operations">Operate a pilot workspace</a></li>
 </ul></div>
 <div class="doc-nav-group"><p class="doc-nav-title">Reference</p><ul>
 <li><a href="/docs/reference/screens">Map of the app</a></li>
@@ -113,13 +129,17 @@
     ├── imports/&lt;id&gt;.json                    preflight reports and the choices made
     └── example.json                         marks a project made from the example dataset
 
-~/granum-training/                           weights, exports and framework run folders
+~/granum-training/                           weights and framework run folders
 ~/.config/granum/config.granum.yaml          settings, incl. the pinned project root
 ~/.local/state/granum/service.log            service log
 ~/.local/share/granum/                       the installed app, its window storage, licence and add-ons
 </code></pre>
 <p>Everything is a plain file. Object descriptors are JSON, rows are Parquet, logs are JSON Lines. You can
 read any of it without Granum, which is the point.</p>
+<p>Dataset-version exports are written under the relevant project export directory. Unsaved editor
+drafts are in the active browser/desktop profile's IndexedDB, not in these Parquet/JSON project files.
+External image references can point outside the root; use <a href="/docs/course/backup">portable backup/restore</a>
+rather than assuming a folder copy includes every dependency.</p>
 <h2 id="settings">Settings</h2>
 <p>Settings resolve, highest priority first: command-line flags, environment variables, then the project,
 user and system config files, then defaults. <code>granum config show</code> reports where each value came from and
@@ -183,6 +203,11 @@ granum import coco SPLIT=PATH... --project NAME [--dataset NAME] [--media full|s
 granum thumbnails create &lt;table-or-run-url&gt;
 granum config show | path | validate | project-root PATH
 granum version
+granum build-info
+granum integrity snapshot PROJECT --output FILE
+granum integrity verify FILE
+granum backup create PROJECT --output ARCHIVE
+granum backup restore ARCHIVE --name NAME
 </code></pre>
 <p>Global options go before the command: <code>granum --project-root-url /data/granum service</code>.</p>
 <h2 id="the-service">The service</h2>
@@ -192,8 +217,9 @@ journalctl --user -u granum -f      # or tail ~/.local/state/granum/service.log
 </code></pre>
 <p>It starts at login. <code>sudo loginctl enable-linger $USER</code> keeps it running while you are logged out.</p>
 <h2 id="security-model">Security model</h2>
-<p>The service reads your data locally and serves it to the dashboard. Nothing is uploaded.</p>
-<p>Three rules make a local web service safe to leave running:</p>
+<p>The default local service reads data locally and serves it to the dashboard. Optional cloud roots,
+shared clients and configured training integrations extend that boundary; see <a href="/docs/help/privacy">Privacy</a>.</p>
+<p>Local-mode defence-in-depth checks include:</p>
 <ul>
 <li><strong>Every URL is checked.</strong> Object URLs must sit under a scan root, media must be referenced by an
   indexed table, and import sources must sit under a configured data root. Without that,
@@ -203,8 +229,12 @@ journalctl --user -u granum -f      # or tail ~/.local/state/granum/service.log
 <li><strong>Writes must be JSON</strong>, and cross-origin requests from origins not explicitly allowed are refused, so
   a page cannot make your browser change your data.</li>
 </ul>
-<p>There is no authentication: anyone who can reach the port can use it. Keep it on the loopback address —
-the default — unless you understand exactly what you are exposing.</p>
+<p>Local mode has no account authentication and rejects non-loopback peers. Non-loopback service binding
+requires an account registry and TLS. Shared mode applies workspace-wide roles and authenticated authors;
+all accounts can read every project. Keep credentials outside the project root and backups. Filesystem
+writers must use the same local workspace configuration; cloud/NFS multiwriter safety is not qualified.</p>
+<p>Shared TLS/account flags and audit/revocation procedures are documented in
+<a href="/docs/guides/operations">Operate a pilot workspace</a>.</p>
         <div class="doc-steps"><a class="doc-step prev" href="/docs/reference/models"><span>Previous</span>Models you can train</a><a class="doc-step next" href="/docs/reference/limits"><span>Next</span>Scale and limits</a></div>
       </article>
       <aside class="doc-toc" aria-label="On this page"><p>On this page</p><ul><li><a href="#on-disk">On disk</a></li><li><a href="#settings">Settings</a></li><li><a href="#commands">Commands</a></li><li><a href="#the-service">The service</a></li><li><a href="#security-model">Security model</a></li></ul></aside>
@@ -213,15 +243,15 @@ the default — unless you understand exactly what you are exposing.</p>
 
   <footer class="doc-footer">
     <div class="wrap">
-      <p>© Granum. Your data stays on your computer.</p>
+    <p>© Granum. Local-first data workflows.</p>
       <p><a href="/">Product</a><a href="/download">Download</a><a href="/privacy">Privacy</a><a href="/docs/help/troubleshooting">Support</a></p>
     </div>
   </footer>
 
   <div class="doc-search" data-search-panel hidden>
     <div class="doc-search-box" role="dialog" aria-modal="true" aria-label="Search documentation">
-      <input type="search" placeholder="Search the documentation" autocomplete="off" spellcheck="false" data-search-input>
-      <ul data-search-results></ul>
+    <input type="search" aria-label="Search documentation" aria-controls="doc-search-results" placeholder="Search the documentation" autocomplete="off" spellcheck="false" data-search-input>
+    <ul id="doc-search-results" aria-label="Search results" aria-live="polite" data-search-results></ul>
       <p class="doc-search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move · <kbd>Enter</kbd> to open · <kbd>Esc</kbd> to close</p>
     </div>
   </div>

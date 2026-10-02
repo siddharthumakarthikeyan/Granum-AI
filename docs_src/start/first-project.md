@@ -1,26 +1,39 @@
 ---
 title: Your first project
-summary: Create a project from a folder of COCO annotations, or from the built-in example dataset, and see what arrived.
+summary: Choose the guided real-data course, the generated shapes example or your own data, and understand what the import creates.
 ---
 
 A **project** is one body of work: a dataset, its versions, the reviews and comments on it, and every
 training run made from it. Most teams keep one project per problem — "aerial people", "shelf audit" —
 rather than one per experiment.
 
-## Option A: the example dataset
+## Recommended: the real-data course
+
+Follow [the guided aerial course](/docs/course/start) for your first complete project. It includes a
+verified download of 120 real images (96 train, 24 valid), explains source taxonomy and holdout problems,
+and walks through actual import, review, recovery, training, comparison, approval, export and restore.
+Each stage has screenshots, a checkpoint and troubleshooting; the main application flows have captioned
+recordings and transcripts. The observed models are weak, and the course explains that honestly.
+
+The course's sample is **not** the built-in generated example below. Its source labels were not
+deliberately corrupted to make a demonstration work. It approves only two genuinely inspected images,
+not the full sample.
+
+## Alternative: the generated example dataset
 
 If you want to see the whole product before committing your own data, use the generated example. It is
 120 small images of coloured shapes, drawn on your machine, with deliberate label problems planted in
 them: boxes missing from shapes that are drawn, boxes carrying the wrong class, boxes far too large, one
 box with no width, and two training images copied into the validation set.
 
-Click **Create project → Use the example dataset**, or the *Try the example project* tile on the
-Projects screen. Example projects do not count towards your plan's project limit.
+Choose the example-dataset action on project creation where your build offers it. This synthetic
+fixture is useful for learning known defects, not for measuring real-world model performance. The
+current unrestricted alpha does not enforce a paid-plan project limit.
 
-Because you know what is wrong with it, the example is the honest way to judge whether the import
-checks, the review tools and Findings actually earn their place.
+Knowing how the fixture was generated helps explain some expected findings. It does not replace
+testing your own data and environment.
 
-## Option B: your own data
+## Bring your own data
 
 Granum imports COCO detection annotations — one annotation file per set, images beside it, which is what
 Roboflow and most labelling tools export:
@@ -47,17 +60,21 @@ kept with the import, so how a dataset came to be is always inspectable. The ful
 
 ## What you get
 
-After the import, the sidebar has five places:
+After import, the project connects these main screens:
 
 | Screen | What it holds |
 |---|---|
 | **Overview** | The project at a glance: mosaic, headline counts, what needs attention |
 | **Images** | Every image with its annotations — and the browse, review and edit modes |
-| **Datasets** | The dataset versions you have created; training uses these only |
+| **Health** | Available measurements of data risks and evidence coverage |
+| **Datasets** | Frozen exploratory versions and separately approved releases |
 | **Runs** | Training runs, their charts and scores, and the comparison between two of them |
+| **Evaluation** | Class/object outcomes under a selected scoring scope and threshold |
 | **Findings** | Labels a finished run suggests are worth checking |
 
-All the sets land in one dataset, named after the folder that held them, with `train`, `valid` and `test`
-as splits inside it. Every image starts **unverified**.
+The selected sets land in one dataset, normally named after the parent folder. Keep only genuine split
+roles; do not copy validation into a new test folder. Imported images start unverified; creating a
+dataset version does not automatically approve them.
 
-Next, see what that data actually looks like: [Run the loop once](/docs/start/the-loop).
+Next: [import the course sample](/docs/course/import), or use [the workflow overview](/docs/start/the-loop)
+as a map for your own project.
