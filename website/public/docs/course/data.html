@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>2. Understand the sample · Granum documentation</title>
+  <meta name="description" content="Learn images, boxes, classes and splits, then examine the real taxonomy and duplicated-holdout problems in the supplied export.">
+  <meta name="theme-color" content="#ffffff">
+  <meta property="og:title" content="2. Understand the sample · Granum documentation">
+  <meta property="og:description" content="Learn images, boxes, classes and splits, then examine the real taxonomy and duplicated-holdout problems in the supplied export.">
+  <meta property="og:type" content="article">
+  <meta property="og:image" content="/assets/og.jpg">
+  <link rel="canonical" href="https://granum.app/docs/course/data">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/docs/docs.css">
+  <script>document.documentElement.classList.remove("no-js");</script>
+</head>
+<body class="doc-body">
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header doc-header">
+    <div class="wrap">
+      <a class="brand" href="/" aria-label="Granum home"><img src="/assets/lockup-ink.svg" alt="Granum" width="128" height="32"></a>
+      <span class="doc-badge"><a href="/docs">Docs</a></span>
+      <nav class="nav" id="nav" aria-label="Main">
+        <a href="/#tour">Product</a>
+        <a href="/#plans">Pilots</a>
+        <a href="/docs/help/faq">FAQ</a>
+      </nav>
+      <div class="header-actions">
+        <button class="doc-search-button" type="button" data-search aria-label="Search documentation">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3 3"/></svg>
+          <span>Search</span><kbd>/</kbd>
+        </button>
+        <a class="btn primary small" href="/download">Download</a>
+        <button class="menu-button" type="button" aria-controls="doc-sidebar" aria-expanded="false" aria-label="Menu" data-sidebar-toggle>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="doc-shell">
+    <div class="doc-sidebar" id="doc-sidebar">
+      <nav class="doc-nav" aria-label="Documentation">
+<a class="doc-nav-home" href="/docs">Start here</a>
+<div class="doc-nav-group"><p class="doc-nav-title">Guided aerial-data course</p><ul>
+<li><a href="/docs/course/start">Start the guided course</a></li>
+<li><a href="/docs/course/setup">1. Prepare the workspace</a></li>
+<li><a href="/docs/course/data" class="on" aria-current="page">2. Understand the sample</a></li>
+<li><a href="/docs/course/import">3. Import with preflight</a></li>
+<li><a href="/docs/course/explore">4. Explore before changing labels</a></li>
+<li><a href="/docs/course/baseline">5. Freeze an exploratory baseline</a></li>
+<li><a href="/docs/course/review">6. Review, edit and recover</a></li>
+<li><a href="/docs/course/train">7. Train the first model</a></li>
+<li><a href="/docs/course/results">8. Read the model evidence</a></li>
+<li><a href="/docs/course/compare">9. Make a controlled comparison</a></li>
+<li><a href="/docs/course/handoff">10. Approve and export an excerpt</a></li>
+<li><a href="/docs/course/backup">11. Back up, restore and share safely</a></li>
+<li><a href="/docs/course/next">12. Move to your own project</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Getting started</p><ul>
+<li><a href="/docs/start/install">Install Granum</a></li>
+<li><a href="/docs/start/activate">Alpha access and licences</a></li>
+<li><a href="/docs/start/first-project">Your first project</a></li>
+<li><a href="/docs/start/the-loop">Run the loop once</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Concepts</p><ul>
+<li><a href="/docs/concepts/model">How Granum is organised</a></li>
+<li><a href="/docs/concepts/projects">Projects and project types</a></li>
+<li><a href="/docs/concepts/versions">Versions and lineage</a></li>
+<li><a href="/docs/concepts/dataset-versions">Dataset versions</a></li>
+<li><a href="/docs/concepts/verification">Verification and decisions</a></li>
+<li><a href="/docs/concepts/identity">Image identity</a></li>
+<li><a href="/docs/concepts/runs">Runs and metrics</a></li>
+<li><a href="/docs/concepts/evidence">What the evidence is worth</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Guides</p><ul>
+<li><a href="/docs/guides/import">Import data</a></li>
+<li><a href="/docs/guides/pull-from-projects">Build from existing projects</a></li>
+<li><a href="/docs/guides/browse">Browse images</a></li>
+<li><a href="/docs/guides/review">Review and verify</a></li>
+<li><a href="/docs/guides/edit">Edit annotations</a></li>
+<li><a href="/docs/guides/isolate-remove">Isolate, remove and restore</a></li>
+<li><a href="/docs/guides/dataset-versions">Create a dataset version</a></li>
+<li><a href="/docs/guides/augmentation">Augmentation</a></li>
+<li><a href="/docs/guides/train">Train a model</a></li>
+<li><a href="/docs/guides/runs">Read a run</a></li>
+<li><a href="/docs/guides/learning">Per-image learning</a></li>
+<li><a href="/docs/guides/findings">Work the Findings queue</a></li>
+<li><a href="/docs/guides/compare">Compare two runs</a></li>
+<li><a href="/docs/guides/projects">Manage projects</a></li>
+<li><a href="/docs/guides/python">Use Granum from Python</a></li>
+<li><a href="/docs/guides/operations">Operate a pilot workspace</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Reference</p><ul>
+<li><a href="/docs/reference/screens">Map of the app</a></li>
+<li><a href="/docs/reference/shortcuts">Keyboard shortcuts</a></li>
+<li><a href="/docs/reference/preflight">Import checks</a></li>
+<li><a href="/docs/reference/models">Models you can train</a></li>
+<li><a href="/docs/reference/files">Files and settings</a></li>
+<li><a href="/docs/reference/limits">Scale and limits</a></li>
+<li><a href="/docs/reference/glossary">Glossary</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Help</p><ul>
+<li><a href="/docs/help/troubleshooting">Troubleshooting</a></li>
+<li><a href="/docs/help/faq">Frequently asked questions</a></li>
+<li><a href="/docs/help/privacy">Your data and privacy</a></li>
+</ul></div>
+</nav>
+    </div>
+    <main class="doc-main" id="main">
+      <article class="doc-article">
+        <nav class="doc-crumb" aria-label="Breadcrumb"><a href="/docs">Documentation</a><span aria-hidden="true">/</span><a href="/docs#course">Guided aerial-data course</a></nav>
+        <h1>2. Understand the sample</h1>
+        <p class="doc-summary">Learn images, boxes, classes and splits, then examine the real taxonomy and duplicated-holdout problems in the supplied export.</p>
+        <p><strong>Goal:</strong> know what you are importing and which conclusions the data can support.
+Complete <a href="/docs/course/setup">workspace setup</a> first. No model has to be trained to do this inspection.</p>
+<h2 id="what-is-object-detection-data">What is object-detection data?</h2>
+<p>An <strong>image</strong> is the input a detector sees. An <strong>annotation</strong> says where a particular object is and
+which <strong>class</strong> it belongs to. One image can contain zero, one or hundreds of objects.</p>
+<p>In COCO, an image record has an ID, a file name, width and height. Each annotation refers to that image
+ID and a category ID. A COCO bounding box is <code>[x, y, width, height]</code> in image pixels, measured from the
+top-left. Granum's internal box representation can instead use two corners; the importer performs that
+conversion. Do not copy coordinate arrays between formats without checking their meaning.</p>
+<p>For example, the course's one-pedestrian training image is 960 × 540. Its source box starts at
+<code>(425, 228)</code> and is 53 × 95 pixels; the corresponding opposite corner is <code>(478, 323)</code>. A good-looking
+rectangle is not by itself proof of the right class or of complete annotation coverage.</p>
+<h2 id="why-split-data">Why split data?</h2>
+<table>
+<thead>
+<tr>
+<th>Split</th>
+<th>Job</th>
+<th>What goes wrong if reused carelessly?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Train</td>
+<td>Fit the model's weights</td>
+<td>Training performance alone overstates generalisation</td>
+</tr>
+<tr>
+<td>Validation</td>
+<td>Select settings/checkpoints and inspect development behaviour</td>
+<td>Repeatedly tuning against it makes it part of model development</td>
+</tr>
+<tr>
+<td>Test</td>
+<td>Evaluate the selected final procedure on an independent holdout</td>
+<td>Copies, neighbouring frames or tuning on test destroy that independence</td>
+</tr>
+</tbody>
+</table>
+<p>Frames from the same flight or capture sequence can be nearly identical without having the same file
+hash. Splitting individual files randomly is not sufficient protection. Prefer a documented group
+boundary such as flight, site, day or camera appropriate to the deployment question.</p>
+<h2 id="where-this-sample-came-from">Where this sample came from</h2>
+<p>The local supplied export identifies itself as <strong>Aerial Person Detection</strong>, v1, exported on
+16 September 2026 at 12:22:18 UTC, from
+<a href="https://universe.roboflow.com/val-data/aerial-person-detection-fhrsh">val-data on Roboflow Universe</a>.
+It declares <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>.</p>
+<p>The course subset keeps selected image bytes and annotation objects unchanged. Its attribution names
+the source and explains the subset selection. That licence notice is the supplied export's declaration,
+<strong>not independent verification of upstream ownership</strong>. Check applicable rights and privacy requirements
+for your intended use; keep attribution when redistributing. No source-provider endorsement is implied.</p>
+<h2 id="what-the-source-actually-contains">What the source actually contains</h2>
+<p>The source was inspected, not inferred from the dataset's name:</p>
+<table>
+<thead>
+<tr>
+<th>Original source folder</th>
+<th style="text-align: right;">Images</th>
+<th style="text-align: right;">Annotation objects</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>train</td>
+<td style="text-align: right;">11,335</td>
+<td style="text-align: right;">621,186</td>
+</tr>
+<tr>
+<td>valid</td>
+<td style="text-align: right;">547</td>
+<td style="text-align: right;">40,126</td>
+</tr>
+<tr>
+<td>test</td>
+<td style="text-align: right;">547</td>
+<td style="text-align: right;">40,126</td>
+</tr>
+</tbody>
+</table>
+<p><strong>The validation and test annotation files are byte-identical, and all 547 corresponding image pairs
+are byte-identical.</strong> The repeated test folder is not an independent holdout. The export's stated
+11,882-image count corresponds to train plus validation, not counting that repeated folder again.</p>
+<p>The source description also mentions horizontal-flip augmentation and multiple versions per source
+image. The course does not assume that differently named variants are independent observations.</p>
+<h2 id="what-the-course-includes">What the course includes</h2>
+<table>
+<thead>
+<tr>
+<th>Course split</th>
+<th style="text-align: right;">Images</th>
+<th style="text-align: right;">Source annotation objects</th>
+<th style="text-align: right;">Ignore-region objects</th>
+<th style="text-align: right;">Other objects</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>train</td>
+<td style="text-align: right;">96</td>
+<td style="text-align: right;">5,720</td>
+<td style="text-align: right;">158</td>
+<td style="text-align: right;">5,562</td>
+</tr>
+<tr>
+<td>valid</td>
+<td style="text-align: right;">24</td>
+<td style="text-align: right;">1,780</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;">1,710</td>
+</tr>
+<tr>
+<td>Total</td>
+<td style="text-align: right;">120</td>
+<td style="text-align: right;">7,500</td>
+<td style="text-align: right;">228</td>
+<td style="text-align: right;">7,272</td>
+</tr>
+</tbody>
+</table>
+<p>Selection is deterministic with seed <strong>20261002</strong>. Validation is selected first. Training excludes
+filename-prefix sequences found anywhere in the source validation split. Selected byte-identical
+images and repeated frame variants are excluded. The manifest records per-file sizes and SHA-256 hashes.</p>
+<p><strong>Filename-prefix separation is a heuristic, not proof of scene independence.</strong> This tiny subset is
+learning material, not a benchmark. No images were resized and no labels were deliberately corrupted
+to create an impressive “before and after.”</p>
+<h2 id="read-the-classes-before-training">Read the classes before training</h2>
+<p>The 13 source category entries are: people (ID 0), awning-tricycle, bicycle, bus, car, ignored regions,
+motor, others, pedestrian, people (ID 9), tricycle, truck and van.</p>
+<p>Two things need an explicit decision:</p>
+<ol>
+<li><strong>“people” appears twice.</strong> ID 0 is unused; ID 9 is used. The import merges duplicate names. It does
+   not mean that <strong>pedestrian</strong> should also be merged with <strong>people</strong>. Similar words may encode different
+   labelling policies. Resolve that with the data owner rather than guessing.</li>
+<li><strong>“ignored regions” is not an ordinary target class.</strong> The source marks those boxes with <code>iscrowd=0</code>.
+   Preflight recommends preserving them as ignore/crowd regions (<code>iscrowd=1</code>). Otherwise a model may be
+   rewarded or penalised for regions intentionally not individually labelled.</li>
+</ol>
+<p>Under the recorded import decisions, 12 category entries remain and all 228 ignore-region boxes are
+retained as ignore/crowd. YOLO training export omits those boxes as positive training targets; an
+evaluator must separately implement the intended ignore semantics. Not every third-party format does.</p>
+<h2 id="what-we-learn">What we learn</h2>
+<p>Dataset names and README totals are starting points, not guarantees. Structural checks can identify
+repeated files and taxonomy problems. They cannot determine whether every distant object is labelled,
+whether your class definitions fit the business problem, or whether the sample represents deployment.</p>
+<h2 id="checkpoint">Checkpoint</h2>
+<p>Explain, in your own words: “120 images is not 120 boxes; there is no independent test; duplicate class
+names and ignore regions need different decisions.” Then <a href="/docs/course/import">import with preflight</a>.</p>
+<h2 id="if-something-differs">If something differs</h2>
+<p>If your extracted counts differ, check that you downloaded the course archive rather than the full
+source export. If your organisation has a different labelling policy, preserve the sample for this
+exercise and start a separate project for the policy change. Do not silently rewrite the course archive.</p>
+        <div class="doc-steps"><a class="doc-step prev" href="/docs/course/setup"><span>Previous</span>1. Prepare the workspace</a><a class="doc-step next" href="/docs/course/import"><span>Next</span>3. Import with preflight</a></div>
+      </article>
+      <aside class="doc-toc" aria-label="On this page"><p>On this page</p><ul><li><a href="#what-is-object-detection-data">What is object-detection data?</a></li><li><a href="#why-split-data">Why split data?</a></li><li><a href="#where-this-sample-came-from">Where this sample came from</a></li><li><a href="#what-the-source-actually-contains">What the source actually contains</a></li><li><a href="#what-the-course-includes">What the course includes</a></li><li><a href="#read-the-classes-before-training">Read the classes before training</a></li><li><a href="#what-we-learn">What we learn</a></li><li><a href="#checkpoint">Checkpoint</a></li><li><a href="#if-something-differs">If something differs</a></li></ul></aside>
+    </main>
+  </div>
+
+  <footer class="doc-footer">
+    <div class="wrap">
+    <p>© Granum. Local-first data workflows.</p>
+      <p><a href="/">Product</a><a href="/download">Download</a><a href="/privacy">Privacy</a><a href="/docs/help/troubleshooting">Support</a></p>
+    </div>
+  </footer>
+
+  <div class="doc-search" data-search-panel hidden>
+    <div class="doc-search-box" role="dialog" aria-modal="true" aria-label="Search documentation">
+    <input type="search" aria-label="Search documentation" aria-controls="doc-search-results" placeholder="Search the documentation" autocomplete="off" spellcheck="false" data-search-input>
+    <ul id="doc-search-results" aria-label="Search results" aria-live="polite" data-search-results></ul>
+      <p class="doc-search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move · <kbd>Enter</kbd> to open · <kbd>Esc</kbd> to close</p>
+    </div>
+  </div>
+
+  <script src="/docs/docs.js" defer></script>
+</body>
+</html>

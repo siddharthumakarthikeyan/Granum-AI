@@ -1,0 +1,45 @@
+{
+  "chapter": "10-restore",
+  "recorded": "2026-10-02T11:43:05.106Z",
+  "source": "Actual Granum dashboard with aerial-mini; no mocked metrics or API responses.",
+  "viewport": {
+    "width": 1440,
+    "height": 960
+  },
+  "duration": 16.92,
+  "shots": [
+    "32-restored-project",
+    "33-restored-images",
+    "34-restored-approval"
+  ],
+  "cues": [
+    {
+      "at": 0.19279258400926996,
+      "text": "The offline backup and restore commands finished before this recording. This is the separate restored project, not the original."
+    },
+    {
+      "at": 5.235898030127463,
+      "text": "Open the restored media. All 120 image hashes were checked; the references now point inside the rehearsal workspace."
+    },
+    {
+      "at": 10.019768250289689,
+      "text": "Check the exploratory baseline and the approved two-image excerpt. A verified restore is stronger evidence than merely creating a ZIP."
+    }
+  ],
+  "capture_duration": 15.534,
+  "captured_cues": [
+    {
+      "at": 0.177,
+      "text": "The offline backup and restore commands finished before this recording. This is the separate restored project, not the original."
+    },
+    {
+      "at": 4.807,
+      "text": "Open the restored media. All 120 image hashes were checked; the references now point inside the rehearsal workspace."
+    },
+    {
+      "at": 9.199,
+      "text": "Check the exploratory baseline and the approved two-image excerpt. A verified restore is stronger evidence than merely creating a ZIP."
+    }
+  ],
+  "caption_timing": "Original wall-clock cues scaled to encoded video duration; retained separately for provenance."
+}

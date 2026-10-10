@@ -1,0 +1,21 @@
+WEBVTT
+
+1
+00:00:02.505 --> 00:00:05.659
+Create a new object-detection project. This course uses aerial-walkthrough.
+
+2
+00:00:05.659 --> 00:00:09.993
+Choose the extracted aerial-mini folder. Keep both train and valid; there is no independent test set.
+
+3
+00:00:09.993 --> 00:00:13.049
+Preflight checks 96 training and 24 validation images before writing the project.
+
+4
+00:00:13.049 --> 00:00:16.939
+Read the ignore-region decision. Preserve regions as ignore/crowd; they are not ordinary target objects.
+
+5
+00:00:16.939 --> 00:00:21.560
+The import report records the applied decisions. The original source files are unchanged.

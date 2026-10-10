@@ -1,0 +1,54 @@
+{
+  "chapter": "09-handoff",
+  "recorded": "2026-10-02T11:36:51.794Z",
+  "source": "Actual Granum dashboard with aerial-mini; no mocked metrics or API responses.",
+  "viewport": {
+    "width": 1440,
+    "height": 960
+  },
+  "duration": 23.88,
+  "shots": [
+    "28-verified-excerpt",
+    "29-approved-excerpt",
+    "30-export-options",
+    "31-export-complete"
+  ],
+  "cues": [
+    {
+      "at": 0.7228037879458359,
+      "text": "Create a verified-only excerpt: just the two images actually inspected. This is not approval of the other 118 images."
+    },
+    {
+      "at": 5.892330294716347,
+      "text": "Approval pins those exact annotations and media. It records a review decision; it does not certify model quality or dataset size."
+    },
+    {
+      "at": 11.149565448269758,
+      "text": "Export COCO with Copy them for a portable handoff. Linked images break when the original files are unavailable."
+    },
+    {
+      "at": 16.462807328082132,
+      "text": "Confirm the output folder and the one-image train and valid splits. An export is not a backup of reviews, runs or approval history."
+    }
+  ],
+  "capture_duration": 22.598,
+  "captured_cues": [
+    {
+      "at": 0.684,
+      "text": "Create a verified-only excerpt: just the two images actually inspected. This is not approval of the other 118 images."
+    },
+    {
+      "at": 5.576,
+      "text": "Approval pins those exact annotations and media. It records a review decision; it does not certify model quality or dataset size."
+    },
+    {
+      "at": 10.551,
+      "text": "Export COCO with Copy them for a portable handoff. Linked images break when the original files are unavailable."
+    },
+    {
+      "at": 15.579,
+      "text": "Confirm the output folder and the one-image train and valid splits. An export is not a backup of reviews, runs or approval history."
+    }
+  ],
+  "caption_timing": "Original wall-clock cues scaled to encoded video duration; retained separately for provenance."
+}

@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Download Granum alpha</title>
+  <meta name="description" content="Check qualified Granum alpha downloads for Windows and Linux, with build provenance and checksums.">
+  <meta name="theme-color" content="#ffffff">
+  <meta property="og:title" content="Download Granum">
+  <meta property="og:image" content="/assets/og.jpg">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="/" aria-label="Granum home"><img src="/assets/lockup-ink.svg" alt="Granum" width="128" height="32"></a>
+      <nav class="nav" id="nav" aria-label="Main">
+        <a href="/#tour">Product</a>
+        <a href="/#trial">Alpha access</a>
+        <a href="/#plans">Pilots</a>
+        <a href="/docs">Docs</a>
+        <a href="/#faq">FAQ</a>
+      </nav>
+      <div class="header-actions">
+        <button class="menu-button" type="button" aria-controls="nav" aria-expanded="false" aria-label="Menu">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main" class="download">
+    <div class="wrap download-grid">
+      <div class="download-intro">
+        <h1>Evaluate the Granum alpha.</h1>
+        <p class="lead">The current unrestricted alpha has no enforced expiry or project quota. Email verification is for the download, not in-app activation. Use is subject to written permission; contact us to arrange a pilot.</p>
+        <p class="note" id="release-note" role="status">Checking qualified installer availability. Source changes are not automatically included in older downloads.</p>
+      </div>
+      <div class="download-more">
+        <ol class="side-list">
+          <li><div><h3>Download</h3><p>One installer for Windows, one file for Linux.</p></div></li>
+          <li><div><h3>Verify and install</h3><p>Compare the SHA-256 checksum and source revision with the release manifest. Python is bundled; compatible GPU drivers are your responsibility.</p></div></li>
+          <li><div><h3>Evaluate locally</h3><p>No in-app licence activation is required. Start with a copy of your data; training components are separate optional downloads.</p></div></li>
+        </ol>
+        <div class="system">
+          <div><h4>Windows</h4><p>Windows 10 or 11, 64-bit. Installs for your user; no administrator rights needed.</p></div>
+          <div><h4>Linux</h4><p>x86-64 AppImage. Check the release’s tested distributions and desktop-library requirements.</p></div>
+          <div><h4>For training</h4><p>An NVIDIA GPU is strongly recommended.</p></div>
+          <div><h4>Published build</h4><p data-version>Awaiting qualified release metadata</p></div>
+        </div>
+      </div>
+
+      <div class="card" id="panel">
+        <form class="form" id="download-form" novalidate>
+          <div class="form-head">
+            <h2>Get the download</h2>
+            <p class="sub">We email you a code to confirm your address.</p>
+          </div>
+          <div class="field">
+            <label for="email">Work email</label>
+            <input class="input" id="email" name="email" type="email" autocomplete="email" required placeholder="you@company.com">
+          </div>
+          <div class="field">
+            <label for="name">Name <span class="faint">(optional)</span></label>
+            <input class="input" id="name" name="name" autocomplete="name" maxlength="120">
+          </div>
+          <div class="field">
+            <label for="company">Company <span class="faint">(optional)</span></label>
+            <input class="input" id="company" name="company" autocomplete="organization" maxlength="120">
+          </div>
+          <fieldset class="field">
+            <legend class="field-label">Operating system</legend>
+            <div class="os-choice">
+              <label><input type="radio" name="os" value="windows" checked><span><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3.5" y="3.5" width="7.5" height="7.5" rx="1"/><rect x="13" y="3.5" width="7.5" height="7.5" rx="1"/><rect x="3.5" y="13" width="7.5" height="7.5" rx="1"/><rect x="13" y="13" width="7.5" height="7.5" rx="1"/></svg><span class="os-text">Windows<small>10 and 11, 64-bit</small></span></span></label>
+              <label><input type="radio" name="os" value="linux"><span><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9l3 3-3 3M12.5 15H17"/></svg><span class="os-text">Linux<small>x86-64 AppImage</small></span></span></label>
+            </div>
+          </fieldset>
+          <p class="form-error" id="form-error" role="alert" hidden></p>
+          <button class="btn primary" type="submit" id="submit" disabled>Email me a download code</button>
+          <p class="form-note">We use your email to verify the download and reply to your requests. This does not start a subscription. No newsletters unless you ask. See the <a href="/privacy">privacy notice</a>.</p>
+        </form>
+
+        <form class="form" id="verify-form" novalidate hidden>
+          <div class="form-head">
+            <div class="status-icon mail" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5 12 13l8.5-6.5"/></svg></div>
+            <h2>Check your inbox</h2>
+            <p class="sub">We sent a 6-digit code to <strong id="verify-email"></strong>. It expires in 10 minutes.</p>
+          </div>
+          <div class="field">
+            <label for="code">Download code</label>
+            <input class="input code-input" id="code" name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000">
+          </div>
+          <p class="form-note" id="dev-code" hidden></p>
+          <p class="form-error" id="verify-error" role="alert" hidden></p>
+          <button class="btn primary" type="submit" id="verify-submit">Verify and download</button>
+          <div class="form-links"><button type="button" class="link-button" id="resend">Send a new code</button><button type="button" class="link-button" id="change">Use another email</button></div>
+        </form>
+
+        <div id="done" hidden>
+          <div class="status-icon done" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 10.4l3.2 3.1L15 6.7"/></svg></div>
+          <h2>Your download is ready</h2>
+          <div class="done-files" id="files"></div>
+          <div id="steps"></div>
+          <p class="note">Download verified for <strong id="done-email"></strong>. No in-app activation is required by the unrestricted alpha. Keep the manifest and checksum with your installer.</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <div class="footer-grid">
+        <div>
+          <img src="/assets/lockup-ink.svg" alt="Granum" width="112" height="28">
+          <p>The data workbench for computer-vision teams. Runs on your computer.</p>
+        </div>
+        <div>
+          <h4>Product</h4>
+          <ul><li><a href="/#tour">Product tour</a></li><li><a href="/#plans">Pilots</a></li><li><a href="/docs">Documentation</a></li><li><a href="/#faq">FAQ</a></li></ul>
+        </div>
+        <div>
+          <h4>Get started</h4>
+          <ul><li><a href="/download">Download</a></li><li><a href="/#trial">Alpha access</a></li><li><a href="/docs/start/install">Install guide</a></li></ul>
+        </div>
+        <div>
+          <h4>Company</h4>
+          <ul><li><a href="/privacy">Privacy</a></li><li><a data-contact="Granum" href="/" hidden>Contact</a></li></ul>
+        </div>
+      </div>
+      <div class="footer-base"><span>© <span data-year></span> Granum. All rights reserved.</span></div>
+    </div>
+  </footer>
+  <script src="/site.js" defer></script>
+</body>
+</html>

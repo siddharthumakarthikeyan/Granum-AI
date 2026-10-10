@@ -1,0 +1,460 @@
+{
+  "recorded": "2026-10-02T11:40:08.623Z",
+  "project": "aerial-walkthrough",
+  "sample": "aerial-mini",
+  "actual_training": true,
+  "limits": "One local GPU, one seed, 96 training and 24 validation images; no independent test, no model-quality or significance claim.",
+  "experiment": "Same frozen input versions and nominal recipe, changing epochs from 3 to 12. Practice annotation changes were restored and were NOT training inputs.",
+  "sample_sha256": "2641dcdfbd88fea0bea27b59689f68b3b9a1d1fbd4b3d8c4da1a2c62789efa5d",
+  "runs": {
+    "baseline": {
+      "name": "run-1002-165347",
+      "status": "finished",
+      "created": "2026-10-02T11:26:15.110339+00:00",
+      "parameters": {
+        "model": "yolo26n.pt",
+        "epochs": 3,
+        "batch": 16,
+        "imgsz": 640,
+        "lr0": 0.01,
+        "optimizer": "auto",
+        "seed": 0,
+        "framework": "yolo",
+        "version": "yolo26n.pt",
+        "evaluator": {
+          "scorer": "granum-detection-1",
+          "operating_confidence": 0.25,
+          "match_iou": 0.5,
+          "min_confidence": 0.01
+        },
+        "train_version": "aerial-mini/train",
+        "valid_version": "aerial-mini/valid",
+        "tracks_learning": true,
+        "approval_required": false,
+        "score_labels": "aerial-mini/valid",
+        "score_map50": 0,
+        "score_precision": 0,
+        "score_recall": 0,
+        "score_f1": 0
+      },
+      "last_metrics": {
+        "epoch": 2,
+        "precision": 0.00354,
+        "recall": 0.04204,
+        "map50": 0.00345,
+        "map50_95": 0.00303,
+        "val_box_loss": 2.42033,
+        "val_cls_loss": 4.66986,
+        "val_dfl_loss": 0.00493,
+        "train_box_loss": 2.62676,
+        "train_cls_loss": 4.88082,
+        "train_dfl_loss": 0.0046
+      },
+      "history": [
+        {
+          "epoch": 0,
+          "precision": 0.00326,
+          "recall": 0.03139,
+          "map50": 0.00339,
+          "map50_95": 0.00272,
+          "val_box_loss": 2.4018,
+          "val_cls_loss": 4.70996,
+          "val_dfl_loss": 0.005,
+          "train_box_loss": 2.62886,
+          "train_cls_loss": 4.96054,
+          "train_dfl_loss": 0.00526
+        },
+        {
+          "epoch": 1,
+          "precision": 0.00235,
+          "recall": 0.03131,
+          "map50": 0.00341,
+          "map50_95": 0.00271,
+          "val_box_loss": 2.40278,
+          "val_cls_loss": 4.68417,
+          "val_dfl_loss": 0.00488,
+          "train_box_loss": 2.67473,
+          "train_cls_loss": 4.94297,
+          "train_dfl_loss": 0.00496
+        },
+        {
+          "epoch": 2,
+          "precision": 0.00354,
+          "recall": 0.04204,
+          "map50": 0.00345,
+          "map50_95": 0.00303,
+          "val_box_loss": 2.42033,
+          "val_cls_loss": 4.66986,
+          "val_dfl_loss": 0.00493,
+          "train_box_loss": 2.62676,
+          "train_cls_loss": 4.88082,
+          "train_dfl_loss": 0.0046
+        }
+      ]
+    },
+    "candidate": {
+      "name": "run-1002-170617",
+      "status": "finished",
+      "created": "2026-10-02T11:36:24.560812+00:00",
+      "parameters": {
+        "model": "yolo26n.pt",
+        "epochs": 12,
+        "batch": 16,
+        "imgsz": 640,
+        "lr0": 0.01,
+        "optimizer": "auto",
+        "seed": 0,
+        "framework": "yolo",
+        "version": "yolo26n.pt",
+        "evaluator": {
+          "scorer": "granum-detection-1",
+          "operating_confidence": 0.25,
+          "match_iou": 0.5,
+          "min_confidence": 0.01
+        },
+        "train_version": "aerial-mini/train",
+        "valid_version": "aerial-mini/valid",
+        "tracks_learning": true,
+        "approval_required": false,
+        "compared_with": "run-1002-165347",
+        "score_labels": "aerial-mini/valid",
+        "score_map50": 0.001,
+        "score_precision": 0,
+        "score_recall": 0,
+        "score_f1": 0,
+        "compare_labels": "aerial-mini/valid",
+        "compare_map50_this": 0.001,
+        "compare_map50_earlier": 0,
+        "compare_recall_this": 0,
+        "compare_recall_earlier": 0
+      },
+      "last_metrics": {
+        "epoch": 11,
+        "precision": 0.0114,
+        "recall": 0.07403,
+        "map50": 0.01308,
+        "map50_95": 0.00851,
+        "val_box_loss": 2.42552,
+        "val_cls_loss": 4.32075,
+        "val_dfl_loss": 0.00484,
+        "train_box_loss": 2.38253,
+        "train_cls_loss": 4.21625,
+        "train_dfl_loss": 0.00391
+      },
+      "history": [
+        {
+          "epoch": 0,
+          "precision": 0.00326,
+          "recall": 0.03139,
+          "map50": 0.00339,
+          "map50_95": 0.00272,
+          "val_box_loss": 2.4018,
+          "val_cls_loss": 4.70996,
+          "val_dfl_loss": 0.005,
+          "train_box_loss": 2.62886,
+          "train_cls_loss": 4.96054,
+          "train_dfl_loss": 0.00526
+        },
+        {
+          "epoch": 1,
+          "precision": 0.00236,
+          "recall": 0.03425,
+          "map50": 0.00357,
+          "map50_95": 0.0028,
+          "val_box_loss": 2.41652,
+          "val_cls_loss": 4.67532,
+          "val_dfl_loss": 0.0049,
+          "train_box_loss": 2.66735,
+          "train_cls_loss": 4.93569,
+          "train_dfl_loss": 0.00491
+        },
+        {
+          "epoch": 2,
+          "precision": 0.00321,
+          "recall": 0.03884,
+          "map50": 0.00433,
+          "map50_95": 0.0032,
+          "val_box_loss": 2.4711,
+          "val_cls_loss": 4.63587,
+          "val_dfl_loss": 0.005,
+          "train_box_loss": 2.42518,
+          "train_cls_loss": 4.86032,
+          "train_dfl_loss": 0.00437
+        },
+        {
+          "epoch": 3,
+          "precision": 0.00349,
+          "recall": 0.03873,
+          "map50": 0.00483,
+          "map50_95": 0.00341,
+          "val_box_loss": 2.48872,
+          "val_cls_loss": 4.6192,
+          "val_dfl_loss": 0.00502,
+          "train_box_loss": 2.45903,
+          "train_cls_loss": 4.80159,
+          "train_dfl_loss": 0.00425
+        },
+        {
+          "epoch": 4,
+          "precision": 0.00488,
+          "recall": 0.05185,
+          "map50": 0.00367,
+          "map50_95": 0.00233,
+          "val_box_loss": 2.51843,
+          "val_cls_loss": 4.59918,
+          "val_dfl_loss": 0.00508,
+          "train_box_loss": 2.44123,
+          "train_cls_loss": 4.66375,
+          "train_dfl_loss": 0.00412
+        },
+        {
+          "epoch": 5,
+          "precision": 0.00486,
+          "recall": 0.04801,
+          "map50": 0.00521,
+          "map50_95": 0.00319,
+          "val_box_loss": 2.49509,
+          "val_cls_loss": 4.57598,
+          "val_dfl_loss": 0.00498,
+          "train_box_loss": 2.4383,
+          "train_cls_loss": 4.59836,
+          "train_dfl_loss": 0.00407
+        },
+        {
+          "epoch": 6,
+          "precision": 0.00602,
+          "recall": 0.04978,
+          "map50": 0.00714,
+          "map50_95": 0.00436,
+          "val_box_loss": 2.45229,
+          "val_cls_loss": 4.54427,
+          "val_dfl_loss": 0.00486,
+          "train_box_loss": 2.41955,
+          "train_cls_loss": 4.48404,
+          "train_dfl_loss": 0.00393
+        },
+        {
+          "epoch": 7,
+          "precision": 0.00639,
+          "recall": 0.05089,
+          "map50": 0.00825,
+          "map50_95": 0.00534,
+          "val_box_loss": 2.44279,
+          "val_cls_loss": 4.49956,
+          "val_dfl_loss": 0.00483,
+          "train_box_loss": 2.39917,
+          "train_cls_loss": 4.41432,
+          "train_dfl_loss": 0.00387
+        },
+        {
+          "epoch": 8,
+          "precision": 0.00787,
+          "recall": 0.05671,
+          "map50": 0.0094,
+          "map50_95": 0.00575,
+          "val_box_loss": 2.44664,
+          "val_cls_loss": 4.4441,
+          "val_dfl_loss": 0.00484,
+          "train_box_loss": 2.39082,
+          "train_cls_loss": 4.35078,
+          "train_dfl_loss": 0.00391
+        },
+        {
+          "epoch": 9,
+          "precision": 0.00909,
+          "recall": 0.06192,
+          "map50": 0.01064,
+          "map50_95": 0.0065,
+          "val_box_loss": 2.44155,
+          "val_cls_loss": 4.39393,
+          "val_dfl_loss": 0.00485,
+          "train_box_loss": 2.45253,
+          "train_cls_loss": 4.29944,
+          "train_dfl_loss": 0.00389
+        },
+        {
+          "epoch": 10,
+          "precision": 0.00964,
+          "recall": 0.06458,
+          "map50": 0.01171,
+          "map50_95": 0.00731,
+          "val_box_loss": 2.43192,
+          "val_cls_loss": 4.36234,
+          "val_dfl_loss": 0.00485,
+          "train_box_loss": 2.37543,
+          "train_cls_loss": 4.22934,
+          "train_dfl_loss": 0.00388
+        },
+        {
+          "epoch": 11,
+          "precision": 0.0114,
+          "recall": 0.07403,
+          "map50": 0.01308,
+          "map50_95": 0.00851,
+          "val_box_loss": 2.42552,
+          "val_cls_loss": 4.32075,
+          "val_dfl_loss": 0.00484,
+          "train_box_loss": 2.38253,
+          "train_cls_loss": 4.21625,
+          "train_dfl_loss": 0.00391
+        }
+      ]
+    }
+  },
+  "evaluations": {
+    "baseline": {
+      "headline": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 1710,
+        "labels": 1710,
+        "precision": 0,
+        "recall": 0,
+        "f1": 0,
+        "map50": 0
+      },
+      "images": 24,
+      "classes": {
+        "1": "awning-tricycle",
+        "2": "bicycle",
+        "3": "bus",
+        "4": "car",
+        "5": "ignored regions",
+        "6": "motor",
+        "7": "others",
+        "8": "pedestrian",
+        "9": "people",
+        "10": "tricycle",
+        "11": "truck",
+        "12": "van"
+      },
+      "split": "valid",
+      "set": "aerial-mini/valid"
+    },
+    "candidate": {
+      "headline": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 1710,
+        "labels": 1710,
+        "precision": 0,
+        "recall": 0,
+        "f1": 0,
+        "map50": 0
+      },
+      "images": 24,
+      "classes": {
+        "1": "awning-tricycle",
+        "2": "bicycle",
+        "3": "bus",
+        "4": "car",
+        "5": "ignored regions",
+        "6": "motor",
+        "7": "others",
+        "8": "pedestrian",
+        "9": "people",
+        "10": "tricycle",
+        "11": "truck",
+        "12": "van"
+      },
+      "split": "valid",
+      "set": "aerial-mini/valid"
+    }
+  },
+  "comparison": {
+    "headline": {
+      "metric": "map50",
+      "baseline": 0,
+      "candidate": 0.001,
+      "delta": 0.001,
+      "tolerance": 0.02,
+      "verdict": "too close to call",
+      "scored_on": {
+        "baseline": "aerial-mini/valid",
+        "candidate": "aerial-mini/valid"
+      },
+      "same_labels": true,
+      "source": "each run's own final score, recorded when it finished"
+    },
+    "interpretation": {
+      "kind": "controlled",
+      "blocked": [],
+      "warnings": [
+        "training_recipe",
+        "seeds"
+      ],
+      "summary": "The training settings changed; the data is the same on both sides."
+    },
+    "checks": [
+      {
+        "check": "evaluation_set",
+        "status": "ok",
+        "detail": "both scored on aerial-mini/valid"
+      },
+      {
+        "check": "evaluation_version",
+        "status": "ok",
+        "detail": "the same version of that set, image for image"
+      },
+      {
+        "check": "evaluator",
+        "status": "ok",
+        "detail": "the same scoring rules on both sides"
+      },
+      {
+        "check": "classes",
+        "status": "ok",
+        "detail": "12 classes, the same on both sides"
+      },
+      {
+        "check": "training_recipe",
+        "status": "warn",
+        "detail": "the runs were trained differently (epochs: 3 vs 12), so the difference is not only the data",
+        "fields": [
+          "epochs"
+        ]
+      },
+      {
+        "check": "seeds",
+        "status": "warn",
+        "detail": "one run each, on one seed: a small difference cannot be separated from run-to-run variation"
+      }
+    ],
+    "policy": {
+      "operating_confidence": 0.25,
+      "match_iou": 0.5,
+      "tolerance": 0.02,
+      "min_support": 30,
+      "same_box_iou": 0.9
+    },
+    "counts": {
+      "improved": 0,
+      "regressed": 0,
+      "unchanged": 24,
+      "only_baseline": 0,
+      "only_candidate": 0
+    },
+    "shared": {
+      "baseline": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 1710,
+        "images": 24,
+        "labels": 1710,
+        "precision": 0,
+        "recall": 0,
+        "f1": 0
+      },
+      "candidate": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 1710,
+        "images": 24,
+        "labels": 1710,
+        "precision": 0,
+        "recall": 0,
+        "f1": 0
+      }
+    }
+  }
+}

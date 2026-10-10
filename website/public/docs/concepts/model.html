@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>How Granum is organised · Granum documentation</title>
+  <meta name="description" content="Five ideas — project, dataset, set, version, run — and how they fit together.">
+  <meta name="theme-color" content="#ffffff">
+  <meta property="og:title" content="How Granum is organised · Granum documentation">
+  <meta property="og:description" content="Five ideas — project, dataset, set, version, run — and how they fit together.">
+  <meta property="og:type" content="article">
+  <meta property="og:image" content="/assets/og.jpg">
+  <link rel="canonical" href="https://granum.app/docs/concepts/model">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/docs/docs.css">
+  <script>document.documentElement.classList.remove("no-js");</script>
+</head>
+<body class="doc-body">
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header doc-header">
+    <div class="wrap">
+      <a class="brand" href="/" aria-label="Granum home"><img src="/assets/lockup-ink.svg" alt="Granum" width="128" height="32"></a>
+      <span class="doc-badge"><a href="/docs">Docs</a></span>
+      <nav class="nav" id="nav" aria-label="Main">
+        <a href="/#tour">Product</a>
+        <a href="/#plans">Pilots</a>
+        <a href="/docs/help/faq">FAQ</a>
+      </nav>
+      <div class="header-actions">
+        <button class="doc-search-button" type="button" data-search aria-label="Search documentation">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3 3"/></svg>
+          <span>Search</span><kbd>/</kbd>
+        </button>
+        <a class="btn primary small" href="/download">Download</a>
+        <button class="menu-button" type="button" aria-controls="doc-sidebar" aria-expanded="false" aria-label="Menu" data-sidebar-toggle>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="doc-shell">
+    <div class="doc-sidebar" id="doc-sidebar">
+      <nav class="doc-nav" aria-label="Documentation">
+<a class="doc-nav-home" href="/docs">Start here</a>
+<div class="doc-nav-group"><p class="doc-nav-title">Guided aerial-data course</p><ul>
+<li><a href="/docs/course/start">Start the guided course</a></li>
+<li><a href="/docs/course/setup">1. Prepare the workspace</a></li>
+<li><a href="/docs/course/data">2. Understand the sample</a></li>
+<li><a href="/docs/course/import">3. Import with preflight</a></li>
+<li><a href="/docs/course/explore">4. Explore before changing labels</a></li>
+<li><a href="/docs/course/baseline">5. Freeze an exploratory baseline</a></li>
+<li><a href="/docs/course/review">6. Review, edit and recover</a></li>
+<li><a href="/docs/course/train">7. Train the first model</a></li>
+<li><a href="/docs/course/results">8. Read the model evidence</a></li>
+<li><a href="/docs/course/compare">9. Make a controlled comparison</a></li>
+<li><a href="/docs/course/handoff">10. Approve and export an excerpt</a></li>
+<li><a href="/docs/course/backup">11. Back up, restore and share safely</a></li>
+<li><a href="/docs/course/next">12. Move to your own project</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Getting started</p><ul>
+<li><a href="/docs/start/install">Install Granum</a></li>
+<li><a href="/docs/start/activate">Alpha access and licences</a></li>
+<li><a href="/docs/start/first-project">Your first project</a></li>
+<li><a href="/docs/start/the-loop">Run the loop once</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Concepts</p><ul>
+<li><a href="/docs/concepts/model" class="on" aria-current="page">How Granum is organised</a></li>
+<li><a href="/docs/concepts/projects">Projects and project types</a></li>
+<li><a href="/docs/concepts/versions">Versions and lineage</a></li>
+<li><a href="/docs/concepts/dataset-versions">Dataset versions</a></li>
+<li><a href="/docs/concepts/verification">Verification and decisions</a></li>
+<li><a href="/docs/concepts/identity">Image identity</a></li>
+<li><a href="/docs/concepts/runs">Runs and metrics</a></li>
+<li><a href="/docs/concepts/evidence">What the evidence is worth</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Guides</p><ul>
+<li><a href="/docs/guides/import">Import data</a></li>
+<li><a href="/docs/guides/pull-from-projects">Build from existing projects</a></li>
+<li><a href="/docs/guides/browse">Browse images</a></li>
+<li><a href="/docs/guides/review">Review and verify</a></li>
+<li><a href="/docs/guides/edit">Edit annotations</a></li>
+<li><a href="/docs/guides/isolate-remove">Isolate, remove and restore</a></li>
+<li><a href="/docs/guides/dataset-versions">Create a dataset version</a></li>
+<li><a href="/docs/guides/augmentation">Augmentation</a></li>
+<li><a href="/docs/guides/train">Train a model</a></li>
+<li><a href="/docs/guides/runs">Read a run</a></li>
+<li><a href="/docs/guides/learning">Per-image learning</a></li>
+<li><a href="/docs/guides/findings">Work the Findings queue</a></li>
+<li><a href="/docs/guides/compare">Compare two runs</a></li>
+<li><a href="/docs/guides/projects">Manage projects</a></li>
+<li><a href="/docs/guides/python">Use Granum from Python</a></li>
+<li><a href="/docs/guides/operations">Operate a pilot workspace</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Reference</p><ul>
+<li><a href="/docs/reference/screens">Map of the app</a></li>
+<li><a href="/docs/reference/shortcuts">Keyboard shortcuts</a></li>
+<li><a href="/docs/reference/preflight">Import checks</a></li>
+<li><a href="/docs/reference/models">Models you can train</a></li>
+<li><a href="/docs/reference/files">Files and settings</a></li>
+<li><a href="/docs/reference/limits">Scale and limits</a></li>
+<li><a href="/docs/reference/glossary">Glossary</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Help</p><ul>
+<li><a href="/docs/help/troubleshooting">Troubleshooting</a></li>
+<li><a href="/docs/help/faq">Frequently asked questions</a></li>
+<li><a href="/docs/help/privacy">Your data and privacy</a></li>
+</ul></div>
+</nav>
+    </div>
+    <main class="doc-main" id="main">
+      <article class="doc-article">
+        <nav class="doc-crumb" aria-label="Breadcrumb"><a href="/docs">Documentation</a><span aria-hidden="true">/</span><a href="/docs#concepts">Concepts</a></nav>
+        <h1>How Granum is organised</h1>
+        <p class="doc-summary">Five ideas — project, dataset, set, version, run — and how they fit together.</p>
+        <p>Everything in the app is one of five things. Once these are clear, every screen reads as an obvious
+consequence of them.</p>
+<figure class="doc-figure">
+<svg viewBox="0 0 880 260" role="img" aria-label="A project contains a dataset of sets, each set has versions; dataset versions freeze a choice of versions; runs are trained on a dataset version">
+  <g font-family="Instrument Sans, sans-serif" font-size="12.5">
+    <rect x="12" y="14" width="856" height="232" rx="12" fill="#ffffff" stroke="#c9d1db"/>
+    <text x="30" y="40" fill="#0e1420" font-weight="600" font-size="13">Project “aerial-people”</text>
+
+    <rect x="30" y="56" width="380" height="120" rx="10" fill="#f3f6f9" stroke="#dde3ea"/>
+    <text x="46" y="78" fill="#0e1420" font-weight="600">Dataset “human_aerial”</text>
+    <g font-size="11.5" fill="#4b5566">
+      <rect x="46" y="90" width="110" height="70" rx="8" fill="#ffffff" stroke="#dde3ea"/>
+      <text x="101" y="110" text-anchor="middle" fill="#0e1420" font-weight="600">train</text>
+      <text x="101" y="128" text-anchor="middle">v1 → v2 → v3</text>
+      <text x="101" y="146" text-anchor="middle">11,335 images</text>
+
+      <rect x="166" y="90" width="110" height="70" rx="8" fill="#ffffff" stroke="#dde3ea"/>
+      <text x="221" y="110" text-anchor="middle" fill="#0e1420" font-weight="600">valid</text>
+      <text x="221" y="128" text-anchor="middle">v1 → v2</text>
+      <text x="221" y="146" text-anchor="middle">547 images</text>
+
+      <rect x="286" y="90" width="110" height="70" rx="8" fill="#ffffff" stroke="#dde3ea"/>
+      <text x="341" y="110" text-anchor="middle" fill="#0e1420" font-weight="600">test</text>
+      <text x="341" y="128" text-anchor="middle">v1</text>
+      <text x="341" y="146" text-anchor="middle">320 images</text>
+    </g>
+
+    <rect x="440" y="56" width="180" height="120" rx="10" fill="#f3f6f9" stroke="#dde3ea"/>
+    <text x="456" y="78" fill="#0e1420" font-weight="600">Dataset versions</text>
+    <g font-size="11.5" fill="#4b5566">
+      <text x="456" y="100">v1 — first pass</text>
+      <text x="456" y="120">v2 — after review</text>
+      <text x="456" y="140">v3 — v2 + augmented</text>
+      <text x="456" y="162" fill="#6b7585">frozen, never change</text>
+    </g>
+
+    <rect x="650" y="56" width="196" height="120" rx="10" fill="#f3f6f9" stroke="#dde3ea"/>
+    <text x="666" y="78" fill="#0e1420" font-weight="600">Runs</text>
+    <g font-size="11.5" fill="#4b5566">
+      <text x="666" y="100">baseline — on v1</text>
+      <text x="666" y="120">after-review — on v2</text>
+      <text x="666" y="140">augmented — on v3</text>
+      <text x="666" y="162" fill="#6b7585">scores + per-image results</text>
+    </g>
+
+    <g stroke="#9aa6b5" stroke-width="1.5" fill="none">
+      <path d="M410 116h28"/><path d="M620 116h28"/>
+    </g>
+    <text x="440" y="212" fill="#6b7585" font-size="12">Reviews, comments and findings decisions live beside the dataset, keyed by image, so they survive every new version.</text>
+  </g>
+</svg>
+</figure>
+
+<h2 id="project">Project</h2>
+<p>One body of work. It holds a dataset, everything ever done to it, and every run trained from it. Projects
+are independent: renaming, deleting or copying one never touches another. A project also carries its
+<strong>type</strong> — what its labels are for — which decides what the editor offers and what can be trained.
+→ <a href="/docs/concepts/projects">Projects and project types</a></p>
+<h2 id="dataset-and-sets">Dataset and sets</h2>
+<p>A dataset is the body of images; the <strong>sets</strong> inside it are the usual <code>train</code>, <code>valid</code> and <code>test</code>, plus
+two Granum creates when you need them: <code>isolated</code> for images set aside during review, and <code>removed</code> for
+images taken out.</p>
+<p>Importing train, valid and test together gives you one dataset with three sets — not three datasets. This
+matters: review status, comments and class lists are shared across the whole dataset, so a class you add
+while editing a training image is available on a validation image too.</p>
+<h2 id="version">Version</h2>
+<p>Every change to a set writes a <strong>new version</strong> of that set and leaves the old one exactly as it was.
+Correcting boxes on one image, removing ten images, returning an isolated image — each writes a version.
+Nothing is edited in place, so any number that was ever computed can be traced back to the data it was
+computed on. → <a href="/docs/concepts/versions">Versions and lineage</a></p>
+<h2 id="dataset-version">Dataset version</h2>
+<p>A named, frozen choice of one version of each set: "v2 — after review", made of <code>train</code> v3 and <code>valid</code>
+v2. This is the unit you train on, and the only thing the train dialog offers.</p>
+<p>The distinction is the point of the product. The images in the Images tab are what you are <em>working on</em>;
+a dataset version is what you <em>agreed on</em>. → <a href="/docs/concepts/dataset-versions">Dataset versions</a></p>
+<h2 id="run">Run</h2>
+<p>One training job: its recipe, its score per round, and — when you ask for it — a per-image record of what
+the model predicted in every round. Those per-image records are what turn a disappointing number into a
+list of images to look at. → <a href="/docs/concepts/runs">Runs and metrics</a></p>
+<hr />
+<p>Two more ideas sit underneath, and both are about trust:</p>
+<ul>
+<li><strong>Identity</strong> — a metric must stay attached to the image it was measured on, even after rows are
+  deleted and versions are made. → <a href="/docs/concepts/identity">Image identity</a></li>
+<li><strong>Evidence</strong> — what the model's behaviour can and cannot tell you about your labels.
+  → <a href="/docs/concepts/evidence">What the evidence is worth</a></li>
+</ul>
+        <div class="doc-steps"><a class="doc-step prev" href="/docs/start/the-loop"><span>Previous</span>Run the loop once</a><a class="doc-step next" href="/docs/concepts/projects"><span>Next</span>Projects and project types</a></div>
+      </article>
+      <aside class="doc-toc" aria-label="On this page"><p>On this page</p><ul><li><a href="#project">Project</a></li><li><a href="#dataset-and-sets">Dataset and sets</a></li><li><a href="#version">Version</a></li><li><a href="#dataset-version">Dataset version</a></li><li><a href="#run">Run</a></li></ul></aside>
+    </main>
+  </div>
+
+  <footer class="doc-footer">
+    <div class="wrap">
+    <p>© Granum. Local-first data workflows.</p>
+      <p><a href="/">Product</a><a href="/download">Download</a><a href="/privacy">Privacy</a><a href="/docs/help/troubleshooting">Support</a></p>
+    </div>
+  </footer>
+
+  <div class="doc-search" data-search-panel hidden>
+    <div class="doc-search-box" role="dialog" aria-modal="true" aria-label="Search documentation">
+    <input type="search" aria-label="Search documentation" aria-controls="doc-search-results" placeholder="Search the documentation" autocomplete="off" spellcheck="false" data-search-input>
+    <ul id="doc-search-results" aria-label="Search results" aria-live="polite" data-search-results></ul>
+      <p class="doc-search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move · <kbd>Enter</kbd> to open · <kbd>Esc</kbd> to close</p>
+    </div>
+  </div>
+
+  <script src="/docs/docs.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Discuss a Granum pilot</title>
+  <meta name="description" content="Discuss a supervised Granum alpha pilot, deployment requirements and manually agreed support.">
+  <meta name="theme-color" content="#ffffff">
+  <meta property="og:title" content="Granum pricing and quotes">
+  <meta property="og:image" content="/assets/og.jpg">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="/" aria-label="Granum home"><img src="/assets/lockup-ink.svg" alt="Granum" width="128" height="32"></a>
+      <nav class="nav" id="nav" aria-label="Main">
+        <a href="/#tour">Product</a>
+        <a href="/#trial">Alpha access</a>
+        <a href="/#plans">Pilots</a>
+        <a href="/docs">Docs</a>
+        <a href="/#faq">FAQ</a>
+      </nav>
+      <div class="header-actions">
+        <a class="btn primary small" href="/download">Download</a>
+        <button class="menu-button" type="button" aria-controls="nav" aria-expanded="false" aria-label="Menu">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main" class="download">
+    <div class="wrap download-grid">
+      <div class="download-intro">
+        <h1 id="quote-title">Discuss your deployment requirements.</h1>
+        <p class="lead" id="quote-lead">Tell us about your team and workflow. This is a non-binding request, not a purchase or a promise of enterprise capabilities.</p>
+      </div>
+      <div class="download-more">
+        <div class="plan-summary" data-for="Enterprise">
+          <h3>Deployment discovery</h3>
+          <ul class="ticks"><li>Assess storage, workload and security needs</li><li>One shared workspace, not multi-tenant hosting</li><li>Identify missing capabilities before commitment</li><li>Agree acceptance criteria and any fees in writing</li></ul>
+        </div>
+        <div class="plan-summary" data-for="Single" hidden>
+          <h3>Individual pilot</h3>
+          <ul class="ticks"><li>A defined local evaluation workflow</li><li>Written usage permission</li><li>Support and any fees by agreement</li></ul>
+        </div>
+        <div class="plan-summary" data-for="Team" hidden>
+          <h3>Team pilot</h3>
+          <ul class="ticks"><li>A supervised evaluation on your dataset</li><li>Measured workflow and resource requirements</li><li>Shared-access scope discussed explicitly</li><li>Support and any fees by agreement</li></ul>
+        </div>
+        <div class="system">
+          <div><h4>How a pilot starts</h4><p>We discuss scope, permission, support and any fees directly. This form does not charge you or activate a subscription. Automated checkout is not available.</p></div>
+          <div><h4>Current build</h4><p>The unrestricted alpha has no enforced expiry or project quota. <a href="/download">Check qualified downloads</a>.</p></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <form class="form" id="quote-form" novalidate>
+          <div class="form-head">
+            <h2 id="quote-form-title">Request a quote</h2>
+            <p class="sub">All fields except the message are required.</p>
+          </div>
+          <div class="field">
+            <label for="q-plan">Pilot type</label>
+            <select class="input" id="q-plan" name="plan">
+              <option value="Single">Individual pilot</option>
+              <option value="Team">Team pilot</option>
+              <option value="Enterprise" selected>Deployment discovery</option>
+            </select>
+          </div>
+          <div class="field-row">
+            <div class="field" id="q-billing-field">
+              <label for="q-billing">Billing preference (non-binding)</label>
+              <select class="input" id="q-billing" name="billing">
+                <option value="yearly" selected>Yearly</option>
+                <option value="monthly">Monthly</option>
+              </select>
+            </div>
+            <div class="field" id="q-computers-field">
+              <label for="q-computers">Computers</label>
+              <input class="input" id="q-computers" name="computers" type="number" inputmode="numeric" min="1" max="100000" value="10">
+            </div>
+          </div>
+          <div class="field">
+            <label for="q-email">Work email</label>
+            <input class="input" id="q-email" name="email" type="email" autocomplete="email" required placeholder="you@company.com">
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="q-name">Name</label>
+              <input class="input" id="q-name" name="name" autocomplete="name" maxlength="120" required>
+            </div>
+            <div class="field">
+              <label for="q-company">Company</label>
+              <input class="input" id="q-company" name="company" autocomplete="organization" maxlength="160" required>
+            </div>
+          </div>
+          <div class="field">
+            <label for="q-message">Message <span class="faint">(optional)</span></label>
+            <textarea class="input textarea" id="q-message" name="message" rows="4" maxlength="3800" placeholder="What you work on, billing needs, questions"></textarea>
+          </div>
+          <div class="trap" aria-hidden="true"><label for="q-website">Website</label><input id="q-website" name="website" tabindex="-1" autocomplete="off"></div>
+          <p class="form-error" id="quote-error" role="alert" hidden></p>
+          <button class="btn primary" type="submit" id="quote-submit">Send request</button>
+          <p class="form-note">We use these details only to reply to you. See the <a href="/privacy">privacy notice</a>.</p>
+        </form>
+
+        <div id="quote-done" hidden>
+          <div class="status-icon done" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 10.4l3.2 3.1L15 6.7"/></svg></div>
+          <h2>Request sent</h2>
+          <p class="sub">Your request has been recorded for a reply to <strong id="quote-done-email"></strong>. No payment or subscription has been started.</p>
+          <p class="note">While you wait, read the <a href="/docs/reference/limits">current scope and limits</a>.</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <div class="footer-grid">
+        <div>
+          <img src="/assets/lockup-ink.svg" alt="Granum" width="112" height="28">
+          <p>The data workbench for computer-vision teams. Runs on your computer.</p>
+        </div>
+        <div>
+          <h4>Product</h4>
+          <ul><li><a href="/#tour">Product tour</a></li><li><a href="/#plans">Pilots</a></li><li><a href="/docs">Documentation</a></li><li><a href="/#faq">FAQ</a></li></ul>
+        </div>
+        <div>
+          <h4>Get started</h4>
+          <ul><li><a href="/download">Download</a></li><li><a href="/#trial">Alpha access</a></li><li><a href="/docs/start/install">Install guide</a></li></ul>
+        </div>
+        <div>
+          <h4>Company</h4>
+          <ul><li><a href="/privacy">Privacy</a></li><li><a data-contact="Granum" href="/" hidden>Contact</a></li></ul>
+        </div>
+      </div>
+      <div class="footer-base"><span>© <span data-year></span> Granum. All rights reserved.</span></div>
+    </div>
+  </footer>
+  <script src="/site.js" defer></script>
+</body>
+</html>

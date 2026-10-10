@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Browse images · Granum documentation</title>
+  <meta name="description" content="Filters, ordering, annotations, and the full-screen viewer with per-class isolation.">
+  <meta name="theme-color" content="#ffffff">
+  <meta property="og:title" content="Browse images · Granum documentation">
+  <meta property="og:description" content="Filters, ordering, annotations, and the full-screen viewer with per-class isolation.">
+  <meta property="og:type" content="article">
+  <meta property="og:image" content="/assets/og.jpg">
+  <link rel="canonical" href="https://granum.app/docs/guides/browse">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/docs/docs.css">
+  <script>document.documentElement.classList.remove("no-js");</script>
+</head>
+<body class="doc-body">
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header doc-header">
+    <div class="wrap">
+      <a class="brand" href="/" aria-label="Granum home"><img src="/assets/lockup-ink.svg" alt="Granum" width="128" height="32"></a>
+      <span class="doc-badge"><a href="/docs">Docs</a></span>
+      <nav class="nav" id="nav" aria-label="Main">
+        <a href="/#tour">Product</a>
+        <a href="/#plans">Pilots</a>
+        <a href="/docs/help/faq">FAQ</a>
+      </nav>
+      <div class="header-actions">
+        <button class="doc-search-button" type="button" data-search aria-label="Search documentation">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3 3"/></svg>
+          <span>Search</span><kbd>/</kbd>
+        </button>
+        <a class="btn primary small" href="/download">Download</a>
+        <button class="menu-button" type="button" aria-controls="doc-sidebar" aria-expanded="false" aria-label="Menu" data-sidebar-toggle>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="doc-shell">
+    <div class="doc-sidebar" id="doc-sidebar">
+      <nav class="doc-nav" aria-label="Documentation">
+<a class="doc-nav-home" href="/docs">Start here</a>
+<div class="doc-nav-group"><p class="doc-nav-title">Guided aerial-data course</p><ul>
+<li><a href="/docs/course/start">Start the guided course</a></li>
+<li><a href="/docs/course/setup">1. Prepare the workspace</a></li>
+<li><a href="/docs/course/data">2. Understand the sample</a></li>
+<li><a href="/docs/course/import">3. Import with preflight</a></li>
+<li><a href="/docs/course/explore">4. Explore before changing labels</a></li>
+<li><a href="/docs/course/baseline">5. Freeze an exploratory baseline</a></li>
+<li><a href="/docs/course/review">6. Review, edit and recover</a></li>
+<li><a href="/docs/course/train">7. Train the first model</a></li>
+<li><a href="/docs/course/results">8. Read the model evidence</a></li>
+<li><a href="/docs/course/compare">9. Make a controlled comparison</a></li>
+<li><a href="/docs/course/handoff">10. Approve and export an excerpt</a></li>
+<li><a href="/docs/course/backup">11. Back up, restore and share safely</a></li>
+<li><a href="/docs/course/next">12. Move to your own project</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Getting started</p><ul>
+<li><a href="/docs/start/install">Install Granum</a></li>
+<li><a href="/docs/start/activate">Alpha access and licences</a></li>
+<li><a href="/docs/start/first-project">Your first project</a></li>
+<li><a href="/docs/start/the-loop">Run the loop once</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Concepts</p><ul>
+<li><a href="/docs/concepts/model">How Granum is organised</a></li>
+<li><a href="/docs/concepts/projects">Projects and project types</a></li>
+<li><a href="/docs/concepts/versions">Versions and lineage</a></li>
+<li><a href="/docs/concepts/dataset-versions">Dataset versions</a></li>
+<li><a href="/docs/concepts/verification">Verification and decisions</a></li>
+<li><a href="/docs/concepts/identity">Image identity</a></li>
+<li><a href="/docs/concepts/runs">Runs and metrics</a></li>
+<li><a href="/docs/concepts/evidence">What the evidence is worth</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Guides</p><ul>
+<li><a href="/docs/guides/import">Import data</a></li>
+<li><a href="/docs/guides/pull-from-projects">Build from existing projects</a></li>
+<li><a href="/docs/guides/browse" class="on" aria-current="page">Browse images</a></li>
+<li><a href="/docs/guides/review">Review and verify</a></li>
+<li><a href="/docs/guides/edit">Edit annotations</a></li>
+<li><a href="/docs/guides/isolate-remove">Isolate, remove and restore</a></li>
+<li><a href="/docs/guides/dataset-versions">Create a dataset version</a></li>
+<li><a href="/docs/guides/augmentation">Augmentation</a></li>
+<li><a href="/docs/guides/train">Train a model</a></li>
+<li><a href="/docs/guides/runs">Read a run</a></li>
+<li><a href="/docs/guides/learning">Per-image learning</a></li>
+<li><a href="/docs/guides/findings">Work the Findings queue</a></li>
+<li><a href="/docs/guides/compare">Compare two runs</a></li>
+<li><a href="/docs/guides/projects">Manage projects</a></li>
+<li><a href="/docs/guides/python">Use Granum from Python</a></li>
+<li><a href="/docs/guides/operations">Operate a pilot workspace</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Reference</p><ul>
+<li><a href="/docs/reference/screens">Map of the app</a></li>
+<li><a href="/docs/reference/shortcuts">Keyboard shortcuts</a></li>
+<li><a href="/docs/reference/preflight">Import checks</a></li>
+<li><a href="/docs/reference/models">Models you can train</a></li>
+<li><a href="/docs/reference/files">Files and settings</a></li>
+<li><a href="/docs/reference/limits">Scale and limits</a></li>
+<li><a href="/docs/reference/glossary">Glossary</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Help</p><ul>
+<li><a href="/docs/help/troubleshooting">Troubleshooting</a></li>
+<li><a href="/docs/help/faq">Frequently asked questions</a></li>
+<li><a href="/docs/help/privacy">Your data and privacy</a></li>
+</ul></div>
+</nav>
+    </div>
+    <main class="doc-main" id="main">
+      <article class="doc-article">
+        <nav class="doc-crumb" aria-label="Breadcrumb"><a href="/docs">Documentation</a><span aria-hidden="true">/</span><a href="/docs#guides">Guides</a></nav>
+        <h1>Browse images</h1>
+        <p class="doc-summary">Filters, ordering, annotations, and the full-screen viewer with per-class isolation.</p>
+        <p><strong>Images</strong> is where a dataset is actually looked at. It opens on the dataset's images with their
+annotations, and nothing you do here writes anything — filtering, sorting and opening images are free.</p>
+<h2 id="the-ribbon">The ribbon</h2>
+<table>
+<thead>
+<tr>
+<th>Control</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Split chips</strong></td>
+<td><code>train</code>, <code>valid</code>, <code>test</code>, plus <code>isolated</code> when images are set aside. Click to switch</td>
+</tr>
+<tr>
+<td><strong>Classes</strong></td>
+<td>Show only images containing the classes you tick</td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td>All, Verified, Unverified. A corner dot marks rework or comments</td>
+</tr>
+<tr>
+<td><strong>Order by</strong></td>
+<td>Filename, last updated or date added, ascending or descending</td>
+</tr>
+<tr>
+<td><strong>Annotations</strong></td>
+<td>Draw the boxes on the cards, or hide them to judge the images themselves</td>
+</tr>
+<tr>
+<td><strong>See in list</strong></td>
+<td>Swap the grid for a table: file, split, objects, classes, status, updated</td>
+</tr>
+<tr>
+<td><strong>Review</strong>, <strong>Edit</strong></td>
+<td>The two other modes of this screen</td>
+</tr>
+<tr>
+<td><strong>Create dataset</strong></td>
+<td>Freeze what you see into a <a href="/docs/guides/dataset-versions">dataset version</a></td>
+</tr>
+<tr>
+<td><strong>Removed</strong></td>
+<td>The images taken out of this dataset, and the way back</td>
+</tr>
+</tbody>
+</table>
+<p>Filtering and ordering happen in the browser over one payload, so they are instant even on tens of
+thousands of images. Box geometry is far bigger, so it is fetched a screenful at a time as you scroll —
+which is why boxes appear a moment after the images on a fast scroll.</p>
+<h2 id="reading-a-grid-quickly">Reading a grid quickly</h2>
+<p>The card shows the image, its boxes coloured per class, the number of labelled objects, and small marks
+for its state: a tick for verified, a dot for rework or a comment thread, a tag for images that came from
+another set.</p>
+<p>Three habits find most problems in a few minutes:</p>
+<ol>
+<li><strong>Sort by object count</strong> (in list view) and look at both ends. Images with 400 boxes and images with
+   zero are where conventions break.</li>
+<li><strong>Filter to one class</strong> and scroll. Inconsistent labelling of a single class is obvious in a grid and
+   invisible one image at a time.</li>
+<li><strong>Turn annotations off, then on.</strong> Off, you see what the images are. On, you see what someone claimed
+   about them.</li>
+</ol>
+<h2 id="the-full-screen-viewer">The full-screen viewer</h2>
+<p>Click any card. The image fills the screen, with its labels drawn on it.</p>
+<ul>
+<li><strong>Classes used in this image</strong> are listed beside it. Click one and everything else darkens: only that
+  class's boxes stay lit. This is the fastest way to check whether a class is labelled consistently.</li>
+<li><strong>Instances</strong> lists every object; clicking one lights that box alone.</li>
+<li><kbd>←</kbd> <kbd>→</kbd> move to the next image, <kbd>Esc</kbd> closes.</li>
+<li><kbd>C</kbd> adds a comment. Commenting sets the image back to unverified, because a comment means
+  something needs another look.</li>
+<li><strong>Edit</strong> opens the same image in the <a href="/docs/guides/edit">editor</a>.</li>
+</ul>
+<p>There is no Verify button here on purpose: verifying is a review action, and review is its own mode with
+a reviewer name, progress and bulk decisions. → <a href="/docs/guides/review">Review and verify</a></p>
+        <div class="doc-steps"><a class="doc-step prev" href="/docs/guides/pull-from-projects"><span>Previous</span>Build from existing projects</a><a class="doc-step next" href="/docs/guides/review"><span>Next</span>Review and verify</a></div>
+      </article>
+      <aside class="doc-toc" aria-label="On this page"><p>On this page</p><ul><li><a href="#the-ribbon">The ribbon</a></li><li><a href="#reading-a-grid-quickly">Reading a grid quickly</a></li><li><a href="#the-full-screen-viewer">The full-screen viewer</a></li></ul></aside>
+    </main>
+  </div>
+
+  <footer class="doc-footer">
+    <div class="wrap">
+    <p>© Granum. Local-first data workflows.</p>
+      <p><a href="/">Product</a><a href="/download">Download</a><a href="/privacy">Privacy</a><a href="/docs/help/troubleshooting">Support</a></p>
+    </div>
+  </footer>
+
+  <div class="doc-search" data-search-panel hidden>
+    <div class="doc-search-box" role="dialog" aria-modal="true" aria-label="Search documentation">
+    <input type="search" aria-label="Search documentation" aria-controls="doc-search-results" placeholder="Search the documentation" autocomplete="off" spellcheck="false" data-search-input>
+    <ul id="doc-search-results" aria-label="Search results" aria-live="polite" data-search-results></ul>
+      <p class="doc-search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move · <kbd>Enter</kbd> to open · <kbd>Esc</kbd> to close</p>
+    </div>
+  </div>
+
+  <script src="/docs/docs.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+{
+  "recorded_date": "2026-10-02",
+  "scope": "Isolated Linux course workspace; service stopped and both training jobs finished before snapshot.",
+  "source_project": "aerial-walkthrough",
+  "restored_project": "aerial-restored",
+  "original_integrity": {"ok": true, "checked": 120, "changed": [], "missing": []},
+  "backup": {
+    "files": 205,
+    "media": 122,
+    "bytes": 37825567,
+    "sha256": "38463fc706798e22a849133abe608d10894e66ae0e9ec70879db787b2adb467b",
+    "note": "The backup's media count includes the two recorded model-weight files, not two additional dataset images. The project backup itself is not distributed as the course download."
+  },
+  "restore": {"files": 205, "verified": true, "separate_workspace": true},
+  "restored_integrity": {"ok": true, "checked": 120, "changed": [], "missing": []},
+  "original_restored_hashes_and_sizes_match": true,
+  "all_restored_image_references_inside_rehearsal_root": true,
+  "browser_checks": ["restored project opens", "images load", "exploratory baseline retained", "two-image approved excerpt retained"],
+  "coco_export_check": {
+    "train": {"images": 1, "objects": 1},
+    "valid": {"images": 1, "objects": 4},
+    "image_root": "The images subdirectory beside each split's annotations.json; file_name is relative to that image root.",
+    "independent_copies": true,
+    "source_image_hashes_match": true
+  },
+  "limits": "No power-loss, cloud-storage, Windows or clean-machine installer qualification is implied. Archives are not encrypted. The offline commands are documented; the video shows the actual restored UI, not a recording of those commands."
+}

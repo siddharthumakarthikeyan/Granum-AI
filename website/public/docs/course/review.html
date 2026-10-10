@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>6. Review, edit and recover · Granum documentation</title>
+  <meta name="description" content="Inspect two real images, practise recovery without leaving a false label, and separate annotation saves from human review decisions.">
+  <meta name="theme-color" content="#ffffff">
+  <meta property="og:title" content="6. Review, edit and recover · Granum documentation">
+  <meta property="og:description" content="Inspect two real images, practise recovery without leaving a false label, and separate annotation saves from human review decisions.">
+  <meta property="og:type" content="article">
+  <meta property="og:image" content="/assets/og.jpg">
+  <link rel="canonical" href="https://granum.app/docs/course/review">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/docs/docs.css">
+  <script>document.documentElement.classList.remove("no-js");</script>
+</head>
+<body class="doc-body">
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header doc-header">
+    <div class="wrap">
+      <a class="brand" href="/" aria-label="Granum home"><img src="/assets/lockup-ink.svg" alt="Granum" width="128" height="32"></a>
+      <span class="doc-badge"><a href="/docs">Docs</a></span>
+      <nav class="nav" id="nav" aria-label="Main">
+        <a href="/#tour">Product</a>
+        <a href="/#plans">Pilots</a>
+        <a href="/docs/help/faq">FAQ</a>
+      </nav>
+      <div class="header-actions">
+        <button class="doc-search-button" type="button" data-search aria-label="Search documentation">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3 3"/></svg>
+          <span>Search</span><kbd>/</kbd>
+        </button>
+        <a class="btn primary small" href="/download">Download</a>
+        <button class="menu-button" type="button" aria-controls="doc-sidebar" aria-expanded="false" aria-label="Menu" data-sidebar-toggle>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="doc-shell">
+    <div class="doc-sidebar" id="doc-sidebar">
+      <nav class="doc-nav" aria-label="Documentation">
+<a class="doc-nav-home" href="/docs">Start here</a>
+<div class="doc-nav-group"><p class="doc-nav-title">Guided aerial-data course</p><ul>
+<li><a href="/docs/course/start">Start the guided course</a></li>
+<li><a href="/docs/course/setup">1. Prepare the workspace</a></li>
+<li><a href="/docs/course/data">2. Understand the sample</a></li>
+<li><a href="/docs/course/import">3. Import with preflight</a></li>
+<li><a href="/docs/course/explore">4. Explore before changing labels</a></li>
+<li><a href="/docs/course/baseline">5. Freeze an exploratory baseline</a></li>
+<li><a href="/docs/course/review" class="on" aria-current="page">6. Review, edit and recover</a></li>
+<li><a href="/docs/course/train">7. Train the first model</a></li>
+<li><a href="/docs/course/results">8. Read the model evidence</a></li>
+<li><a href="/docs/course/compare">9. Make a controlled comparison</a></li>
+<li><a href="/docs/course/handoff">10. Approve and export an excerpt</a></li>
+<li><a href="/docs/course/backup">11. Back up, restore and share safely</a></li>
+<li><a href="/docs/course/next">12. Move to your own project</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Getting started</p><ul>
+<li><a href="/docs/start/install">Install Granum</a></li>
+<li><a href="/docs/start/activate">Alpha access and licences</a></li>
+<li><a href="/docs/start/first-project">Your first project</a></li>
+<li><a href="/docs/start/the-loop">Run the loop once</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Concepts</p><ul>
+<li><a href="/docs/concepts/model">How Granum is organised</a></li>
+<li><a href="/docs/concepts/projects">Projects and project types</a></li>
+<li><a href="/docs/concepts/versions">Versions and lineage</a></li>
+<li><a href="/docs/concepts/dataset-versions">Dataset versions</a></li>
+<li><a href="/docs/concepts/verification">Verification and decisions</a></li>
+<li><a href="/docs/concepts/identity">Image identity</a></li>
+<li><a href="/docs/concepts/runs">Runs and metrics</a></li>
+<li><a href="/docs/concepts/evidence">What the evidence is worth</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Guides</p><ul>
+<li><a href="/docs/guides/import">Import data</a></li>
+<li><a href="/docs/guides/pull-from-projects">Build from existing projects</a></li>
+<li><a href="/docs/guides/browse">Browse images</a></li>
+<li><a href="/docs/guides/review">Review and verify</a></li>
+<li><a href="/docs/guides/edit">Edit annotations</a></li>
+<li><a href="/docs/guides/isolate-remove">Isolate, remove and restore</a></li>
+<li><a href="/docs/guides/dataset-versions">Create a dataset version</a></li>
+<li><a href="/docs/guides/augmentation">Augmentation</a></li>
+<li><a href="/docs/guides/train">Train a model</a></li>
+<li><a href="/docs/guides/runs">Read a run</a></li>
+<li><a href="/docs/guides/learning">Per-image learning</a></li>
+<li><a href="/docs/guides/findings">Work the Findings queue</a></li>
+<li><a href="/docs/guides/compare">Compare two runs</a></li>
+<li><a href="/docs/guides/projects">Manage projects</a></li>
+<li><a href="/docs/guides/python">Use Granum from Python</a></li>
+<li><a href="/docs/guides/operations">Operate a pilot workspace</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Reference</p><ul>
+<li><a href="/docs/reference/screens">Map of the app</a></li>
+<li><a href="/docs/reference/shortcuts">Keyboard shortcuts</a></li>
+<li><a href="/docs/reference/preflight">Import checks</a></li>
+<li><a href="/docs/reference/models">Models you can train</a></li>
+<li><a href="/docs/reference/files">Files and settings</a></li>
+<li><a href="/docs/reference/limits">Scale and limits</a></li>
+<li><a href="/docs/reference/glossary">Glossary</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Help</p><ul>
+<li><a href="/docs/help/troubleshooting">Troubleshooting</a></li>
+<li><a href="/docs/help/faq">Frequently asked questions</a></li>
+<li><a href="/docs/help/privacy">Your data and privacy</a></li>
+</ul></div>
+</nav>
+    </div>
+    <main class="doc-main" id="main">
+      <article class="doc-article">
+        <nav class="doc-crumb" aria-label="Breadcrumb"><a href="/docs">Documentation</a><span aria-hidden="true">/</span><a href="/docs#course">Guided aerial-data course</a></nav>
+        <h1>6. Review, edit and recover</h1>
+        <p class="doc-summary">Inspect two real images, practise recovery without leaving a false label, and separate annotation saves from human review decisions.</p>
+        <p><strong>Goal:</strong> learn the editor and its recovery boundary, then verify only two images you actually inspect.
+The <a href="/docs/course/baseline">120-image baseline</a> must already be frozen. This lesson does not claim a
+label-quality improvement: the demonstrated practice change is deliberately restored before saving.</p>
+<h2 id="what-review-is-and-why-it-is-separate-from-saving">What review is, and why it is separate from saving</h2>
+<p>An <strong>annotation save</strong> writes a table revision. A <strong>review decision</strong> records a person's judgement
+about the image's contents. Saving a box does not prove it was inspected. Verification requires looking
+at the full image, checking classes, geometry, missing objects and the applicable labelling policy.</p>
+<p>Changing annotations resets the affected image to unverified. Comments explain a decision but do not
+change a box. In local mode the <strong>Reviewer</strong> name is self-reported; it is not authenticated identity.</p>
+<h2 id="step-1-locate-the-first-image">Step 1: locate the first image</h2>
+<ol>
+<li>Open <strong>Images → aerial-mini</strong>, select <strong>train</strong>, and clear previous class/status filters.</li>
+<li>Open <strong>Fields</strong>. Under <strong>Image id</strong>, set both numeric range endpoints to <strong>11155</strong>. There should be
+   one image. Close Fields if you need more space.</li>
+<li>Its file name starts <strong>0000099_00149</strong>. Turn on <strong>Edit</strong> and open it.</li>
+<li>Inspect the complete 960 × 540 image, not only the box crop. It contains one visible pedestrian.</li>
+<li>Select the existing box. In the recorded inspection its pedestrian class and visible bounds were
+   retained; there was no need to invent a correction.</li>
+</ol>
+<p>Image IDs are scoped to an imported split; do not assume ID 11155 means the same image in another
+project. The file-name prefix and screenshot provide a second check.</p>
+<figure class="doc-figure">
+<a href="/assets/course/11-annotation-editor.webp"><img src="/assets/course/11-annotation-editor.webp" alt="Actual annotation editor shows the one pedestrian in training image 11155 with its existing bounding box selected." width="1440" height="960" loading="lazy"></a>
+<figcaption>Inspect the whole image for missing objects as well as the selected rectangle. The source pedestrian label is retained in this exercise.</figcaption>
+</figure>
+
+<h2 id="step-2-practise-draft-recovery-safely">Step 2: practise draft recovery safely</h2>
+<p>Do this in a browser tab connected to your course service. Keep the same browser profile and service
+origin throughout; the desktop window may have a different storage profile.</p>
+<ol>
+<li>With the object selected, temporarily change <strong>Class of the selected object</strong> from <strong>pedestrian</strong>
+   to <strong>people</strong>. This is an intentionally wrong <strong>practice draft</strong>, not a proposed label correction.</li>
+<li>Do <strong>not</strong> save and do <strong>not</strong> close the editor: leaving an image can save pending changes.</li>
+<li>Wait for <strong>Recovery copy saved in this browser</strong>. If storage reports an error, stop this exercise
+   and restore the original class; do not assume a recovery copy exists.</li>
+<li>Reload the browser tab. Confirm leaving if the browser asks. On reopening, read
+   <strong>Recover unsaved annotations</strong>.</li>
+<li>Choose <strong>Recover edits</strong>. The temporary people label should return as a draft.</li>
+<li>Immediately restore <strong>pedestrian</strong>. Check that the geometry and all other properties still match
+   the original. Do not leave the deliberate practice label in the dataset.</li>
+<li>Move focus out of the class select (for example, press Escape), then press <strong>Ctrl+S</strong>.</li>
+<li>Wait for save confirmation before navigating. Reopen the image to verify the original class persisted.</li>
+</ol>
+<figure class="doc-figure">
+<a href="/assets/course/12-recover-annotations.webp"><img src="/assets/course/12-recover-annotations.webp" alt="Real Recover unsaved annotations dialog offers recovery of the browser's pending image edits after reload." width="1440" height="960" loading="lazy"></a>
+<figcaption>Recovery restores a local draft. It does not mean the draft was committed to the project.</figcaption>
+</figure>
+<figure class="doc-figure">
+<a href="/assets/course/13-saved-annotation.webp"><img src="/assets/course/13-saved-annotation.webp" alt="Editor after the original pedestrian class is restored and saved, with the original box retained." width="1440" height="960" loading="lazy"></a>
+<figcaption>The recorded workflow checked the stored boxes against the original and found them equal. Version suffixes can differ if an exercise is repeated.</figcaption>
+</figure>
+
+<div class="admonition warning">
+<p class="admonition-title">A draft is not a backup</p>
+<p>Recovery uses IndexedDB in this browser profile. Clearing site data, changing origin/profile,
+private browsing, quota failures or a crash before storage acknowledges the write can lose edits.
+A different base revision prevents automatic replay. Export the draft and reconcile it against
+the latest version; do not repeatedly force a stale save.</p>
+</div>
+<p>If you do not want to practise a temporary relabel, skip that part and inspect the screenshots.
+Never create a bad annotation merely so a demonstration can show “improvement.”</p>
+<h2 id="step-3-record-a-review-decision">Step 3: record a review decision</h2>
+<ol>
+<li>Exit Edit after the confirmed save, then enable <strong>Review</strong>.</li>
+<li>Enter your name in <strong>Reviewer</strong>. Shared authenticated mode uses the account identity instead.</li>
+<li>Open the same image. In the comment field, record what you inspected. The course used:
+   “Inspected full image: one visible pedestrian. Practice relabel restored; no source-label correction claimed.”</li>
+<li>Choose <strong>Comment</strong> to post it. Posting and verifying are separate actions.</li>
+<li>Choose <strong>Verify (A)</strong> only if you agree with the inspection. It normally advances to the next image
+   when one is available. Return with <strong>Previous image</strong> to check the <strong>Verified</strong> state if needed.</li>
+</ol>
+<figure class="doc-figure">
+<a href="/assets/course/13a-review-verified.webp"><img src="/assets/course/13a-review-verified.webp" alt="Review inspector shows the actually inspected pedestrian image as Verified with the explanatory comment." width="1440" height="960" loading="lazy"></a>
+<figcaption>Verification is tied to inspected contents. It is not a button for silencing a training or release warning.</figcaption>
+</figure>
+
+<h2 id="step-4-inspect-one-validation-image">Step 4: inspect one validation image</h2>
+<p>Close the inspector. Clear the Image id filter, select <strong>valid</strong>, then set both Image id endpoints to
+<strong>292</strong>. The file name begins <strong>0000103_01734</strong>. Open it in Review.</p>
+<p>The recorded full-image inspection retained <strong>three car boxes and one pedestrian box</strong>, including
+visible objects cut by image edges. Inspect them yourself: a truncated object is not automatically
+an invalid annotation. If your labelling policy is unclear, use Rework rather than copying the course's
+decision. The course comment was: “Inspected full image: three cars and one pedestrian. Retain the
+visible edge-truncated objects.” Post the comment and verify only if that decision is justified.</p>
+<h2 id="when-not-to-verify">When not to verify</h2>
+<table>
+<thead>
+<tr>
+<th>Action</th>
+<th>Use it when</th>
+<th>What to record</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Rework (R)</td>
+<td>A fix or policy clarification is needed</td>
+<td>A concrete reason; “bad image” is not an actionable instruction</td>
+</tr>
+<tr>
+<td>Unverify (U)</td>
+<td>A previous review decision should no longer stand</td>
+<td>Why the previous decision needs another look</td>
+</tr>
+<tr>
+<td>Isolate (I)</td>
+<td>An unresolved example must be set aside explicitly</td>
+<td>Why it is excluded and who will decide its return</td>
+</tr>
+<tr>
+<td>Recoverable delete</td>
+<td>Removal is justified under the dataset policy</td>
+<td>Reason and review trail; inspect the removed set before permanent deletion</td>
+</tr>
+</tbody>
+</table>
+<p>Do not isolate hard validation images merely to improve a score. That changes the evaluation question.
+Do not use bulk verification on images you have not inspected.</p>
+<h2 id="watch-recovery-and-review">Watch recovery and review</h2>
+<figure class="doc-figure doc-video">
+<video controls preload="none" playsinline poster="/assets/course/12-recover-annotations.webp" aria-label="Recorded editor recovery, restoration of the original label and individual verification" aria-describedby="review-video-caption">
+<source src="/assets/course/03-review.mp4" type="video/mp4"><track kind="captions" src="/assets/course/03-review.vtt" srclang="en" label="English" default>
+<a href="/assets/course/03-review.mp4">Download the recording</a>.
+</video><figcaption id="review-video-caption">30 seconds · silent, with captions · practice change restored before save.</figcaption>
+</figure>
+<details class="doc-transcript"><summary>Read the video transcript</summary>
+<ol><li>The pedestrian already has a reasonable box; do not manufacture a correction.</li><li>Temporarily relabel it as people only for unsaved-draft practice.</li><li>Reload offers the browser's draft; nothing is thereby committed.</li><li>Recover it, restore pedestrian, then save. This demonstrates recovery and versioning, not label improvement.</li><li>Record what was inspected and verify only that image.</li><li>Separately inspect and record the second image's review.</li></ol>
+</details>
+
+<h2 id="what-we-learn">What we learn</h2>
+<p>Draft persistence, server save and human verification are three separate checkpoints. A model's poor
+score cannot justify changing a source label without looking. An honest “no correction needed” is a
+valid outcome of review.</p>
+<h2 id="checkpoint">Checkpoint</h2>
+<p>Clear filters. In the recorded fresh course project <strong>2 images are verified and 118 are not</strong>. The
+working annotation for the practice image equals the source annotation. The frozen aerial-baseline
+still points to the original input versions. Next: <a href="/docs/course/train">train the baseline</a>, or read
+the recorded evidence if you are following the no-GPU route.</p>
+<h2 id="if-something-differs">If something differs</h2>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>What to do</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>No recovery offer</td>
+<td>Check acknowledged draft storage, same profile/origin, and whether leaving the image already saved it</td>
+</tr>
+<tr>
+<td>Save shortcut does nothing</td>
+<td>Move focus out of an input/select; check for an in-progress save or unresolved comment</td>
+</tr>
+<tr>
+<td>Conflict / stale revision</td>
+<td>Keep or export the draft, open the latest image and reconcile intentionally</td>
+</tr>
+<tr>
+<td>Verify appears to show another image</td>
+<td>It advances; return to the inspected image to check the saved review state</td>
+</tr>
+<tr>
+<td>Review count exceeds two</td>
+<td>An earlier exercise already left decisions; inspect them rather than claiming this run reviewed them</td>
+</tr>
+</tbody>
+</table>
+<p>More: <a href="/docs/guides/edit">Edit annotations</a> and <a href="/docs/guides/review">Review</a>.</p>
+        <div class="doc-steps"><a class="doc-step prev" href="/docs/course/baseline"><span>Previous</span>5. Freeze an exploratory baseline</a><a class="doc-step next" href="/docs/course/train"><span>Next</span>7. Train the first model</a></div>
+      </article>
+      <aside class="doc-toc" aria-label="On this page"><p>On this page</p><ul><li><a href="#what-review-is-and-why-it-is-separate-from-saving">What review is, and why it is separate from saving</a></li><li><a href="#step-1-locate-the-first-image">Step 1: locate the first image</a></li><li><a href="#step-2-practise-draft-recovery-safely">Step 2: practise draft recovery safely</a></li><li><a href="#step-3-record-a-review-decision">Step 3: record a review decision</a></li><li><a href="#step-4-inspect-one-validation-image">Step 4: inspect one validation image</a></li><li><a href="#when-not-to-verify">When not to verify</a></li><li><a href="#watch-recovery-and-review">Watch recovery and review</a></li><li><a href="#what-we-learn">What we learn</a></li><li><a href="#checkpoint">Checkpoint</a></li><li><a href="#if-something-differs">If something differs</a></li></ul></aside>
+    </main>
+  </div>
+
+  <footer class="doc-footer">
+    <div class="wrap">
+    <p>© Granum. Local-first data workflows.</p>
+      <p><a href="/">Product</a><a href="/download">Download</a><a href="/privacy">Privacy</a><a href="/docs/help/troubleshooting">Support</a></p>
+    </div>
+  </footer>
+
+  <div class="doc-search" data-search-panel hidden>
+    <div class="doc-search-box" role="dialog" aria-modal="true" aria-label="Search documentation">
+    <input type="search" aria-label="Search documentation" aria-controls="doc-search-results" placeholder="Search the documentation" autocomplete="off" spellcheck="false" data-search-input>
+    <ul id="doc-search-results" aria-label="Search results" aria-live="polite" data-search-results></ul>
+      <p class="doc-search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move · <kbd>Enter</kbd> to open · <kbd>Esc</kbd> to close</p>
+    </div>
+  </div>
+
+  <script src="/docs/docs.js" defer></script>
+</body>
+</html>

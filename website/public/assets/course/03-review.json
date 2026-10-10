@@ -1,0 +1,70 @@
+{
+  "chapter": "03-review",
+  "recorded": "2026-10-02T11:34:09.598Z",
+  "source": "Actual Granum dashboard with aerial-mini; no mocked metrics or API responses.",
+  "viewport": {
+    "width": 1440,
+    "height": 960
+  },
+  "duration": 29.44,
+  "shots": [
+    "11-annotation-editor",
+    "12-recover-annotations",
+    "13-saved-annotation",
+    "13a-review-verified"
+  ],
+  "cues": [
+    {
+      "at": 0.7108610077781535,
+      "text": "Inspect the full image: the one pedestrian already has a reasonable box. Do not manufacture a correction."
+    },
+    {
+      "at": 4.974035847142375,
+      "text": "Practice only: temporarily relabel this object as people. Do not save this deliberate practice change."
+    },
+    {
+      "at": 9.147606357795063,
+      "text": "Reload offers the draft from this browser profile. Recovery does not mean anything was committed to the dataset."
+    },
+    {
+      "at": 13.608906323977005,
+      "text": "Restore the original pedestrian class before saving. This teaches recovery and versioning, not a claimed label-quality improvement."
+    },
+    {
+      "at": 18.44455326344268,
+      "text": "Record what you inspected, then Verify only this image. Saving annotations and verifying their correctness are separate actions."
+    },
+    {
+      "at": 23.5440351707812,
+      "text": "Record what you inspected, then Verify only this image. Saving annotations and verifying their correctness are separate actions."
+    }
+  ],
+  "capture_duration": 29.57,
+  "captured_cues": [
+    {
+      "at": 0.714,
+      "text": "Inspect the full image: the one pedestrian already has a reasonable box. Do not manufacture a correction."
+    },
+    {
+      "at": 4.996,
+      "text": "Practice only: temporarily relabel this object as people. Do not save this deliberate practice change."
+    },
+    {
+      "at": 9.188,
+      "text": "Reload offers the draft from this browser profile. Recovery does not mean anything was committed to the dataset."
+    },
+    {
+      "at": 13.669,
+      "text": "Restore the original pedestrian class before saving. This teaches recovery and versioning, not a claimed label-quality improvement."
+    },
+    {
+      "at": 18.526,
+      "text": "Record what you inspected, then Verify only this image. Saving annotations and verifying their correctness are separate actions."
+    },
+    {
+      "at": 23.648,
+      "text": "Record what you inspected, then Verify only this image. Saving annotations and verifying their correctness are separate actions."
+    }
+  ],
+  "caption_timing": "Original wall-clock cues scaled to encoded video duration; retained separately for provenance."
+}

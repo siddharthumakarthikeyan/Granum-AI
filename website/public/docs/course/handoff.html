@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>10. Approve and export an excerpt · Granum documentation</title>
+  <meta name="description" content="Approve exactly the two inspected images and export a portable COCO copy, without calling the remaining sample reviewed or the model ready.">
+  <meta name="theme-color" content="#ffffff">
+  <meta property="og:title" content="10. Approve and export an excerpt · Granum documentation">
+  <meta property="og:description" content="Approve exactly the two inspected images and export a portable COCO copy, without calling the remaining sample reviewed or the model ready.">
+  <meta property="og:type" content="article">
+  <meta property="og:image" content="/assets/og.jpg">
+  <link rel="canonical" href="https://granum.app/docs/course/handoff">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/docs/docs.css">
+  <script>document.documentElement.classList.remove("no-js");</script>
+</head>
+<body class="doc-body">
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header doc-header">
+    <div class="wrap">
+      <a class="brand" href="/" aria-label="Granum home"><img src="/assets/lockup-ink.svg" alt="Granum" width="128" height="32"></a>
+      <span class="doc-badge"><a href="/docs">Docs</a></span>
+      <nav class="nav" id="nav" aria-label="Main">
+        <a href="/#tour">Product</a>
+        <a href="/#plans">Pilots</a>
+        <a href="/docs/help/faq">FAQ</a>
+      </nav>
+      <div class="header-actions">
+        <button class="doc-search-button" type="button" data-search aria-label="Search documentation">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3 3"/></svg>
+          <span>Search</span><kbd>/</kbd>
+        </button>
+        <a class="btn primary small" href="/download">Download</a>
+        <button class="menu-button" type="button" aria-controls="doc-sidebar" aria-expanded="false" aria-label="Menu" data-sidebar-toggle>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="doc-shell">
+    <div class="doc-sidebar" id="doc-sidebar">
+      <nav class="doc-nav" aria-label="Documentation">
+<a class="doc-nav-home" href="/docs">Start here</a>
+<div class="doc-nav-group"><p class="doc-nav-title">Guided aerial-data course</p><ul>
+<li><a href="/docs/course/start">Start the guided course</a></li>
+<li><a href="/docs/course/setup">1. Prepare the workspace</a></li>
+<li><a href="/docs/course/data">2. Understand the sample</a></li>
+<li><a href="/docs/course/import">3. Import with preflight</a></li>
+<li><a href="/docs/course/explore">4. Explore before changing labels</a></li>
+<li><a href="/docs/course/baseline">5. Freeze an exploratory baseline</a></li>
+<li><a href="/docs/course/review">6. Review, edit and recover</a></li>
+<li><a href="/docs/course/train">7. Train the first model</a></li>
+<li><a href="/docs/course/results">8. Read the model evidence</a></li>
+<li><a href="/docs/course/compare">9. Make a controlled comparison</a></li>
+<li><a href="/docs/course/handoff" class="on" aria-current="page">10. Approve and export an excerpt</a></li>
+<li><a href="/docs/course/backup">11. Back up, restore and share safely</a></li>
+<li><a href="/docs/course/next">12. Move to your own project</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Getting started</p><ul>
+<li><a href="/docs/start/install">Install Granum</a></li>
+<li><a href="/docs/start/activate">Alpha access and licences</a></li>
+<li><a href="/docs/start/first-project">Your first project</a></li>
+<li><a href="/docs/start/the-loop">Run the loop once</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Concepts</p><ul>
+<li><a href="/docs/concepts/model">How Granum is organised</a></li>
+<li><a href="/docs/concepts/projects">Projects and project types</a></li>
+<li><a href="/docs/concepts/versions">Versions and lineage</a></li>
+<li><a href="/docs/concepts/dataset-versions">Dataset versions</a></li>
+<li><a href="/docs/concepts/verification">Verification and decisions</a></li>
+<li><a href="/docs/concepts/identity">Image identity</a></li>
+<li><a href="/docs/concepts/runs">Runs and metrics</a></li>
+<li><a href="/docs/concepts/evidence">What the evidence is worth</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Guides</p><ul>
+<li><a href="/docs/guides/import">Import data</a></li>
+<li><a href="/docs/guides/pull-from-projects">Build from existing projects</a></li>
+<li><a href="/docs/guides/browse">Browse images</a></li>
+<li><a href="/docs/guides/review">Review and verify</a></li>
+<li><a href="/docs/guides/edit">Edit annotations</a></li>
+<li><a href="/docs/guides/isolate-remove">Isolate, remove and restore</a></li>
+<li><a href="/docs/guides/dataset-versions">Create a dataset version</a></li>
+<li><a href="/docs/guides/augmentation">Augmentation</a></li>
+<li><a href="/docs/guides/train">Train a model</a></li>
+<li><a href="/docs/guides/runs">Read a run</a></li>
+<li><a href="/docs/guides/learning">Per-image learning</a></li>
+<li><a href="/docs/guides/findings">Work the Findings queue</a></li>
+<li><a href="/docs/guides/compare">Compare two runs</a></li>
+<li><a href="/docs/guides/projects">Manage projects</a></li>
+<li><a href="/docs/guides/python">Use Granum from Python</a></li>
+<li><a href="/docs/guides/operations">Operate a pilot workspace</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Reference</p><ul>
+<li><a href="/docs/reference/screens">Map of the app</a></li>
+<li><a href="/docs/reference/shortcuts">Keyboard shortcuts</a></li>
+<li><a href="/docs/reference/preflight">Import checks</a></li>
+<li><a href="/docs/reference/models">Models you can train</a></li>
+<li><a href="/docs/reference/files">Files and settings</a></li>
+<li><a href="/docs/reference/limits">Scale and limits</a></li>
+<li><a href="/docs/reference/glossary">Glossary</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Help</p><ul>
+<li><a href="/docs/help/troubleshooting">Troubleshooting</a></li>
+<li><a href="/docs/help/faq">Frequently asked questions</a></li>
+<li><a href="/docs/help/privacy">Your data and privacy</a></li>
+</ul></div>
+</nav>
+    </div>
+    <main class="doc-main" id="main">
+      <article class="doc-article">
+        <nav class="doc-crumb" aria-label="Breadcrumb"><a href="/docs">Documentation</a><span aria-hidden="true">/</span><a href="/docs#course">Guided aerial-data course</a></nav>
+        <h1>10. Approve and export an excerpt</h1>
+        <p class="doc-summary">Approve exactly the two inspected images and export a portable COCO copy, without calling the remaining sample reviewed or the model ready.</p>
+        <p><strong>Goal:</strong> make an explicit, limited handoff. You need the two individual reviews from
+<a href="/docs/course/review">Review, edit and recover</a>. Training is not a prerequisite for approving those
+contents, and a good training score would not replace their review.</p>
+<h2 id="what-we-are-approving-and-why">What we are approving, and why</h2>
+<p>The full course sample contains 120 images, but only <strong>two</strong> were individually inspected in the
+demonstration. We will approve a named <strong>two-image excerpt</strong>, not aerial-baseline and not the whole
+working collection. It is too small for meaningful training or evaluation.</p>
+<p>Approval binds a review decision to exact included rows, schema and media hashes. It records what
+passed the gate. It does not certify objective label truth, complete dataset coverage, sufficient
+sample size or model readiness. Filesystem owners remain trusted; this is not a signed legal attestation.</p>
+<h2 id="step-1-create-the-verified-only-excerpt">Step 1: create the verified-only excerpt</h2>
+<ol>
+<li>Return to <strong>Images → aerial-mini</strong>. Clear all filters and inspect the review count.</li>
+<li>For a fresh course run, expect <strong>2 verified</strong> images: one train and one valid. If the count differs,
+   inspect the decisions before continuing.</li>
+<li>Choose <strong>Create dataset</strong>.</li>
+<li>Name it <strong>aerial-reviewed-excerpt</strong>.</li>
+<li>Describe the scope explicitly: “Two inspected images only: one train / one valid. Approval/export
+   demonstration, NOT a sufficient training or evaluation dataset.”</li>
+<li>Choose <strong>Use only verified</strong>. Keep the existing split membership and add no version augmentation.</li>
+<li>Check <strong>2 included images</strong>, then <strong>Create dataset</strong>.</li>
+</ol>
+<figure class="doc-figure">
+<a href="/assets/course/28-verified-excerpt.webp"><img src="/assets/course/28-verified-excerpt.webp" alt="Create exploratory dataset version dialog selects only the two verified images and names the limited aerial-reviewed-excerpt." width="1440" height="960" loading="lazy"></a>
+<figcaption>Verified-only selects contents. The newly created excerpt is still exploratory until approval is explicitly performed.</figcaption>
+</figure>
+
+<h2 id="step-2-approve-those-exact-contents">Step 2: approve those exact contents</h2>
+<p>Open <strong>Datasets</strong>, select <strong>aerial-reviewed-excerpt</strong>, then <strong>Approve… → Check and approve</strong>. The gate
+checks that every included image has matching current review evidence and readable, unchanged media.
+For the recorded two-image excerpt it passed and the badge became <strong>Approved</strong>.</p>
+<figure class="doc-figure">
+<a href="/assets/course/29-approved-excerpt.webp"><img src="/assets/course/29-approved-excerpt.webp" alt="Actual Datasets page shows aerial-reviewed-excerpt approved while the full aerial-baseline remains exploratory." width="1440" height="960" loading="lazy"></a>
+<figcaption>Only the two-image excerpt is approved. The other 118 images have not acquired review evidence by association.</figcaption>
+</figure>
+
+<p>If approval is refused, read the exact reason. Later edits, stale review evidence, changed/missing media,
+empty sets or duplicate image references can invalidate the requested approval. Fix the actual problem
+and re-review if necessary; do not edit the approval log to make the badge appear.</p>
+<h2 id="step-3-choose-a-portable-export">Step 3: choose a portable export</h2>
+<p>Choose <strong>Export</strong> on the approved excerpt. Keep <strong>COCO</strong> as the format. For <strong>Image files</strong>, choose
+<strong>Copy them</strong>, then <strong>Write 2 images</strong>. Wait for <strong>Written</strong>, and note the output directory.</p>
+<figure class="doc-figure">
+<a href="/assets/course/30-export-options.webp"><img src="/assets/course/30-export-options.webp" alt="Export aerial-reviewed-excerpt dialog selects COCO and Copy them for a two-image portable export." width="1440" height="960" loading="lazy"></a>
+<figcaption>Copy them is intentional: recipients should not depend on your original image locations.</figcaption>
+</figure>
+
+<table>
+<thead>
+<tr>
+<th>Image-files option</th>
+<th>Meaning</th>
+<th>Handoff consequence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Link to them</td>
+<td>References source image locations</td>
+<td>Can break when moved to another machine or after source deletion</td>
+</tr>
+<tr>
+<td>Copy them</td>
+<td>Writes separate image copies with exported labels</td>
+<td>The straightforward portable choice for this lesson</td>
+</tr>
+<tr>
+<td>Hard link them</td>
+<td>Shares local file content through filesystem hard links where supported</td>
+<td>Not an independent backup; filesystem constraints apply</td>
+</tr>
+<tr>
+<td>Labels only</td>
+<td>Omits image copies</td>
+<td>Recipient must already have the exact corresponding media</td>
+</tr>
+</tbody>
+</table>
+<p>Export writes to the service machine's project export directory. It is not automatically a browser ZIP
+download, and in shared mode the service's filesystem is not necessarily your laptop's filesystem.</p>
+<figure class="doc-figure">
+<a href="/assets/course/31-export-complete.webp"><img src="/assets/course/31-export-complete.webp" alt="Actual export completion dialog reports Written and the output directory for the one-image train and valid splits." width="1440" height="960" loading="lazy"></a>
+<figcaption>Read the destination and inspect its contents before sending anything to a recipient.</figcaption>
+</figure>
+
+<h2 id="step-4-inspect-the-delivery-not-just-the-success-message">Step 4: inspect the delivery, not just the success message</h2>
+<ol>
+<li>Open the output directory on the service machine.</li>
+<li>Confirm one image in train and one in valid, with their COCO annotation files. The recorded export
+    retained five objects: one in train and four in valid.</li>
+<li>Open both images and check that exported image references resolve within the copied delivery.
+    The actual layout has an annotation file and a separate image folder <strong>inside each split</strong>:</li>
+</ol>
+<pre><code class="language-text">export-directory/
+   train/
+      annotations.json
+      images/           one copied image
+   valid/
+      annotations.json
+      images/           one copied image
+</code></pre>
+<p>For a COCO reader, use the split's <strong>images directory as its image root</strong>. The JSON's <code>file_name</code> is
+relative to that image root, not necessarily to the annotation file's parent. The recorded export's
+two files were checked as independent copies with hashes matching the originals.</p>
+<p>Continue the handoff checks:</p>
+<ol start="4">
+<li>Inspect the labels and class mapping with the recipient's intended reader. COCO and YOLO use
+   different coordinates/class conventions; file extensions alone do not establish compatibility.</li>
+<li>Include the source attribution and a handoff note naming the excerpt, approval scope, format,
+   image-copy mode and limitations. Preserve the original full dataset separately.</li>
+</ol>
+<p>Do not call this two-image package a useful evaluation holdout. A format round trip proves that
+records can be read; it does not prove label quality or model performance.</p>
+<h2 id="watch-approval-and-export">Watch approval and export</h2>
+<figure class="doc-figure doc-video">
+<video controls preload="none" playsinline poster="/assets/course/29-approved-excerpt.webp" aria-label="Recorded verified-only excerpt approval and portable COCO export" aria-describedby="handoff-video-caption">
+<source src="/assets/course/09-handoff.mp4" type="video/mp4"><track kind="captions" src="/assets/course/09-handoff.vtt" srclang="en" label="English" default>
+<a href="/assets/course/09-handoff.mp4">Download the recording</a>.
+</video><figcaption id="handoff-video-caption">24 seconds · silent, with captions · two inspected images only.</figcaption>
+</figure>
+<details class="doc-transcript"><summary>Read the video transcript</summary>
+<ol><li>Create a verified-only excerpt from the two inspected images, not the other 118.</li><li>Approval pins exact annotations and media, recording a review decision rather than certifying model quality.</li><li>Export COCO with Copy them for portability; links depend on original paths.</li><li>Confirm the destination and the one-image train and valid splits. Export is not a project-history backup.</li></ol>
+</details>
+
+<h2 id="what-we-learn">What we learn</h2>
+<p>Selection, approval and export are separate operations. A COCO handoff contains data for another tool;
+it is <strong>not a complete backup of Granum reviews, runs, lineage and approval history</strong>. Protect those
+records with the project-backup workflow next.</p>
+<h2 id="checkpoint">Checkpoint</h2>
+<p>The full baseline remains exploratory; aerial-reviewed-excerpt is approved; the copied COCO output
+contains exactly the two intended images. Your handoff note does not claim a production model or a
+fully reviewed 120-image sample. Next: <a href="/docs/course/backup">back up and rehearse a restore</a>.</p>
+<h2 id="if-something-differs">If something differs</h2>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>What to do</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>More than two images selected</td>
+<td>Cancel and inspect which images are verified; do not approve an unexplained selection</td>
+</tr>
+<tr>
+<td>Approval fails after editing</td>
+<td>Inspect the latest contents, re-review them and create/select the intended version</td>
+</tr>
+<tr>
+<td>Export images fail on another machine</td>
+<td>Check whether you exported links instead of copies, and whether all files travelled together</td>
+</tr>
+<tr>
+<td>Output folder is not on your computer</td>
+<td>Export runs on the service host; arrange an authorized transfer from that host</td>
+</tr>
+<tr>
+<td>Recipient's labels look wrong</td>
+<td>Check class IDs, coordinate conventions, ignore semantics and image dimensions before use</td>
+</tr>
+</tbody>
+</table>
+        <div class="doc-steps"><a class="doc-step prev" href="/docs/course/compare"><span>Previous</span>9. Make a controlled comparison</a><a class="doc-step next" href="/docs/course/backup"><span>Next</span>11. Back up, restore and share safely</a></div>
+      </article>
+      <aside class="doc-toc" aria-label="On this page"><p>On this page</p><ul><li><a href="#what-we-are-approving-and-why">What we are approving, and why</a></li><li><a href="#step-1-create-the-verified-only-excerpt">Step 1: create the verified-only excerpt</a></li><li><a href="#step-2-approve-those-exact-contents">Step 2: approve those exact contents</a></li><li><a href="#step-3-choose-a-portable-export">Step 3: choose a portable export</a></li><li><a href="#step-4-inspect-the-delivery-not-just-the-success-message">Step 4: inspect the delivery, not just the success message</a></li><li><a href="#watch-approval-and-export">Watch approval and export</a></li><li><a href="#what-we-learn">What we learn</a></li><li><a href="#checkpoint">Checkpoint</a></li><li><a href="#if-something-differs">If something differs</a></li></ul></aside>
+    </main>
+  </div>
+
+  <footer class="doc-footer">
+    <div class="wrap">
+    <p>© Granum. Local-first data workflows.</p>
+      <p><a href="/">Product</a><a href="/download">Download</a><a href="/privacy">Privacy</a><a href="/docs/help/troubleshooting">Support</a></p>
+    </div>
+  </footer>
+
+  <div class="doc-search" data-search-panel hidden>
+    <div class="doc-search-box" role="dialog" aria-modal="true" aria-label="Search documentation">
+    <input type="search" aria-label="Search documentation" aria-controls="doc-search-results" placeholder="Search the documentation" autocomplete="off" spellcheck="false" data-search-input>
+    <ul id="doc-search-results" aria-label="Search results" aria-live="polite" data-search-results></ul>
+      <p class="doc-search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move · <kbd>Enter</kbd> to open · <kbd>Esc</kbd> to close</p>
+    </div>
+  </div>
+
+  <script src="/docs/docs.js" defer></script>
+</body>
+</html>

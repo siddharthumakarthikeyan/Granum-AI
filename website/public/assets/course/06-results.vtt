@@ -1,0 +1,25 @@
+WEBVTT
+
+1
+00:00:00.177 --> 00:00:05.197
+Read the finished run, its recipe and exact input versions. Our three-epoch exercise produced poor scores; that is the observed result.
+
+2
+00:00:05.197 --> 00:00:09.940
+The run workspace joins per-image measurements back to the input images. Historical rows describe the recorded input version.
+
+3
+00:00:09.940 --> 00:00:14.815
+Sample dynamics reads F1 across epochs. Not learned after three epochs does not mean this image should be deleted.
+
+4
+00:00:14.815 --> 00:00:18.998
+Evaluation separates missed labels, invented predictions and class confusion. Read the chosen split and confidence threshold first.
+
+5
+00:00:18.998 --> 00:00:23.447
+Open the underlying objects, not just a score. Solid boxes are labels; dashed boxes are model predictions.
+
+6
+00:00:23.447 --> 00:00:30.280
+Findings requires useful model evidence. A weak run or an empty queue is not proof that the labels are correct.

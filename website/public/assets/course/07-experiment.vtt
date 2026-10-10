@@ -1,0 +1,9 @@
+WEBVTT
+
+1
+00:00:00.376 --> 00:00:07.292
+Change one planned variable: 12 epochs instead of 3, on the same frozen dataset. This is a schedule experiment, not evidence that label edits helped.
+
+2
+00:00:07.292 --> 00:00:14.880
+The earlier model will be rescored on the same validation labels. Comparing numbers from different label versions would confound the result.

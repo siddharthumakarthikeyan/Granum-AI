@@ -1,0 +1,63 @@
+{
+  "chapter": "02-browse",
+  "recorded": "2026-10-02T11:23:26.351Z",
+  "source": "Actual Granum dashboard with aerial-mini; no mocked metrics or API responses.",
+  "viewport": {
+    "width": 1440,
+    "height": 960
+  },
+  "duration": 19.8,
+  "shots": [
+    "06-overview",
+    "07-images",
+    "08-image-statistics",
+    "09-patches",
+    "10-health"
+  ],
+  "cues": [
+    {
+      "at": 0.11902268760907504,
+      "text": "The project overview connects working data, dataset versions and model runs."
+    },
+    {
+      "at": 3.3143979057591624,
+      "text": "Images is the working collection. Filtering changes the view, not membership in a dataset version."
+    },
+    {
+      "at": 6.8217277486911,
+      "text": "Open Stats to inspect class imbalance and object sizes before choosing a training recipe."
+    },
+    {
+      "at": 10.23499127399651,
+      "text": "Patches shows individual labelled objects. Use it to compare label consistency; inspect the full image before changing a label."
+    },
+    {
+      "at": 14.633071553228621,
+      "text": "Health flags measurable dataset risks. A clean report is not proof that every label is correct."
+    }
+  ],
+  "capture_duration": 20.628,
+  "captured_cues": [
+    {
+      "at": 0.124,
+      "text": "The project overview connects working data, dataset versions and model runs."
+    },
+    {
+      "at": 3.453,
+      "text": "Images is the working collection. Filtering changes the view, not membership in a dataset version."
+    },
+    {
+      "at": 7.107,
+      "text": "Open Stats to inspect class imbalance and object sizes before choosing a training recipe."
+    },
+    {
+      "at": 10.663,
+      "text": "Patches shows individual labelled objects. Use it to compare label consistency; inspect the full image before changing a label."
+    },
+    {
+      "at": 15.245,
+      "text": "Health flags measurable dataset risks. A clean report is not proof that every label is correct."
+    }
+  ],
+  "caption_timing": "Original wall-clock cues scaled to encoded video duration; retained separately for provenance."
+}

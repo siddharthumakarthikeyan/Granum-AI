@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Work the Findings queue · Granum documentation</title>
+  <meta name="description" content="A ranked list of labels worth checking, the evidence for each, and a decision you record.">
+  <meta name="theme-color" content="#ffffff">
+  <meta property="og:title" content="Work the Findings queue · Granum documentation">
+  <meta property="og:description" content="A ranked list of labels worth checking, the evidence for each, and a decision you record.">
+  <meta property="og:type" content="article">
+  <meta property="og:image" content="/assets/og.jpg">
+  <link rel="canonical" href="https://granum.app/docs/guides/findings">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/docs/docs.css">
+  <script>document.documentElement.classList.remove("no-js");</script>
+</head>
+<body class="doc-body">
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header doc-header">
+    <div class="wrap">
+      <a class="brand" href="/" aria-label="Granum home"><img src="/assets/lockup-ink.svg" alt="Granum" width="128" height="32"></a>
+      <span class="doc-badge"><a href="/docs">Docs</a></span>
+      <nav class="nav" id="nav" aria-label="Main">
+        <a href="/#tour">Product</a>
+        <a href="/#plans">Pilots</a>
+        <a href="/docs/help/faq">FAQ</a>
+      </nav>
+      <div class="header-actions">
+        <button class="doc-search-button" type="button" data-search aria-label="Search documentation">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3 3"/></svg>
+          <span>Search</span><kbd>/</kbd>
+        </button>
+        <a class="btn primary small" href="/download">Download</a>
+        <button class="menu-button" type="button" aria-controls="doc-sidebar" aria-expanded="false" aria-label="Menu" data-sidebar-toggle>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="doc-shell">
+    <div class="doc-sidebar" id="doc-sidebar">
+      <nav class="doc-nav" aria-label="Documentation">
+<a class="doc-nav-home" href="/docs">Start here</a>
+<div class="doc-nav-group"><p class="doc-nav-title">Guided aerial-data course</p><ul>
+<li><a href="/docs/course/start">Start the guided course</a></li>
+<li><a href="/docs/course/setup">1. Prepare the workspace</a></li>
+<li><a href="/docs/course/data">2. Understand the sample</a></li>
+<li><a href="/docs/course/import">3. Import with preflight</a></li>
+<li><a href="/docs/course/explore">4. Explore before changing labels</a></li>
+<li><a href="/docs/course/baseline">5. Freeze an exploratory baseline</a></li>
+<li><a href="/docs/course/review">6. Review, edit and recover</a></li>
+<li><a href="/docs/course/train">7. Train the first model</a></li>
+<li><a href="/docs/course/results">8. Read the model evidence</a></li>
+<li><a href="/docs/course/compare">9. Make a controlled comparison</a></li>
+<li><a href="/docs/course/handoff">10. Approve and export an excerpt</a></li>
+<li><a href="/docs/course/backup">11. Back up, restore and share safely</a></li>
+<li><a href="/docs/course/next">12. Move to your own project</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Getting started</p><ul>
+<li><a href="/docs/start/install">Install Granum</a></li>
+<li><a href="/docs/start/activate">Alpha access and licences</a></li>
+<li><a href="/docs/start/first-project">Your first project</a></li>
+<li><a href="/docs/start/the-loop">Run the loop once</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Concepts</p><ul>
+<li><a href="/docs/concepts/model">How Granum is organised</a></li>
+<li><a href="/docs/concepts/projects">Projects and project types</a></li>
+<li><a href="/docs/concepts/versions">Versions and lineage</a></li>
+<li><a href="/docs/concepts/dataset-versions">Dataset versions</a></li>
+<li><a href="/docs/concepts/verification">Verification and decisions</a></li>
+<li><a href="/docs/concepts/identity">Image identity</a></li>
+<li><a href="/docs/concepts/runs">Runs and metrics</a></li>
+<li><a href="/docs/concepts/evidence">What the evidence is worth</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Guides</p><ul>
+<li><a href="/docs/guides/import">Import data</a></li>
+<li><a href="/docs/guides/pull-from-projects">Build from existing projects</a></li>
+<li><a href="/docs/guides/browse">Browse images</a></li>
+<li><a href="/docs/guides/review">Review and verify</a></li>
+<li><a href="/docs/guides/edit">Edit annotations</a></li>
+<li><a href="/docs/guides/isolate-remove">Isolate, remove and restore</a></li>
+<li><a href="/docs/guides/dataset-versions">Create a dataset version</a></li>
+<li><a href="/docs/guides/augmentation">Augmentation</a></li>
+<li><a href="/docs/guides/train">Train a model</a></li>
+<li><a href="/docs/guides/runs">Read a run</a></li>
+<li><a href="/docs/guides/learning">Per-image learning</a></li>
+<li><a href="/docs/guides/findings" class="on" aria-current="page">Work the Findings queue</a></li>
+<li><a href="/docs/guides/compare">Compare two runs</a></li>
+<li><a href="/docs/guides/projects">Manage projects</a></li>
+<li><a href="/docs/guides/python">Use Granum from Python</a></li>
+<li><a href="/docs/guides/operations">Operate a pilot workspace</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Reference</p><ul>
+<li><a href="/docs/reference/screens">Map of the app</a></li>
+<li><a href="/docs/reference/shortcuts">Keyboard shortcuts</a></li>
+<li><a href="/docs/reference/preflight">Import checks</a></li>
+<li><a href="/docs/reference/models">Models you can train</a></li>
+<li><a href="/docs/reference/files">Files and settings</a></li>
+<li><a href="/docs/reference/limits">Scale and limits</a></li>
+<li><a href="/docs/reference/glossary">Glossary</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Help</p><ul>
+<li><a href="/docs/help/troubleshooting">Troubleshooting</a></li>
+<li><a href="/docs/help/faq">Frequently asked questions</a></li>
+<li><a href="/docs/help/privacy">Your data and privacy</a></li>
+</ul></div>
+</nav>
+    </div>
+    <main class="doc-main" id="main">
+      <article class="doc-article">
+        <nav class="doc-crumb" aria-label="Breadcrumb"><a href="/docs">Documentation</a><span aria-hidden="true">/</span><a href="/docs#guides">Guides</a></nav>
+        <h1>Work the Findings queue</h1>
+        <p class="doc-summary">A ranked list of labels worth checking, the evidence for each, and a decision you record.</p>
+        <p><strong>Findings</strong> takes a finished run and produces a ranked queue of <em>individual labels</em> the model
+persistently disagreed with, each with the evidence behind it and a decision you record. It is the
+screen that turns "the model is worse than I expected" into an afternoon of specific, finite work.</p>
+<h2 id="the-four-rules">The four rules</h2>
+<table>
+<thead>
+<tr>
+<th>Rule</th>
+<th>What was seen</th>
+<th>What to do</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Missing label</strong></td>
+<td>A confident prediction where nothing is labelled, round after round</td>
+<td>Add a box if the object should be labelled</td>
+</tr>
+<tr>
+<td><strong>Wrong class</strong></td>
+<td>A confident prediction of another class sitting on your label</td>
+<td>Change the class if your label is wrong</td>
+</tr>
+<tr>
+<td><strong>Loose box</strong></td>
+<td>A confident prediction of the right class overlapping your box, but not enough to match</td>
+<td>Tighten the box if it does not fit</td>
+</tr>
+<tr>
+<td><strong>Not found</strong></td>
+<td>A label the model never finds, with none of the above explaining why</td>
+<td>Check it; keep it if it is a valid hard case</td>
+</tr>
+</tbody>
+</table>
+<p>Rules are versioned. Every decision records which version of the rules raised the finding it answered, so
+when the rules change, old decisions still say what they were about.</p>
+<h2 id="what-is-judged-and-what-is-not">What is judged, and what is not</h2>
+<p><strong>Only rounds where the model was competent.</strong> The window starts at the first round where the set's
+recall reached 90% of its best. Before that the model misses everything, which says nothing about your
+labels.</p>
+<p><strong>Only what recurs.</strong> A finding needs at least two rounds and at least a fifth of the judged window —
+half, for <em>Not found</em>, because a miss is weaker evidence than a confident prediction.</p>
+<p><strong>Ranked by strength.</strong> The score is how often it was seen multiplied by how confident the model was.
+A confident wrong class seen in every round outranks a label missed in half of them.</p>
+<h2 id="held-out-sets-first">Held-out sets first</h2>
+<p>The page opens on a held-out set — validation or test — because the evidence there is stronger. On the
+training set the model learns your labels as they are, including the wrong ones, so a genuine error often
+stops appearing in later rounds. The training tab shows a notice saying exactly that, and findings
+carry a note when the model stopped raising them ("last seen in round 7").</p>
+<h2 id="working-the-queue">Working the queue</h2>
+<p>Cards show a close-up crop around the finding with the label and the model's box drawn on it. Filter by
+rule and by whether you have decided. The progress bar estimates the work left at twenty seconds a
+finding — an estimate, and labelled as one.</p>
+<p>Click a card for the full-screen reviewer:</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><kbd>←</kbd> <kbd>→</kbd></td>
+<td>Previous / next image</td>
+</tr>
+<tr>
+<td><kbd>↑</kbd> <kbd>↓</kbd></td>
+<td>Move between the findings on this image</td>
+</tr>
+<tr>
+<td><kbd>Z</kbd></td>
+<td>Close-up or whole image</td>
+</tr>
+<tr>
+<td><kbd>C</kbd></td>
+<td><strong>Label is right</strong> — checked, a valid hard case</td>
+</tr>
+<tr>
+<td><kbd>F</kbd></td>
+<td><strong>Fix</strong> — records "fixing" and opens this image in the editor</td>
+</tr>
+<tr>
+<td><kbd>A</kbd></td>
+<td><strong>Ambiguous</strong> — nobody can say what is right</td>
+</tr>
+<tr>
+<td><kbd>L</kbd></td>
+<td><strong>Later</strong> — needs another look</td>
+</tr>
+<tr>
+<td><kbd>X</kbd></td>
+<td><strong>Exclude image</strong> — should not be used for training</td>
+</tr>
+<tr>
+<td><kbd>U</kbd></td>
+<td>Undo the decision</td>
+</tr>
+</tbody>
+</table>
+<p>Decisions are appended to the dataset's review log with the rule, the strength of the evidence and the
+rules version.</p>
+<h2 id="reading-the-evidence-honestly">Reading the evidence honestly</h2>
+<p>Each finding states what was seen in plain terms: <em>"The model predicts person here in 9 of 11 rounds
+(confidence 0.62–0.88), and nothing is labelled here."</em> That sentence is the whole claim. It is not a
+verdict that your label is wrong, and about a fifth of the time — more in unusual datasets — the right
+answer is <strong>Label is right</strong>.</p>
+<p>That is a feature. A queue that was always right would be a labelling model, and you would not need to
+look. → <a href="/docs/concepts/evidence">What the evidence is worth</a></p>
+<div class="admonition note">
+<p class="admonition-title">If the page is empty</p>
+<p>Three reasons, and the page says which: the run did not record predictions per round; the run was
+cancelled before it produced any; or the model never became competent on that set, so no round was
+judged. The third is common with short schedules on small datasets — train longer, then come back.</p>
+</div>
+        <div class="doc-steps"><a class="doc-step prev" href="/docs/guides/learning"><span>Previous</span>Per-image learning</a><a class="doc-step next" href="/docs/guides/compare"><span>Next</span>Compare two runs</a></div>
+      </article>
+      <aside class="doc-toc" aria-label="On this page"><p>On this page</p><ul><li><a href="#the-four-rules">The four rules</a></li><li><a href="#what-is-judged-and-what-is-not">What is judged, and what is not</a></li><li><a href="#held-out-sets-first">Held-out sets first</a></li><li><a href="#working-the-queue">Working the queue</a></li><li><a href="#reading-the-evidence-honestly">Reading the evidence honestly</a></li></ul></aside>
+    </main>
+  </div>
+
+  <footer class="doc-footer">
+    <div class="wrap">
+    <p>© Granum. Local-first data workflows.</p>
+      <p><a href="/">Product</a><a href="/download">Download</a><a href="/privacy">Privacy</a><a href="/docs/help/troubleshooting">Support</a></p>
+    </div>
+  </footer>
+
+  <div class="doc-search" data-search-panel hidden>
+    <div class="doc-search-box" role="dialog" aria-modal="true" aria-label="Search documentation">
+    <input type="search" aria-label="Search documentation" aria-controls="doc-search-results" placeholder="Search the documentation" autocomplete="off" spellcheck="false" data-search-input>
+    <ul id="doc-search-results" aria-label="Search results" aria-live="polite" data-search-results></ul>
+      <p class="doc-search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move · <kbd>Enter</kbd> to open · <kbd>Esc</kbd> to close</p>
+    </div>
+  </div>
+
+  <script src="/docs/docs.js" defer></script>
+</body>
+</html>

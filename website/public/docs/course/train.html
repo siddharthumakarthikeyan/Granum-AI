@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>7. Train the first model · Granum documentation</title>
+  <meta name="description" content="Train a deliberately small YOLO baseline on the frozen 96/24 input, understand the recipe, and check that the run really finished.">
+  <meta name="theme-color" content="#ffffff">
+  <meta property="og:title" content="7. Train the first model · Granum documentation">
+  <meta property="og:description" content="Train a deliberately small YOLO baseline on the frozen 96/24 input, understand the recipe, and check that the run really finished.">
+  <meta property="og:type" content="article">
+  <meta property="og:image" content="/assets/og.jpg">
+  <link rel="canonical" href="https://granum.app/docs/course/train">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/docs/docs.css">
+  <script>document.documentElement.classList.remove("no-js");</script>
+</head>
+<body class="doc-body">
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header doc-header">
+    <div class="wrap">
+      <a class="brand" href="/" aria-label="Granum home"><img src="/assets/lockup-ink.svg" alt="Granum" width="128" height="32"></a>
+      <span class="doc-badge"><a href="/docs">Docs</a></span>
+      <nav class="nav" id="nav" aria-label="Main">
+        <a href="/#tour">Product</a>
+        <a href="/#plans">Pilots</a>
+        <a href="/docs/help/faq">FAQ</a>
+      </nav>
+      <div class="header-actions">
+        <button class="doc-search-button" type="button" data-search aria-label="Search documentation">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3 3"/></svg>
+          <span>Search</span><kbd>/</kbd>
+        </button>
+        <a class="btn primary small" href="/download">Download</a>
+        <button class="menu-button" type="button" aria-controls="doc-sidebar" aria-expanded="false" aria-label="Menu" data-sidebar-toggle>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="doc-shell">
+    <div class="doc-sidebar" id="doc-sidebar">
+      <nav class="doc-nav" aria-label="Documentation">
+<a class="doc-nav-home" href="/docs">Start here</a>
+<div class="doc-nav-group"><p class="doc-nav-title">Guided aerial-data course</p><ul>
+<li><a href="/docs/course/start">Start the guided course</a></li>
+<li><a href="/docs/course/setup">1. Prepare the workspace</a></li>
+<li><a href="/docs/course/data">2. Understand the sample</a></li>
+<li><a href="/docs/course/import">3. Import with preflight</a></li>
+<li><a href="/docs/course/explore">4. Explore before changing labels</a></li>
+<li><a href="/docs/course/baseline">5. Freeze an exploratory baseline</a></li>
+<li><a href="/docs/course/review">6. Review, edit and recover</a></li>
+<li><a href="/docs/course/train" class="on" aria-current="page">7. Train the first model</a></li>
+<li><a href="/docs/course/results">8. Read the model evidence</a></li>
+<li><a href="/docs/course/compare">9. Make a controlled comparison</a></li>
+<li><a href="/docs/course/handoff">10. Approve and export an excerpt</a></li>
+<li><a href="/docs/course/backup">11. Back up, restore and share safely</a></li>
+<li><a href="/docs/course/next">12. Move to your own project</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Getting started</p><ul>
+<li><a href="/docs/start/install">Install Granum</a></li>
+<li><a href="/docs/start/activate">Alpha access and licences</a></li>
+<li><a href="/docs/start/first-project">Your first project</a></li>
+<li><a href="/docs/start/the-loop">Run the loop once</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Concepts</p><ul>
+<li><a href="/docs/concepts/model">How Granum is organised</a></li>
+<li><a href="/docs/concepts/projects">Projects and project types</a></li>
+<li><a href="/docs/concepts/versions">Versions and lineage</a></li>
+<li><a href="/docs/concepts/dataset-versions">Dataset versions</a></li>
+<li><a href="/docs/concepts/verification">Verification and decisions</a></li>
+<li><a href="/docs/concepts/identity">Image identity</a></li>
+<li><a href="/docs/concepts/runs">Runs and metrics</a></li>
+<li><a href="/docs/concepts/evidence">What the evidence is worth</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Guides</p><ul>
+<li><a href="/docs/guides/import">Import data</a></li>
+<li><a href="/docs/guides/pull-from-projects">Build from existing projects</a></li>
+<li><a href="/docs/guides/browse">Browse images</a></li>
+<li><a href="/docs/guides/review">Review and verify</a></li>
+<li><a href="/docs/guides/edit">Edit annotations</a></li>
+<li><a href="/docs/guides/isolate-remove">Isolate, remove and restore</a></li>
+<li><a href="/docs/guides/dataset-versions">Create a dataset version</a></li>
+<li><a href="/docs/guides/augmentation">Augmentation</a></li>
+<li><a href="/docs/guides/train">Train a model</a></li>
+<li><a href="/docs/guides/runs">Read a run</a></li>
+<li><a href="/docs/guides/learning">Per-image learning</a></li>
+<li><a href="/docs/guides/findings">Work the Findings queue</a></li>
+<li><a href="/docs/guides/compare">Compare two runs</a></li>
+<li><a href="/docs/guides/projects">Manage projects</a></li>
+<li><a href="/docs/guides/python">Use Granum from Python</a></li>
+<li><a href="/docs/guides/operations">Operate a pilot workspace</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Reference</p><ul>
+<li><a href="/docs/reference/screens">Map of the app</a></li>
+<li><a href="/docs/reference/shortcuts">Keyboard shortcuts</a></li>
+<li><a href="/docs/reference/preflight">Import checks</a></li>
+<li><a href="/docs/reference/models">Models you can train</a></li>
+<li><a href="/docs/reference/files">Files and settings</a></li>
+<li><a href="/docs/reference/limits">Scale and limits</a></li>
+<li><a href="/docs/reference/glossary">Glossary</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Help</p><ul>
+<li><a href="/docs/help/troubleshooting">Troubleshooting</a></li>
+<li><a href="/docs/help/faq">Frequently asked questions</a></li>
+<li><a href="/docs/help/privacy">Your data and privacy</a></li>
+</ul></div>
+</nav>
+    </div>
+    <main class="doc-main" id="main">
+      <article class="doc-article">
+        <nav class="doc-crumb" aria-label="Breadcrumb"><a href="/docs">Documentation</a><span aria-hidden="true">/</span><a href="/docs#course">Guided aerial-data course</a></nav>
+        <h1>7. Train the first model</h1>
+        <p class="doc-summary">Train a deliberately small YOLO baseline on the frozen 96/24 input, understand the recipe, and check that the run really finished.</p>
+        <p><strong>Goal:</strong> create one traceable training run, not a production detector. You need the frozen
+<a href="/docs/course/baseline">aerial-baseline</a>. Review practice may have advanced a working table; training
+must still select that baseline's original revisions.</p>
+<p>No training environment? Read this lesson and continue with the recorded evidence in
+<a href="/docs/course/results">Read the results</a>. Never create a fake run to populate the screens.</p>
+<h2 id="what-training-does-and-why-we-start-small">What training does, and why we start small</h2>
+<p>A detector learns numerical weights from the training images and labels. Validation measures how it
+behaves on a separate development split and helps select a checkpoint. Starting with a small model
+and three epochs makes it practical to check the pipeline, identity joins, output files and metrics
+before spending more compute. It does not establish adequate training or useful accuracy.</p>
+<p>An <strong>epoch</strong> is one scheduled pass through the training data. A <strong>batch</strong> is the group processed in a
+training step. <strong>Image size</strong> controls the trainer's input resizing. A <strong>checkpoint</strong> is a saved set
+of model weights. A <strong>seed</strong> controls some sources of randomness but does not guarantee identical
+results across devices, library versions or kernels.</p>
+<h2 id="step-1-check-training-support">Step 1: check training support</h2>
+<ol>
+<li>Confirm the original sample images remain accessible.</li>
+<li>Open <strong>Datasets</strong> and select <strong>aerial-baseline</strong>.</li>
+<li>Choose <strong>Train</strong>. If offered <strong>Install training support</strong>, read and complete the installation before
+   starting a run. A GPU driver is a separate prerequisite for CUDA.</li>
+<li>Check the detected device and available disk space. On CPU, use the same small exercise only if
+   the runtime is acceptable; you can instead follow the recorded result.</li>
+<li>Inspect logs for environment or dependency failures. Do not treat package installation as a
+   successful training job.</li>
+</ol>
+<p>Packages and pretrained weights may be downloaded. Some framework integrations perform version
+checks or connect to an already-configured experiment tracker. Review that environment before using
+private data; “local-first” does not make third-party training libraries universally offline.</p>
+<h2 id="step-2-set-the-recipe-explicitly">Step 2: set the recipe explicitly</h2>
+<table>
+<thead>
+<tr>
+<th>Control</th>
+<th>Course setting</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Dataset version</td>
+<td>aerial-baseline</td>
+<td>Pins the original 120-image experiment input</td>
+</tr>
+<tr>
+<td>Train on</td>
+<td>train, 96 images</td>
+<td>These images fit the weights</td>
+</tr>
+<tr>
+<td>Validate on</td>
+<td>valid, 24 images</td>
+<td>Separate development observations; still too small for a strong claim</td>
+</tr>
+<tr>
+<td>Test on</td>
+<td>None</td>
+<td>The supplied source has no independent test set</td>
+</tr>
+<tr>
+<td>Model family</td>
+<td>YOLO</td>
+<td>The recorded exercise uses the Ultralytics integration</td>
+</tr>
+<tr>
+<td>Weights</td>
+<td>YOLO26 nano</td>
+<td>Small starting model; model parameter name is yolo26n.pt</td>
+</tr>
+<tr>
+<td>Image size</td>
+<td>640 px</td>
+<td>Small workflow recipe, not necessarily adequate for tiny aerial objects</td>
+</tr>
+<tr>
+<td>Epochs</td>
+<td>3</td>
+<td>Enough to exercise repeated logging; not an adequate convergence study</td>
+</tr>
+<tr>
+<td>Compare with</td>
+<td>None</td>
+<td>This is the first run</td>
+</tr>
+<tr>
+<td>Per-sample metrics and predictions</td>
+<td>Enabled every epoch</td>
+<td>Lets Granum connect measurements to each input image</td>
+</tr>
+</tbody>
+</table>
+<p>The recorded backend recipe used <strong>batch 16, seed 0, initial learning-rate parameter 0.01 and optimizer
+auto</strong>. Not all backend parameters have separate controls in this dialog; inspect the saved run rather
+than assuming a hidden setting. Framework defaults can include augmentation even though the dataset
+version added none.</p>
+<p>Read and check <strong>I understand this is exploratory training. This version has not passed the release
+approval gate.</strong> That acknowledgement is appropriate for this unreviewed baseline. It is not a claim
+of approval and should not be replaced by bulk verification.</p>
+<figure class="doc-figure">
+<a href="/assets/course/17-training-recipe.webp"><img src="/assets/course/17-training-recipe.webp" alt="Actual Train model dialog selects aerial-baseline, YOLO26 nano, 640 pixels, three epochs, no test set and exploratory acknowledgement." width="1440" height="960" loading="lazy"></a>
+<figcaption>Confirm version membership and split roles before the model settings. A polished loss curve cannot repair an incorrect split.</figcaption>
+</figure>
+
+<h2 id="step-3-start-and-follow-the-job">Step 3: start and follow the job</h2>
+<p>Choose <strong>Start training</strong> once. The service starts a separate process and creates a run entry. Open
+<strong>Runs</strong>, note the generated name, and inspect the progress and log. Do not launch another model job
+while this one is active. Avoid stopping the service or moving the input data during training.</p>
+<figure class="doc-figure">
+<a href="/assets/course/18-training-started.webp"><img src="/assets/course/18-training-started.webp" alt="Real submitted training job appears in Granum with progress and a run identifier." width="1440" height="960" loading="lazy"></a>
+<figcaption>This screenshot is job submission, not completion. The short video does not include the full training runtime.</figcaption>
+</figure>
+
+<h2 id="step-4-verify-completion-and-provenance">Step 4: verify completion and provenance</h2>
+<p>Wait for the job to finish, then inspect the run's status, parameters, input versions, history and
+weights path. If it failed, preserve the log and investigate; a partial history is not a finished model.</p>
+<p>The recorded baseline is <strong>run-1002-165347</strong>, with three completed epochs. Your generated name, time
+and precise numbers may differ. Its saved evaluation policy is <strong>granum-detection-1</strong>, operating
+confidence <strong>0.25</strong>, matching IoU <strong>0.5</strong>, and final-scoring prediction floor <strong>0.01</strong>.</p>
+<p><strong>Confidence</strong> is the model's score used to accept or reject a prediction; it is not automatically a
+calibrated probability of truth. <strong>IoU</strong> measures box overlap relative to their combined area. The
+chosen matching threshold determines whether a prediction can match a labelled object.</p>
+<h2 id="watch-the-submission">Watch the submission</h2>
+<figure class="doc-figure doc-video">
+<video controls preload="none" playsinline poster="/assets/course/17-training-recipe.webp" aria-label="Recorded three-epoch baseline recipe and real job submission" aria-describedby="train-video-caption">
+<source src="/assets/course/05-train.mp4" type="video/mp4"><track kind="captions" src="/assets/course/05-train.vtt" srclang="en" label="English" default>
+<a href="/assets/course/05-train.mp4">Download the recording</a>.
+</video><figcaption id="train-video-caption">14 seconds · silent, with captions · setup/submission only, not elapsed training time.</figcaption>
+</figure>
+<details class="doc-transcript"><summary>Read the video transcript</summary>
+<ol><li>Use YOLO nano, 640 pixels and three epochs for a small workflow exercise.</li><li>Keep Test on None and record per-sample history.</li><li>The actual job is submitted to a separate process. Read progress and logs; running is not finished.</li></ol>
+</details>
+
+<h2 id="what-we-learn">What we learn</h2>
+<p>A useful experiment has identifiable inputs, settings, a completed outcome and inspectable artifacts.
+That is distinct from having a good model. This baseline's very poor result is evidence to investigate,
+not a reason to declare the sample labels wrong.</p>
+<h2 id="checkpoint">Checkpoint</h2>
+<p>You can identify the finished three-epoch baseline, its train/valid versions and its scoring policy.
+If you skipped local training, you can identify those facts in the
+<a href="/assets/course/evidence.json">recorded evidence</a>. Next: <a href="/docs/course/results">read results without overclaiming</a>.</p>
+<h2 id="if-something-differs">If something differs</h2>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>What to do</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Start is disabled</td>
+<td>Check dependencies, split/version selection, exploratory acknowledgement and existing active jobs</td>
+</tr>
+<tr>
+<td>CUDA out of memory</td>
+<td>Stop the failed job, inspect the recipe/device and use an appropriate smaller workload; record any changed settings</td>
+</tr>
+<tr>
+<td>No model weights download</td>
+<td>Check the model source and permitted network access; do not execute arbitrary replacement weights</td>
+</tr>
+<tr>
+<td>No per-image history</td>
+<td>Check that per-sample logging was enabled and completed, not just framework epoch scalars</td>
+</tr>
+<tr>
+<td>Different scores from the recording</td>
+<td>Record your environment, seed, inputs and evaluator; a course run is not a reproducibility guarantee across environments</td>
+</tr>
+<tr>
+<td>Shared user cannot train</td>
+<td>A viewer or annotator does not have reviewer/admin job permissions</td>
+</tr>
+</tbody>
+</table>
+        <div class="doc-steps"><a class="doc-step prev" href="/docs/course/review"><span>Previous</span>6. Review, edit and recover</a><a class="doc-step next" href="/docs/course/results"><span>Next</span>8. Read the model evidence</a></div>
+      </article>
+      <aside class="doc-toc" aria-label="On this page"><p>On this page</p><ul><li><a href="#what-training-does-and-why-we-start-small">What training does, and why we start small</a></li><li><a href="#step-1-check-training-support">Step 1: check training support</a></li><li><a href="#step-2-set-the-recipe-explicitly">Step 2: set the recipe explicitly</a></li><li><a href="#step-3-start-and-follow-the-job">Step 3: start and follow the job</a></li><li><a href="#step-4-verify-completion-and-provenance">Step 4: verify completion and provenance</a></li><li><a href="#watch-the-submission">Watch the submission</a></li><li><a href="#what-we-learn">What we learn</a></li><li><a href="#checkpoint">Checkpoint</a></li><li><a href="#if-something-differs">If something differs</a></li></ul></aside>
+    </main>
+  </div>
+
+  <footer class="doc-footer">
+    <div class="wrap">
+    <p>© Granum. Local-first data workflows.</p>
+      <p><a href="/">Product</a><a href="/download">Download</a><a href="/privacy">Privacy</a><a href="/docs/help/troubleshooting">Support</a></p>
+    </div>
+  </footer>
+
+  <div class="doc-search" data-search-panel hidden>
+    <div class="doc-search-box" role="dialog" aria-modal="true" aria-label="Search documentation">
+    <input type="search" aria-label="Search documentation" aria-controls="doc-search-results" placeholder="Search the documentation" autocomplete="off" spellcheck="false" data-search-input>
+    <ul id="doc-search-results" aria-label="Search results" aria-live="polite" data-search-results></ul>
+      <p class="doc-search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move · <kbd>Enter</kbd> to open · <kbd>Esc</kbd> to close</p>
+    </div>
+  </div>
+
+  <script src="/docs/docs.js" defer></script>
+</body>
+</html>
