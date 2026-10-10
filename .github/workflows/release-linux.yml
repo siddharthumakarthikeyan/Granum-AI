@@ -87,7 +87,7 @@ jobs:
             || gh release create main-build --prerelease --title "Build of main" --notes "$notes" \
             || gh release view main-build >/dev/null
           gh release edit main-build --prerelease --title "Build of main" --notes "$notes"
-          gh release view main-build --json assets --jq '.assets[].name' | { grep -E '\.AppImage(\.|$)' || true; } | while read -r name; do
+          gh release view main-build --json assets --jq '.assets[].name' | { grep -E -- '\.AppImage(\.|$)' || true; } | while read -r name; do
             gh release delete-asset main-build "$name" -y
           done
           gh release upload main-build dist/*.AppImage dist/*.AppImage.manifest.json dist/*.AppImage.sha256 --clobber
