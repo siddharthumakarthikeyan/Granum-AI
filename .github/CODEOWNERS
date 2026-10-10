@@ -1,0 +1,4 @@
+# Every change to main is reviewed by one of the maintainers. With the branch rule
+# "Require review from Code Owners" on main, a pull request cannot be merged until
+# one of them has approved it.
+* @siddharthumakarthikeyan @Melvin-Paul-Jacob

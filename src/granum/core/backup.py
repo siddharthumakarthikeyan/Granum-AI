@@ -129,7 +129,8 @@ def backup_project(project: str, output: Path, *, root: Url) -> dict[str, Any]:
             if len(manifest_bytes) > MAX_MANIFEST:
                 raise BackupError("snapshot manifest exceeds the supported size; split the project")
             archive.writestr("manifest.json", manifest_bytes)
-        with open(temporary, "rb") as handle:
+        # Opened for writing: Windows refuses to flush a handle that is read-only.
+        with open(temporary, "r+b") as handle:
             os.fsync(handle.fileno())
         # A hard-link publishes without replacing a concurrently created archive.
         os.link(temporary, output)
@@ -235,7 +236,7 @@ def restore_project(archive_path: Path, *, root: Url, name: str | None = None, m
                     table = pq.read_table(path)
                     rows = [rewrite(row) for row in table.to_pylist()]
                     pq.write_table(pa.Table.from_pylist(rows, schema=table.schema), path)
-                    with path.open("rb") as handle:
+                    with path.open("r+b") as handle:
                         os.fsync(handle.fileno())
             # Persist every extracted directory entry, including binary-only media folders,
             # before making the restored project visible through one final rename.

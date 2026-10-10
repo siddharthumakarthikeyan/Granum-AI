@@ -139,6 +139,13 @@ def test_an_empty_set_does_not_raise():
 # -- through the service ---------------------------------------------------------
 
 
+def stored_path(index: int) -> str:
+    """The path the fixture stores for an image: on Windows it carries the drive."""
+    from granum.core.url import Url
+
+    return str(Url(f"/eval/{index}.png"))
+
+
 def evaluated(tmp_path):
     """A run that stored its boxes on one set, served by the API."""
     from fastapi.testclient import TestClient
@@ -197,12 +204,12 @@ def test_the_service_reads_a_run_class_by_class(isolated_project, tmp_path):
     # The cell behind the swap names the image, so a reader can go and look at it.
     cell = api.get("/api/run/evaluation/examples",
                    params={"url": str(run.url), "truth": 0, "predicted": 1}).json()
-    assert [e["image"] for e in cell["examples"]] == ["/eval/0.png"]
+    assert [e["image"] for e in cell["examples"]] == [stored_path(0)]
     assert cell["examples"][0]["confidence"] == pytest.approx(0.9)  # float32, as stored
 
     missed = api.get("/api/run/evaluation/examples",
                      params={"url": str(run.url), "truth": 1}).json()
-    assert [e["image"] for e in missed["examples"]] == ["/eval/2.png"]
+    assert [e["image"] for e in missed["examples"]] == [stored_path(2)]
 
     empty = api.get("/api/run/evaluation/examples", params={"url": str(run.url)})
     assert empty.status_code == 400
@@ -211,9 +218,9 @@ def test_the_service_reads_a_run_class_by_class(isolated_project, tmp_path):
     every = api.get("/api/run/evaluation/outcomes", params={"url": str(run.url)}).json()
     assert every["counts"] == {"tp": 1, "fp": 1, "fn": 2}
     assert {(row["kind"], row["image"]) for row in every["objects"]} == {
-        ("tp", "/eval/1.png"), ("fp", "/eval/0.png"), ("fn", "/eval/0.png"), ("fn", "/eval/2.png")}
+        ("tp", stored_path(1)), ("fp", stored_path(0)), ("fn", stored_path(0)), ("fn", stored_path(2))}
     assert every["classes"] == {"0": "van", "1": "car"} and every["dataset"] == "streets"
 
     invented = api.get("/api/run/evaluation/outcomes",
                        params={"url": str(run.url), "kinds": "fp", "labels": "1"}).json()
-    assert [row["image"] for row in invented["objects"]] == ["/eval/0.png"]
+    assert [row["image"] for row in invented["objects"]] == [stored_path(0)]
