@@ -20,11 +20,22 @@ interface Range { min: number; max: number }
 
 interface Field { key: string; label: string; unit: string; low: number; high: number; step: number }
 
+/** One of several ranges of an augmentation, held as `<key>_min` and `<key>_max`. */
+interface RangeField extends Field {
+  /** After the number where both ends are shown in one line: "+10% h". */
+  short: string;
+  signed?: boolean;
+}
+
+interface Option { key: string; label: string }
+
 /** Settings of each augmentation, with the values used when it is first added. */
 type Spec =
-  | { kind: "options"; options: { key: string; label: string }[]; initial: Record<string, boolean> }
-  | { kind: "range"; unit: string; low: number; high: number; step: number; initial: Range }
-  | { kind: "values"; fields: Field[]; initial: Record<string, number> };
+  | { kind: "options"; options: Option[]; initial: Record<string, boolean> }
+  | { kind: "range"; unit: string; low: number; high: number; step: number; initial: Range; /** No "+" before positive values. */ unsigned?: boolean }
+  | { kind: "ranges"; ranges: RangeField[]; initial: Record<string, number> }
+  /** `kinds` are ways of doing it to choose between; each copy gets one of those chosen. */
+  | { kind: "values"; fields: Field[]; kinds?: Option[]; initial: Record<string, number | boolean> };
 
 interface Augmentation {
   id: Kind;
@@ -39,6 +50,36 @@ interface Augmentation {
 
 const signed = (n: number) => (n > 0 ? `+${n}` : String(n));
 const range = (unit: string) => (v: Range) => `${signed(v.min)}${unit} to ${signed(v.max)}${unit}`;
+
+/** The chosen kinds by name; the first kind is what a setting saved without any gets. */
+function kindSummary(value: Record<string, unknown>, kinds: Option[]): string {
+  const on = kinds.filter((k) => value[k.key] === true);
+  return (on.length ? on : kinds.slice(0, 1)).map((k) => k.label).join(", ");
+}
+
+/** One end of every range of a setting: "+10% h, −5% v". */
+function endSummary(ranges: RangeField[], value: Record<string, number>, at: "min" | "max"): string {
+  return ranges.map((r) => {
+    const n = value[`${r.key}_${at}`]!;
+    return `${r.signed ? signed(n) : n}${r.unit}${r.short ? ` ${r.short}` : ""}`;
+  }).join(", ");
+}
+
+const BLUR_KINDS: Option[] = [
+  { key: "gaussian", label: "Gaussian" }, { key: "median", label: "Median" },
+  { key: "average", label: "Average" }, { key: "box", label: "Box" },
+];
+const NOISE_KINDS: Option[] = [
+  { key: "gaussian", label: "Gaussian" }, { key: "salt_pepper", label: "Salt & pepper" }, { key: "iso", label: "ISO" },
+];
+const TRANSLATION: RangeField[] = [
+  { key: "horizontal", label: "Horizontal", unit: "%", short: "h", low: -100, high: 100, step: 1, signed: true },
+  { key: "vertical", label: "Vertical", unit: "%", short: "v", low: -100, high: 100, step: 1, signed: true },
+];
+const GRID: RangeField[] = [
+  { key: "size", label: "Grid spacing", unit: "px", short: "grid", low: 2, high: 200, step: 1 },
+  { key: "ratio", label: "Hole, as a share of the spacing", unit: "", short: "holes", low: 0, high: 0.9, step: 0.05 },
+];
 
 function optionSummary(value: Record<string, boolean>, names: Record<string, string>): string {
   const on = Object.keys(names).filter((k) => value[k]);
@@ -92,6 +133,21 @@ const GEOMETRY: Augmentation[] = [
     demo: { horizontal: 15, vertical: 15 },
     summary: (v: { horizontal: number; vertical: number }) => `±${v.horizontal}° h, ±${v.vertical}° v`,
   },
+  {
+    id: "translation", label: "Translation", geometric: true,
+    description: "Shifts the image by a random share of its width and height. The part left uncovered is filled black.",
+    spec: { kind: "ranges", ranges: TRANSLATION, initial: { horizontal_min: -10, horizontal_max: 10, vertical_min: -10, vertical_max: 10 } },
+    demo: { horizontal_min: -20, horizontal_max: 20, vertical_min: -15, vertical_max: 15 },
+    summary: (v: Record<string, number>) =>
+      `${signed(v.horizontal_min!)} to ${signed(v.horizontal_max!)}% h, ${signed(v.vertical_min!)} to ${signed(v.vertical_max!)}% v`,
+  },
+  {
+    id: "zoom", label: "Zoom", geometric: true,
+    description: "Scales the image about its centre, in the same frame. Above 100% magnifies and cuts the edges away; below shrinks it and leaves a black border.",
+    spec: { kind: "range", unit: "%", low: 10, high: 400, step: 1, initial: { min: 80, max: 120 }, unsigned: true },
+    demo: { min: 60, max: 160 },
+    summary: (v: Range) => `${v.min}% to ${v.max}%`,
+  },
 ];
 
 const PIXELS: Augmentation[] = [
@@ -131,18 +187,33 @@ const PIXELS: Augmentation[] = [
     summary: range("%"),
   },
   {
+    id: "gamma", label: "Gamma", geometric: false,
+    description: "Gamma correction: below 1 darkens the mid-tones, above 1 lifts them. Black and white stay put.",
+    spec: { kind: "range", unit: "", low: 0.1, high: 5, step: 0.1, initial: { min: 0.8, max: 1.2 }, unsigned: true },
+    demo: { min: 0.5, max: 2 },
+    summary: (v: Range) => `${v.min} to ${v.max}`,
+  },
+  {
     id: "blur", label: "Blur", geometric: false,
-    description: "Gaussian blur with a random radius up to the limit.",
-    spec: { kind: "values", fields: [{ key: "max", label: "Up to", unit: "px", low: 0, high: 20, step: 0.5 }], initial: { max: 1.5 } },
-    demo: { max: 4 },
-    summary: (v: { max: number }) => `Up to ${v.max} px`,
+    description: "Blurs with a random strength up to the limit. Each copy gets one of the chosen kinds.",
+    spec: {
+      kind: "values", kinds: BLUR_KINDS,
+      fields: [{ key: "max", label: "Up to", unit: "px", low: 0, high: 20, step: 0.5 }],
+      initial: { max: 1.5, gaussian: true },
+    },
+    demo: { max: 4, gaussian: true },
+    summary: (v: Record<string, number | boolean>) => `Up to ${v.max} px · ${kindSummary(v, BLUR_KINDS)}`,
   },
   {
     id: "noise", label: "Noise", geometric: false,
-    description: "Replaces up to this share of pixels with random colours.",
-    spec: { kind: "values", fields: [{ key: "max", label: "Up to", unit: "% of pixels", low: 0, high: 50, step: 0.5 }], initial: { max: 2 } },
-    demo: { max: 10 },
-    summary: (v: { max: number }) => `Up to ${v.max}%`,
+    description: "Adds noise with a random strength up to the limit. Each copy gets one of the chosen kinds: Gaussian grain, black and white specks, or the grain of a camera at high ISO.",
+    spec: {
+      kind: "values", kinds: NOISE_KINDS,
+      fields: [{ key: "max", label: "Up to", unit: "%", low: 0, high: 50, step: 0.5 }],
+      initial: { max: 2, gaussian: true },
+    },
+    demo: { max: 8, gaussian: true },
+    summary: (v: Record<string, number | boolean>) => `Up to ${v.max}% · ${kindSummary(v, NOISE_KINDS)}`,
   },
   {
     id: "cutout", label: "Cutout", geometric: false,
@@ -158,6 +229,13 @@ const PIXELS: Augmentation[] = [
     demo: { count: 4, size: 15 },
     summary: (v: { count: number; size: number }) => `${v.count} × ${v.size}%`,
   },
+  {
+    id: "gridmask", label: "Grid mask", geometric: false,
+    description: "Blacks out a regular grid of squares, shifted at random on each copy. Labels are kept.",
+    spec: { kind: "ranges", ranges: GRID, initial: { size_min: 32, size_max: 96, ratio_min: 0.3, ratio_max: 0.5 } },
+    demo: { size_min: 32, size_max: 64, ratio_min: 0.5, ratio_max: 0.5 },
+    summary: (v: Record<string, number>) => `${v.size_min} to ${v.size_max} px, ${v.ratio_min} to ${v.ratio_max} holes`,
+  },
 ];
 
 const ALL = [...GEOMETRY, ...PIXELS];
@@ -165,20 +243,37 @@ const COPIES = [1, 2, 3, 4, 5];
 
 const summarize = (a: Augmentation, value: unknown) => (a.summary as (v: unknown) => string)(value);
 
-/** Why a setting cannot be used, if it cannot. */
-function problemOf(item: Augmentation, value: unknown): string | null {
+/** Why a setting's numbers cannot be used, if they cannot. */
+function numberProblem(item: Augmentation, value: unknown): string | null {
   const spec = item.spec;
-  if (spec.kind === "options") {
-    return Object.values(value as Record<string, boolean>).some(Boolean) ? null : "Choose at least one.";
-  }
+  if (spec.kind === "options") return null;
   if (spec.kind === "range") {
     const v = value as Range;
     if (![v.min, v.max].every((n) => Number.isFinite(n) && n >= spec.low && n <= spec.high)) return `Use values from ${spec.low} to ${spec.high}.`;
     return v.min > v.max ? "Minimum is above maximum." : null;
   }
   const v = value as Record<string, number>;
-  const bad = spec.fields.find((f) => !Number.isFinite(v[f.key]) || v[f.key]! < f.low || v[f.key]! > f.high);
+  const within = (n: number | undefined, f: Field) => Number.isFinite(n) && n! >= f.low && n! <= f.high;
+  if (spec.kind === "ranges") {
+    for (const r of spec.ranges) {
+      const min = v[`${r.key}_min`], max = v[`${r.key}_max`];
+      if (!within(min, r) || !within(max, r)) return `${r.label}: use ${r.low} to ${r.high}.`;
+      if (min! > max!) return `${r.label}: minimum is above maximum.`;
+    }
+    return null;
+  }
+  const bad = spec.fields.find((f) => !within(v[f.key], f));
   return bad ? `${bad.label.replace(" ±", "")}: use ${bad.low} to ${bad.high}.` : null;
+}
+
+/** Why a setting cannot be used, if it cannot. */
+function problemOf(item: Augmentation, value: unknown): string | null {
+  const spec = item.spec;
+  const chosen = value as Record<string, unknown>;
+  if (spec.kind === "options") return Object.values(chosen).some(Boolean) ? null : "Choose at least one.";
+  const problem = numberProblem(item, value);
+  if (problem) return problem;
+  return spec.kind === "values" && spec.kinds && !spec.kinds.some((k) => chosen[k.key] === true) ? "Choose at least one kind." : null;
 }
 
 export interface AugmentationState {
@@ -411,23 +506,41 @@ function AugmentationEditor({ project, dataset, item, value, row, labels, onAppl
   onRemove: () => void;
   onClose: () => void;
 }) {
-  const [draft, setDraft] = useState<unknown>(() => structuredClone(value ?? item.spec.initial));
-  const problem = problemOf(item, draft);
   const spec = item.spec;
+  const [draft, setDraft] = useState<unknown>(() => {
+    const start = structuredClone(value ?? spec.initial) as Record<string, unknown>;
+    // A setting saved before kinds existed has none ticked; it gets the first, as the service gives it.
+    if (spec.kind === "values" && spec.kinds && !spec.kinds.some((k) => start[k.key] === true)) start[spec.kinds[0]!.key] = true;
+    return start;
+  });
+  const problem = problemOf(item, draft);
+  const kinds = spec.kind === "values" ? spec.kinds : undefined;
 
-  // What each preview shows: every option on its own, or both ends of the range.
+  // What each preview shows: every option or kind on its own, or both ends of the range.
   const views = useMemo<View[]>(() => {
     if (spec.kind === "options") {
       return spec.options.map((o) => ({ key: o.key, label: o.label, detail: "", at: "max", recipe: { [o.key]: true }, option: o.key }));
     }
     if (spec.kind === "range") {
       const v = draft as Range;
+      const show = spec.unsigned ? String : signed;
       return [
-        { key: "min", label: "Minimum", detail: `${signed(v.min)}${spec.unit}`, at: "min", recipe: v },
-        { key: "max", label: "Maximum", detail: `${signed(v.max)}${spec.unit}`, at: "max", recipe: v },
+        { key: "min", label: "Minimum", detail: `${show(v.min)}${spec.unit}`, at: "min", recipe: v },
+        { key: "max", label: "Maximum", detail: `${show(v.max)}${spec.unit}`, at: "max", recipe: v },
       ];
     }
     const v = draft as Record<string, number>;
+    if (spec.kind === "ranges") {
+      return [
+        { key: "min", label: "Minimum", detail: endSummary(spec.ranges, v, "min"), at: "min", recipe: v },
+        { key: "max", label: "Maximum", detail: endSummary(spec.ranges, v, "max"), at: "max", recipe: v },
+      ];
+    }
+    if (spec.kinds) {
+      // Each kind alone at the limit, whatever is ticked.
+      const numbers = Object.fromEntries(spec.fields.map((f) => [f.key, v[f.key]]));
+      return spec.kinds.map((k) => ({ key: k.key, label: k.label, detail: "", at: "max", recipe: { ...numbers, [k.key]: true }, option: k.key }));
+    }
     if (item.id === "shear") {
       return [
         { key: "min", label: "One way", detail: `−${v.horizontal}° h, −${v.vertical}° v`, at: "min", recipe: v },
@@ -437,15 +550,16 @@ function AugmentationEditor({ project, dataset, item, value, row, labels, onAppl
     return [{ key: "max", label: item.id === "grayscale" ? "Grayscale copy" : "At the limit", detail: summarize(item, v), at: "max", recipe: v }];
   }, [spec, draft, item]);
 
-  // Options preview each one alone, whatever is ticked; ranges wait for valid numbers.
+  // Options and kinds preview each one alone, whatever is ticked; numbers must be valid first.
+  const unusable = numberProblem(item, draft);
   const items = useMemo<Items | null>(() => {
-    if (spec.kind !== "options" && problem) return null;
+    if (unusable) return null;
     return Object.fromEntries(views.map((v) => [v.key, { recipe: { [item.id]: v.recipe } as Partial<AugmentRecipe>, at: v.at }]));
-  }, [views, problem, item.id, spec.kind]);
+  }, [views, unusable, item.id]);
   const shown = useExamples(project, dataset, items, row, 480);
 
   const chosen = value !== undefined;
-  const options = spec.kind === "options" ? (draft as Record<string, boolean>) : null;
+  const options = spec.kind === "options" || kinds ? (draft as Record<string, boolean>) : null;
   // Frames take the image's own shape, so a rotation's corners are not hidden in letterboxing.
   const original = shown.result?.original;
   const aspect = original ? `${original.width} / ${original.height}` : "4 / 3";
@@ -457,7 +571,7 @@ function AugmentationEditor({ project, dataset, item, value, row, labels, onAppl
     <Modal
       title={item.label}
       onClose={onClose}
-      width={780}
+      width={views.length > 3 ? 920 : 780}
       className="aug-editor"
       footer={
         <>
@@ -512,6 +626,22 @@ function AugmentationEditor({ project, dataset, item, value, row, labels, onAppl
 }
 
 function Controls({ spec, value, onChange }: { spec: Exclude<Spec, { kind: "options" }>; value: unknown; onChange: (v: unknown) => void }) {
+  if (spec.kind === "ranges") {
+    const v = value as Record<string, number>;
+    return (
+      <div className="aug-ranges">
+        {spec.ranges.map((r) => (
+          <div key={r.key} className="aug-range" role="group" aria-label={r.label}>
+            <span className="aug-range-name">{r.label}</span>
+            <NumberBox label="Minimum" value={v[`${r.key}_min`]!} unit={r.unit} low={r.low} high={r.high} step={r.step} onChange={(n) => onChange({ ...v, [`${r.key}_min`]: n })} />
+            <span className="aug-to">to</span>
+            <NumberBox label="Maximum" value={v[`${r.key}_max`]!} unit={r.unit} low={r.low} high={r.high} step={r.step} onChange={(n) => onChange({ ...v, [`${r.key}_max`]: n })} />
+            <span className="aug-bounds faint small">Allowed {r.low}{r.unit} to {r.high}{r.unit}</span>
+          </div>
+        ))}
+      </div>
+    );
+  }
   if (spec.kind === "range") {
     const v = value as Range;
     return (

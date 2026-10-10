@@ -14,8 +14,11 @@ htmlcov/
 
 # Dashboard build output (rebuilt from web/ with `npm run build`)
 src/granum/service/static/
+src/granum/_build.json
 web/dist/
 web/node_modules/
+web/test-results/
+web/playwright-report/
 *.tsbuildinfo
 
 # Training artefacts: model weights and Ultralytics run folders

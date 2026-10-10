@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { api } from "../api/client";
+import { Modal } from "../components/Modal";
 import type { Release } from "../api/types";
 import { EmptyState, Icon, ImageStrip, PageHeader, formatNumber, formatWhen, plural } from "../components/ui";
 import { tasksLabel } from "../importing/tasks";
@@ -23,6 +24,8 @@ export function DatasetsPage({ project }: { project: string }) {
   const [deleting, setDeleting] = useState<Release | null>(null);
   const [exporting, setExporting] = useState<Release | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [approving, setApproving] = useState<Release | null>(null);
+  const [approvalBusy, setApprovalBusy] = useState(false);
 
   const load = useCallback(() => {
     api.releases(project).then(({ releases }) => setReleases(releases)).catch((e: Error) => setError(e.message));
@@ -49,7 +52,7 @@ export function DatasetsPage({ project }: { project: string }) {
           {releases?.map((release) => (
             <ReleaseRibbon key={`${release.dataset}/${release.id}`} project={project} release={release}
               onTrain={() => setTraining(release.id)} onExport={() => setExporting(release)}
-              onDelete={() => setDeleting(release)} />
+              onDelete={() => setDeleting(release)} onApprove={() => { setError(null); setApproving(release); }} />
           ))}
         </section>
       )}
@@ -63,6 +66,24 @@ export function DatasetsPage({ project }: { project: string }) {
         </EmptyState>
       )}
 
+      {approving && (
+        <Modal title="Approve exact dataset contents" onClose={() => !approvalBusy && setApproving(null)} footer={
+          <>
+            <button disabled={approvalBusy} onClick={() => setApproving(null)}>Cancel</button>
+            <button className="primary" disabled={approvalBusy} onClick={async () => {
+              setApprovalBusy(true); setError(null);
+              try {
+                await api.approveRelease(project, approving.dataset, approving.id);
+                setApproving(null); load();
+              } catch (e) { setError(e instanceof Error ? e.message : String(e)); }
+              finally { setApprovalBusy(false); }
+            }}>{approvalBusy ? "Checking contents…" : "Check and approve"}</button>
+          </>
+        }>
+          <p>Approve {approving.name} only if every included image has a review of these exact annotations. Stale and unpinned reviews are rejected. This records a separate approval without changing the dataset.</p>
+          {error && <p className="form-error" role="alert">{error}</p>}
+        </Modal>
+      )}
       {exporting && (
         <ExportDialog
           project={project}
@@ -102,8 +123,8 @@ export function DatasetsPage({ project }: { project: string }) {
 
 /** One dataset version, laid out like a working dataset: its sets, a strip of images, the
  * facts of how it was made, and a way to train on it. */
-function ReleaseRibbon({ project, release, onTrain, onExport, onDelete }: {
-  project: string; release: Release; onTrain: () => void; onExport: () => void; onDelete: () => void;
+function ReleaseRibbon({ project, release, onTrain, onExport, onDelete, onApprove }: {
+  project: string; release: Release; onTrain: () => void; onExport: () => void; onDelete: () => void; onApprove: () => void;
 }) {
   const sets = Object.entries(release.sets);
   const [chosen, setChosen] = useState(() => (sets.find(([name]) => /^train/i.test(name)) ?? sets[0])?.[0] ?? "");
@@ -126,6 +147,8 @@ function ReleaseRibbon({ project, release, onTrain, onExport, onDelete }: {
           </span>
         </div>
         <span className="spacer" />
+        <span className={`qa-chip ${release.approval === "approved" ? "reviewed" : "unreviewed"}`}>{release.approval === "approved" ? "Approved" : "Exploratory"}</span>
+        {release.approval !== "approved" && <button className="button" onClick={onApprove}>Approve…</button>}
         <div className="segmented split-toggle" role="tablist" aria-label="Set">
           {sets.map(([name, set]) => (
             <button key={name} role="tab" aria-selected={name === chosen} className={name === chosen ? "on" : ""} onClick={() => setChosen(name)}>

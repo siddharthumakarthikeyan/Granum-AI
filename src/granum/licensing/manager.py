@@ -38,6 +38,15 @@ from granum.licensing.keys import PUBLIC_KEYS
 from granum.licensing.machine import machine_id
 from granum.licensing.token import LicenceError, decode, format_time, parse_time
 
+#: Whether a copy of Granum is held to a licence at all.
+#:
+#: **Off in this build.** A downloaded Granum is never read-only, never asks to buy anything
+#: and never talks to a licence server: every :class:`Licensing` is unrestricted unless its
+#: caller says otherwise. Everything below is kept whole and is still tested (the tests pass
+#: ``enforced=True``), so turning it back on is this one line — no re-wiring, and no key,
+#: clock or lease rule to write again.
+ENFORCED = False
+
 LEASE_DAYS = 7
 CLOCK_TOLERANCE = 2 * 3600
 HEARTBEAT_SECONDS = 60
@@ -63,6 +72,7 @@ class Licensing:
         latest_seen: Callable[[], float | None] | None = None,
         server: Any = None,
         unrestricted: bool = False,
+        enforced: bool | None = None,
     ) -> None:
         self.folder = folder or data_dir() / "licence"
         self.mark_folder = mark_folder or state_dir()
@@ -71,7 +81,10 @@ class Licensing:
         self.clock = clock
         self.monotonic = monotonic
         self.latest_seen = latest_seen
-        self.unrestricted = unrestricted
+        #: Unrestricted covers the whole class, not just the verdict: no heartbeat thread, no
+        #: state written, no server called. So switching licensing off leaves nothing running.
+        self.enforced = ENFORCED if enforced is None else enforced
+        self.unrestricted = unrestricted or not self.enforced
         #: The licence server (granum.licensing.client.LicenceServer), when one is configured.
         self.server = server
         self._last_renewal: float | None = None

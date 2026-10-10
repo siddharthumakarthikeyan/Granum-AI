@@ -1,5 +1,8 @@
 name: ci
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
+  workflow_call:
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -12,7 +15,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - run: pip install -e ".[dev,pandas,images,service]"
-      - run: ruff check src tests
+      - run: ruff check src tests hatch_build.py build_provenance.py tools/benchmark_workflows.py tools/release_manifest.py tools/smoke_package.py
       - run: pytest -q
   test-windows:
     # The Windows app runs Python in UTF-8 mode (-X utf8); tests run the same way.
@@ -39,5 +42,24 @@ jobs:
         working-directory: web
       - run: npm run test
         working-directory: web
+      - run: npm run typecheck:e2e
+        working-directory: web
       - run: npm run build
         working-directory: web
+      - run: npm audit --audit-level=moderate
+        working-directory: web
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: pip install -e ".[dev,images,service]"
+      - run: npx playwright install --with-deps chromium
+        working-directory: web
+      - run: npx playwright test --reporter=html
+        working-directory: web
+      - uses: actions/upload-artifact@v5
+        if: always()
+        with:
+          name: browser-qualification
+          path: |
+            web/playwright-report/
+            web/test-results/

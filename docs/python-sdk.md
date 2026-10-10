@@ -27,6 +27,19 @@ Table.from_names("aerial", "human_aerial", "initial").latest()   # newest versio
 Edits made in the dashboard or the Review tab become new versions too, so a training script that
 loads `.latest()` picks them up by name.
 
+`summary` asks what one column adds up to — the same readings the dashboard shows for the images
+a ribbon has left, over the whole column here. Missing values are counted as missing rather than
+read as zero, and nothing numeric is reported for a column that is not numbers:
+
+```python
+table.summary("width")
+# {"count": 12429, "present": 12429, "missing": 0, "distinct": 46,
+#  "min": 640.0, "max": 3840.0, "sum": ..., "mean": ..., "std": ...,
+#  "quantiles": {"0.25": ..., "0.5": ..., "0.75": ...}, "top": [{"value": 1920.0, "count": 5102}, ...]}
+
+table.summary("sequence")["top"][:3]        # the commonest values of a text column
+```
+
 ## Runs and per-sample metrics
 
 Add three calls to an existing training loop:

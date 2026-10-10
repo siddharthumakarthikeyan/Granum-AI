@@ -8,6 +8,7 @@ from granum.metrics.evaluation import (
     confusion,
     examples,
     match_any_class,
+    outcomes,
     per_class,
     sweep,
 )
@@ -97,10 +98,42 @@ def test_examples_are_the_objects_behind_a_cell():
     assert examples(RECORDS, truth_label=VAN, predicted_label=CAR, limit=0) == []
 
 
+def test_every_object_of_a_run_as_its_own_row():
+    """The matrix says which classes are confused; this says which objects to go and look at."""
+    found = outcomes(RECORDS)
+    assert found["counts"] == {"tp": 1, "fp": 2, "fn": 2}
+    # The van called a car is two rows and not one: a prediction that covered no van, and a
+    # van nothing found. That is exactly what the score counts it as.
+    kinds = [(row["kind"], row["label"]) for row in found["objects"]]
+    assert sorted(kinds) == sorted([("tp", CAR), ("fp", CAR), ("fp", CAR), ("fn", VAN), ("fn", PERSON)])
+
+    hit = next(row for row in found["objects"] if row["kind"] == "tp")
+    assert hit["box"] == box(40, 40) and hit["label_box"] == box(40, 40) and hit["iou"] == 1.0
+    assert hit["confidence"] == 0.8 and hit["image"] == "/d/a.png"
+    assert (hit["width"], hit["height"]) == (100.0, 100.0)
+    # A label nothing found has no confidence, rather than a confidence of zero.
+    assert all(row["confidence"] is None for row in found["objects"] if row["kind"] == "fn")
+    assert found["images"] == 1 and found["capped"] is False
+
+
+def test_outcomes_narrow_before_they_are_capped():
+    # Asked for one class's misses, the limit applies to those, not to the first N objects.
+    only = outcomes(RECORDS, kinds=["fn"], labels=[PERSON])
+    assert [row["label"] for row in only["objects"]] == [PERSON]
+    # Counted over the classes asked for but over every kind, so the three kind toggles can
+    # each show a number for the classes in front of the reader.
+    assert only["counts"] == {"tp": 0, "fp": 0, "fn": 1}
+
+    capped = outcomes(RECORDS, kinds=["fp"], limit=1)
+    assert len(capped["objects"]) == 1 and capped["capped"] is True
+    assert outcomes(RECORDS, kinds=["nonsense"])["counts"] == {"tp": 1, "fp": 2, "fn": 2}
+
+
 def test_an_empty_set_does_not_raise():
     assert confusion([])["cells"] == {}
     assert per_class([]) == []
     assert best_threshold([]) is None
+    assert outcomes([]) == {"objects": [], "counts": {"tp": 0, "fp": 0, "fn": 0}, "images": 0, "capped": False}
 
 
 # -- through the service ---------------------------------------------------------
@@ -173,3 +206,14 @@ def test_the_service_reads_a_run_class_by_class(isolated_project, tmp_path):
 
     empty = api.get("/api/run/evaluation/examples", params={"url": str(run.url)})
     assert empty.status_code == 400
+
+    # Every object of the run, one row each, to be cut into crops.
+    every = api.get("/api/run/evaluation/outcomes", params={"url": str(run.url)}).json()
+    assert every["counts"] == {"tp": 1, "fp": 1, "fn": 2}
+    assert {(row["kind"], row["image"]) for row in every["objects"]} == {
+        ("tp", "/eval/1.png"), ("fp", "/eval/0.png"), ("fn", "/eval/0.png"), ("fn", "/eval/2.png")}
+    assert every["classes"] == {"0": "van", "1": "car"} and every["dataset"] == "streets"
+
+    invented = api.get("/api/run/evaluation/outcomes",
+                       params={"url": str(run.url), "kinds": "fp", "labels": "1"}).json()
+    assert [row["image"] for row in invented["objects"]] == ["/eval/0.png"]

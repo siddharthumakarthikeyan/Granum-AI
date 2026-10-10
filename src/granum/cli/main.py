@@ -38,6 +38,12 @@ app_app = typer.Typer(
     name="app", help="Install Granum as an app: background service at login and a menu launcher."
 )
 app.add_typer(app_app)
+access_app = typer.Typer(name="access", help="Manage authenticated, single-workspace shared access.")
+app.add_typer(access_app)
+backup_app = typer.Typer(name="backup", help="Create and restore checksummed local project snapshots.")
+app.add_typer(backup_app)
+integrity_app = typer.Typer(name="integrity", help="Snapshot and verify referenced media bytes.")
+app.add_typer(integrity_app)
 
 _STATE: dict[str, object] = {}
 
@@ -92,6 +98,16 @@ def version() -> None:
     typer.echo(f"granum {__version__}")
 
 
+@app.command("build-info")
+def show_build_info() -> None:
+    """Print the installed build's provenance, or identify a mutable source checkout."""
+    import json
+
+    from granum.build_info import build_info
+
+    typer.echo(json.dumps(build_info(), indent=2))
+
+
 @app.command()
 def service(
     host: str = typer.Option("127.0.0.1", "--host", help="Address to bind to."),
@@ -120,6 +136,9 @@ def service(
     open_browser: bool = typer.Option(
         False, "--open", help="Open the dashboard in a web browser once the service is up."
     ),
+    auth_file: Path | None = typer.Option(None, "--auth-file", help="Owner-only shared-access user registry; enables authenticated mode."),
+    tls_cert: Path | None = typer.Option(None, "--tls-cert", help="TLS certificate for direct network access."),
+    tls_key: Path | None = typer.Option(None, "--tls-key", help="TLS private key for direct network access."),
 ) -> None:
     """Start the Object Service and the dashboard.
 
@@ -129,8 +148,18 @@ def service(
 
     from granum.core.index import Index, set_index
     from granum.service.app import create_app
+    from granum.service.auth import SharedAccess, is_loopback
     from granum.service.cache import ByteCache
 
+    loopback = is_loopback(host)
+    if not loopback and (auth_file is None or tls_cert is None or tls_key is None):
+        raise typer.BadParameter("Network binding requires --auth-file, --tls-cert and --tls-key. Otherwise bind to loopback behind a TLS proxy.")
+    if (tls_cert is None) != (tls_key is None):
+        raise typer.BadParameter("Provide both --tls-cert and --tls-key.")
+    try:
+        access = SharedAccess.from_file(auth_file) if auth_file else None
+    except (OSError, ValueError, KeyError) as exc:
+        raise typer.BadParameter(f"Invalid access configuration: {exc}") from exc
     config = _config()
     port = port or int(config.get("service.port"))
     index = Index(config=config)
@@ -141,13 +170,6 @@ def service(
         index.start(reindex_interval)
     set_index(index)
 
-    loopback = host in {"127.0.0.1", "localhost", "::1"}
-    if not loopback:
-        typer.echo(
-            f"granum: WARNING binding to {host} exposes your data to the network. The service has no "
-            "authentication yet: anyone who can reach this port can read and change projects.",
-            err=True,
-        )
     hosts = list(allow_host) + ([] if loopback or host in {"0.0.0.0", "::"} else [host])
     licensing = _service_licensing(index, str(config.get("licence.server") or ""))
     application = create_app(
@@ -158,9 +180,12 @@ def service(
         allowed_origins=list(allow_origin) or None,
         data_roots=list(data_root) or None,
         licensing=licensing,
+        access=access,
     )
     shown = "127.0.0.1" if host in {"0.0.0.0", "::"} else host
-    address = f"http://{shown}:{port}"
+    address = f"{'https' if tls_cert else 'http'}://{shown}:{port}"
+    if access:
+        typer.echo("granum: authenticated shared workspace; all accounts can read all projects. HTTPS is required.")
     from granum.service.app import _dashboard_dir
 
     if _dashboard_dir() is None:
@@ -176,10 +201,116 @@ def service(
 
         threading.Timer(1.0, lambda: webbrowser.open(address)).start()
     try:
-        uvicorn.run(application, host=host, port=port, log_level="warning")
+        uvicorn.run(application, host=host, port=port, log_level="warning",
+                ssl_certfile=str(tls_cert) if tls_cert else None, ssl_keyfile=str(tls_key) if tls_key else None,
+                proxy_headers=loopback, forwarded_allow_ips="127.0.0.1,::1")
     finally:
         licensing.stop()
         index.stop()
+
+
+@backup_app.command("create")
+def backup_create(project: str, output: Path = typer.Option(..., "--output")) -> None:
+    """Back up a stopped local project, including media and recorded model weights."""
+    import json
+
+    from granum.core.backup import backup_project
+    from granum.errors import GranumError
+
+    try:
+        typer.echo(json.dumps(backup_project(project, output, root=_config().project_root), indent=2))
+    except (GranumError, OSError, ValueError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(1) from exc
+
+
+@backup_app.command("restore")
+def backup_restore(archive: Path, name: str | None = typer.Option(None, "--name"),
+                   max_gib: int = typer.Option(100, "--max-gib", min=1, max=10000)) -> None:
+    """Verify a snapshot, relocate references, and publish under a new project name."""
+    import json
+
+    from granum.core.backup import restore_project
+    from granum.errors import GranumError
+
+    try:
+        typer.echo(json.dumps(restore_project(archive, root=_config().project_root, name=name, max_bytes=max_gib * 1024**3), indent=2))
+    except (GranumError, OSError, ValueError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(1) from exc
+
+
+@integrity_app.command("snapshot")
+def integrity_snapshot(project: str, output: Path = typer.Option(..., "--output")) -> None:
+    """Record SHA-256 identities of every image referenced by a project's versions."""
+    import json
+
+    from granum.core.index import Index
+    from granum.core.integrity import media_manifest
+    from granum.core.objects.table import Table
+    from granum.core.storage import locked
+    from granum.errors import GranumError
+
+    try:
+        with locked(Url(output)):
+            if output.exists() or output.is_symlink():
+                raise typer.BadParameter("choose a new manifest path; integrity baselines are never overwritten")
+            index = Index(config=_config())
+            index.refresh(force=True)
+            manifest = media_manifest(Table.from_url(e.url) for e in index.tables(project) if e.type_name == "table")
+            if not manifest["files"]:
+                raise typer.BadParameter("no image references found for this project")
+            Url(output).write_text(json.dumps(manifest, indent=2))
+    except (GranumError, OSError, ValueError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(1) from exc
+    typer.echo(f"Recorded {len(manifest['files'])} media identities.")
+
+
+@integrity_app.command("verify")
+def integrity_verify(manifest: Path) -> None:
+    """Report changed and missing media without modifying the baseline or the data."""
+    import json
+
+    from granum.core.integrity import verify_media
+    from granum.errors import GranumError
+
+    try:
+        result = verify_media(json.loads(manifest.read_text()))
+    except (GranumError, OSError, ValueError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(1) from exc
+    typer.echo(json.dumps(result, indent=2))
+    if not result["ok"]:
+        raise typer.Exit(1)
+
+
+@access_app.command("add-user")
+def access_add_user(
+    name: str,
+    file: Path = typer.Option(..., "--file", help="Access registry (outside project data and backups)."),
+    role: str = typer.Option("viewer", "--role", help="viewer, annotator, reviewer or admin"),
+) -> None:
+    """Add/update one account. Password input is hidden and never passed on the command line."""
+    import json
+
+    from granum.service.auth import ROLES, SharedAccess, password_hash
+
+    if role not in ROLES:
+        raise typer.BadParameter(f"role must be one of {ROLES}")
+    users = SharedAccess.from_file(file).users if file.exists() else {}
+    password = typer.prompt("Password (12+ characters)", hide_input=True, confirmation_prompt=True)
+    try:
+        users[name] = {"role": role, "password_hash": password_hash(password)}
+        SharedAccess(users)
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    file.parent.mkdir(parents=True, exist_ok=True)
+    # Owner-only from creation, not just after sensitive data has been written.
+    from granum.core.storage import atomic_bytes
+
+    atomic_bytes(file, json.dumps({"version": 1, "users": users}, indent=2).encode(), mode=0o600)
+    typer.echo(f"Updated {name} ({role}). Restart the service to apply changes/revocations.")
 
 
 @import_app.command("coco")
@@ -561,6 +692,10 @@ def _service_licensing(index: Index, server_url: str) -> Licensing:
     """This computer's licence, beating in the background while the service runs.
 
     The newest object in the projects is a clock mark: a clock behind it was turned back.
+
+    Licensing is switched off in this build (``granum.licensing.manager.ENFORCED``), so what
+    this returns is unrestricted: nothing here starts, writes or asks the server anything, and
+    the service never announces itself as read-only.
     """
     from granum.licensing import Licensing, set_licensing
     from granum.licensing.token import parse_time

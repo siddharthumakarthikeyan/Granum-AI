@@ -1,4 +1,4 @@
-/** Unsaved edits kept in this browser, so a reload, crash or closed tab loses nothing.
+/** Best-effort recovery of unsaved generic inspection edits in this browser.
  *
  * A draft is the undo stack for one open Table or Run, written to IndexedDB shortly after
  * every change and removed once the edits are saved or discarded. Tables are immutable,
@@ -54,9 +54,10 @@ async function run<T>(mode: IDBTransactionMode, action: (store: IDBObjectStore) 
   if (!db) return null;
   return new Promise((resolve) => {
     try {
-      const request = action(db.transaction(STORE, mode).objectStore(STORE));
-      request.onsuccess = () => resolve(request.result);
-      request.onerror = () => resolve(null);
+      const tx = db.transaction(STORE, mode);
+      const request = action(tx.objectStore(STORE));
+      tx.oncomplete = () => resolve(request.result);
+      tx.onabort = tx.onerror = () => resolve(null);
     } catch {
       resolve(null);
     }

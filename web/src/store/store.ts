@@ -37,6 +37,8 @@ export type RegionMode = "replace" | "add" | "subtract";
 
 export const PAGE_SIZE = 5000;
 const PAGE_CONCURRENCY = 4;
+export const MAX_BROWSER_ROWS = 250_000;
+const MAX_BROWSER_JSON_BYTES = 64 * 1024 * 1024;
 
 /** Every row of an object, not just its first page.
  *
@@ -48,6 +50,13 @@ export async function fetchAllRows(
   fetchPage: (offset: number, limit: number) => Promise<RowPage>,
 ): Promise<RowPage> {
   const first = await fetchPage(0, PAGE_SIZE);
+  if (!Number.isSafeInteger(first.total) || first.total < 0 || first.total > MAX_BROWSER_ROWS) {
+    throw new Error(`This view exceeds the ${MAX_BROWSER_ROWS.toLocaleString()}-row browser budget. Narrow the data or use the SDK; no partial data is shown.`);
+  }
+  if (first.rows.length !== Math.min(first.total, PAGE_SIZE)) throw new Error("The service returned an incomplete first page. Reload before filtering or editing.");
+  let bytes = new TextEncoder().encode(JSON.stringify(first.rows)).byteLength;
+  const checkBytes = () => { if (bytes > MAX_BROWSER_JSON_BYTES) throw new Error("This view exceeds the 64 MiB browser transfer budget. Narrow the data or omit geometry; no partial data is shown."); };
+  checkBytes();
   const offsets: number[] = [];
   for (let offset = first.rows.length; offset < first.total; offset += PAGE_SIZE) {
     offsets.push(offset);
@@ -57,7 +66,16 @@ export async function fetchAllRows(
   const worker = async () => {
     while (next < offsets.length) {
       const slot = next++;
-      pages[slot] = (await fetchPage(offsets[slot]!, PAGE_SIZE)).rows;
+      const offset = offsets[slot]!;
+      const page = await fetchPage(offset, PAGE_SIZE);
+      if (page.total !== first.total || page.offset !== offset || page.url !== first.url
+        || JSON.stringify(page.sources) !== JSON.stringify(first.sources)
+        || page.rows.length !== Math.min(PAGE_SIZE, first.total - offset)) {
+        throw new Error("The dataset changed or a page was incomplete while loading. Reload to obtain a consistent view.");
+      }
+      bytes += new TextEncoder().encode(JSON.stringify(page.rows)).byteLength;
+      checkBytes();
+      pages[slot] = page.rows;
     }
   };
   await Promise.all(Array.from({ length: Math.min(PAGE_CONCURRENCY, offsets.length) }, worker));

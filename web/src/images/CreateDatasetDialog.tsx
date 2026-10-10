@@ -115,7 +115,7 @@ export function CreateDatasetDialog({ project, dataset, images, statuses, author
 
   return (
     <Modal
-      title="Create dataset"
+      title="Create exploratory dataset version"
       onClose={running ? () => undefined : onClose}
       width={720}
       footer={running && job ? (
@@ -147,6 +147,7 @@ export function CreateDatasetDialog({ project, dataset, images, statuses, author
         <input type="text" value={name} autoFocus maxLength={80} onChange={(e) => setName(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && !problem && !busy && void create()} />
       </label>
+      <p className="notice">This freezes a dataset version for exploration. “Verified only” chooses a subset; it does not approve a release. Approve its exact contents separately on the Datasets page.</p>
       <label className="field">
         <span>Description</span>
         <textarea className="release-description" rows={3} maxLength={4000} value={description}

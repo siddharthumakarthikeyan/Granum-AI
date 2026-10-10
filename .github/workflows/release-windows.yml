@@ -11,7 +11,12 @@ permissions:
   contents: write
 
 jobs:
+  checks:
+    uses: ./.github/workflows/ci.yml
   installer:
+    needs: checks
+    env:
+      GRANUM_RELEASE_BUILD: "1"
     runs-on: windows-2022
     steps:
       - uses: actions/checkout@v5
@@ -28,13 +33,32 @@ jobs:
       - name: Build the installer
         shell: pwsh
         run: packaging\windows\build-installer.ps1
+      - name: Verify fresh install and uninstall
+        shell: pwsh
+        run: |
+          $target = Join-Path $env:RUNNER_TEMP "Granum-install-smoke"
+          $setup = (Get-ChildItem dist\*-Setup.exe | Select-Object -First 1).FullName
+          $installed = Start-Process $setup -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/DIR=`"$target`"" -Wait -PassThru
+          if ($installed.ExitCode -ne 0) { throw "Installer failed: $($installed.ExitCode)" }
+          & "$target\python\python.exe" -I tools\smoke_package.py
+          if ($LASTEXITCODE -ne 0) { throw "Installed package smoke test failed" }
+          $removed = Start-Process "$target\unins000.exe" -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART" -Wait -PassThru
+          if ($removed.ExitCode -ne 0) { throw "Uninstaller failed: $($removed.ExitCode)" }
       - uses: actions/upload-artifact@v5
         with:
           name: Granum-windows-x64
-          path: dist/*-Setup.exe
+          path: |
+            dist/*-Setup.exe
+            dist/*-Setup.exe.manifest.json
+            dist/*-Setup.exe.sha256
           compression-level: 0
       - name: Attach to the release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/*-Setup.exe
+          prerelease: true
+          fail_on_unmatched_files: true
+          files: |
+            dist/*-Setup.exe
+            dist/*-Setup.exe.manifest.json
+            dist/*-Setup.exe.sha256

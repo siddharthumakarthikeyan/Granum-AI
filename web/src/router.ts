@@ -12,7 +12,7 @@ export type Route =
   | { name: "overview"; project: string }
   | { name: "datasets"; project: string }
   | { name: "runs"; project: string }
-  | { name: "images"; project: string; dataset?: string; review?: boolean; edit?: boolean; similar?: boolean; patches?: boolean; stats?: boolean; like?: string; open?: string }
+  | { name: "images"; project: string; dataset?: string; review?: boolean; edit?: boolean; similar?: boolean; patches?: boolean; stats?: boolean; fields?: boolean; like?: string; open?: string }
   | { name: "import"; project?: string; example?: boolean }
   | { name: "report"; project: string; id: string }
   | { name: "table"; project: string; url: string }
@@ -53,6 +53,7 @@ export function parseRoute(hash: string): Route {
         // Orthogonal to the modes: a panel of counts, and an order, either of which can be
         // on whatever the gallery is doing.
         if (params.get("stats") === "1") route.stats = true;
+        if (params.get("fields") === "1") route.fields = true;
         if (params.get("like")) route.like = params.get("like")!;
         if (params.get("open")) route.open = params.get("open")!;
         return route;
@@ -113,6 +114,7 @@ export function routeHref(route: Route): string {
       else if (route.similar) query.set("similar", "1");
       else if (route.patches) query.set("patches", "1");
       if (route.stats) query.set("stats", "1");
+      if (route.fields) query.set("fields", "1");
       if (route.like) query.set("like", route.like);
       if (route.open) query.set("open", route.open);
       const text = query.toString();

@@ -1,5 +1,18 @@
 # Licensing
 
+> **Switched off in this build.** `ENFORCED = False` in `src/granum/licensing/manager.py`, so a
+> current qualified unrestricted-alpha build is never read-only for licensing, never asks to buy anything and never talks to a licence
+> server: every `Licensing` is unrestricted, no heartbeat runs, no state is written, and the
+> dashboard shows no licence link. Everything below is what happens when that line is `True`.
+> The machinery is kept whole and is still tested — `tests/test_licensing.py` passes
+> `enforced=True`. Re-enabling it commercially requires an explicit policy decision, a new
+> qualified build/channel, matching public terms and validated payment/account operations—not
+> merely changing a constant. Existing installer versions must be checked separately.
+
+The website now presents proprietary alpha access and manually agreed pilots, not active metered
+subscriptions. Disabled enforcement does not grant usage rights. Shared HTTPS accounts/roles are
+separate from commercial licensing; see [Operational hardening](hardening.md).
+
 Granum checks a signed licence key on each computer. Without a valid key, or when the plan
 has ended, the app is **read-only**: projects open, images and runs can be viewed and data
 exported, but nothing can be created, edited, imported or trained.
@@ -75,11 +88,11 @@ Neon Postgres database; its README has the deployment steps.
 | `POST /v1/activate {email, code, machine}` | the app | returns `{key, licence}`: the plan, or a free trial |
 | `POST /v1/refresh {key}` | the app | a fresh key and lease |
 | `POST /v1/deactivate {key}` | the app (Sign out) | frees the machine |
-| `POST /v1/admin/grant {email, plan, days, machines, max_projects}` | website backend on payment | creates a paid plan |
-| `POST /v1/admin/extend {lid, days}` | website backend on renewal | adds days |
-| `POST /v1/admin/revoke {lid}` | website backend on refund | cancels |
-| `POST /v1/admin/free-machine {lid, machine}` | website account page | frees a machine |
-| `GET /v1/admin/account?email=` | website account page | plans and machines of an account |
+| `POST /v1/admin/grant {email, plan, days, machines, max_projects}` | operator, manually | creates a plan record |
+| `POST /v1/admin/extend {lid, days}` | operator, manually | adds days |
+| `POST /v1/admin/revoke {lid}` | operator, manually | cancels |
+| `POST /v1/admin/free-machine {lid, machine}` | operator, manually | frees a machine |
+| `GET /v1/admin/account?email=` | operator tooling | plans and machines of an account |
 
 Admin endpoints need `Authorization: Bearer $LICENCE_ADMIN_TOKEN`.
 

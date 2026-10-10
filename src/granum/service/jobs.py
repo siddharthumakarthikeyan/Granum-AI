@@ -13,6 +13,7 @@ import time
 import traceback
 from collections import deque
 from collections.abc import Callable
+from contextvars import copy_context
 from dataclasses import dataclass, field
 from typing import Any
 from uuid import uuid4
@@ -116,7 +117,8 @@ class JobRegistry:
             finally:
                 job.finished = time.time()
 
-        threading.Thread(target=run, name=f"granum-job-{job.id}", daemon=True).start()
+        context = copy_context()
+        threading.Thread(target=lambda: context.run(run), name=f"granum-job-{job.id}", daemon=True).start()
         return job
 
     def get(self, job_id: str) -> Job | None:

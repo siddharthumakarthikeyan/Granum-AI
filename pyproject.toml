@@ -34,6 +34,7 @@ dependencies = [
     "pyyaml>=5.4",
     "numpy>=1.23",
     "cryptography>=41",
+    "filelock>=3.13",
 ]
 
 [project.optional-dependencies]
@@ -57,13 +58,13 @@ packages = ["src/granum"]
 # (`cd web && npm ci && npm run build` writes src/granum/service/static), so
 # `pip install granum` then `granum service` is the whole setup. Without a build the
 # package still builds and the service serves the API only.
-artifacts = ["src/granum/service/static/**"]
+artifacts = ["src/granum/service/static/**", "src/granum/_build.json"]
 
 # hatch_build.py builds the dashboard during `pip install` when it is missing.
 [tool.hatch.build.targets.wheel.hooks.custom]
 
 [tool.hatch.build.targets.sdist]
-exclude = ["web/node_modules", "src/granum/service/static", "docs/assets"]
+exclude = ["web/node_modules", "web/test-results", "web/playwright-report", "src/granum/service/static", "src/granum/_build.json", "docs/assets"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

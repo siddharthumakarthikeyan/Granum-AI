@@ -119,6 +119,79 @@ brings in both more objects and more images, so a page is a run you can scan rat
 scroll that never ends. Clicking a tile opens its image full screen with that object picked out
 and the rest of the picture dimmed, which is where a wrong label gets fixed.
 
+## Tags and saved views
+
+A **tag** is a word someone put on an image because it mattered to them — `night`, `recheck`,
+`from-the-carpark-camera`. Nobody has to ask permission to invent one, and it is not a fact
+about the data: a class is what an object *is*, a tag is what a person wants to remember. Tags
+live with the dataset rather than with the browser tab, as an append-only log, so they outlive
+a session, survive a new version of a set and can be read with a text editor.
+
+A tag can also go on **one box** rather than on the picture holding it. Pick a box in the
+inspector and the panel under it takes a word: `occluded`, `check-this`, `wrong-class`. That is
+a claim about the object, so it is kept apart from the image's own tags — the ribbon's tag menu
+shows both counts, images and boxes, and filtering by a tag leaves the images that carry it and
+the images holding a box that carries it. Boxes are addressed by their annotation id where the
+import gave them one, so a tag survives the boxes being reordered.
+
+**Views** save the ribbon — the sets, classes, status, tags, order, grouping, sample and field
+filters in front of you — under a name, so "the unverified night shots in valid, ordered by
+capture time" is one click rather than eight. A saved field filter is applied over the widget
+today's data built, so a range saved last month narrows this month's set rather than redefining
+what its column spans.
+
+## Fields: the columns the set actually has
+
+An import brings more than pictures and boxes. A COCO file carries a capture time, a camera, a
+sequence; a version written by review carries where an image was removed from and why; a
+weighted set carries its weights. **Fields** in the ribbon opens a panel with one control per
+such column, built from the set's own schema rather than written out screen by screen — a
+column that arrives in next week's import is filterable the day it lands.
+
+Each column gets the control it deserves. A number gets a histogram and a range you can type
+into. A column with few values gets a list of them with counts and a bar each; clicking one
+switches it off, double-clicking shows only it. A column with thousands of distinct values — a
+file name, a source frame — gets a *contains* box, because a list of seven thousand paths is
+not a control. Where a column says nothing about some images, *Images with no value* decides
+whether they are shown.
+
+Every widget counts against the images the *other* filters leave, so narrowing one says
+something: the dark part of a bar is what this filter excluded and the gap to full height is
+what the rest of the ribbon did.
+
+The chart button on a field opens its **summary** over the images on screen: how many carry a
+value, how many distinct ones, and for a number its bounds, mean, standard deviation, median,
+quartiles and sum. Over the images on screen rather than over the whole column, because a mean
+over the validation set's night shots is a different number from the mean, and it is usually
+the one being asked about.
+
+Columns that say nothing are not offered: one holding the same value for every image, a
+nearly-unique string such as a content hash, and a column whose values are long blobs — a COCO
+import keeps the original record as JSON, and a control over that would cost megabytes to
+answer nothing. A nearly-unique *number* is kept but shown last under **Identifiers**: ordering
+by an image id is ordering by import order, which is a real question.
+
+## Ordering, grouping and sampling
+
+**Order by** offers the four built-in orders — filename, last updated, date added, uniqueness —
+and, under them, every column of the set. A column with no value on some images puts those
+images last whichever way round the order runs, so "newest capture first" does not open on the
+images that have no capture time.
+
+**Sample** holds three things that belong together: a **shuffle** with a seed, a **skip** and a
+**take**. The seed is shown rather than hidden, because "the first two hundred of a shuffle" is
+only a defensible sample if it can be named and handed to someone else.
+
+**Group by** cuts the gallery into sections by the set, by review status, or by any column, with
+a heading on each saying what it is and how many images it holds. A continuous column is cut
+into ranges rather than into one group per image; a column with more values than a reader can
+scan gathers its tail into one group; images the column says nothing about come last in a group
+of their own, because "which ones does this column not cover" is usually worth asking.
+
+Each group draws a handful of its images, and its heading opens it in full — a set of 260 drone
+flights should show 260 flights, not the first flight and nothing else. **Flatten** keeps the
+groups' order and drops the headings, which is the grouped view read back as one list.
+
 ## Stats: what these images are made of
 
 **Stats** opens a panel beside the gallery counting the selection: images per set, where they
@@ -266,6 +339,19 @@ Evaluation page reads one run's stored predictions three ways:
 - **Threshold**: precision and recall as the operating confidence is swept, with the point that
   scores best named — the confidence a team ships at is a choice, and it is usually a guess.
 
+Under them, the same predictions unrolled the other way: **every object, one tile each**. Found,
+invented and missed are three toggles, each carrying its own count, and one class can be picked
+out. A cell of the matrix has already pooled its objects into a number; forty invented boxes of
+one class, seen side by side as crops, say in a glance whether the model is wrong or the labels
+are — which is the thing a reader can act on. A found object is drawn with the label solid and
+the model's box dashed over it, an invented one dashed alone, a missed one solid alone, and each
+tile links to the image it came from.
+
+These rows are matched *within* a class, the rule the score is computed under, so they and the
+headline cannot disagree. A box in the right place with the wrong class is therefore two rows,
+one invented and one missed, exactly as the score counts it; the matrix above is where it reads
+as a single confusion.
+
 ## Findings: labels worth checking
 
 **Findings** ranks the labels a model disagrees with, under four rules — a confident prediction
@@ -370,6 +456,6 @@ for a pilot write-up or a regression record.
 
 ## Performance
 
-With the dev server running, `http://localhost:5173/?bench=1000000` loads a million synthetic rows
-with no service needed. On an RTX PRO 4000 laptop GPU, pan, zoom and lasso hold 60 fps, and applying
-a lasso to a million rows takes about 115 ms.
+The historical `http://localhost:5173/?bench=1000000` demonstration renders synthetic points without a
+service. It is not an import, multi-epoch, geometry, browser-memory or shared-service capacity test.
+Use the [reproducible workflow measurements and enforced budgets](scaling.md) for deployment planning.

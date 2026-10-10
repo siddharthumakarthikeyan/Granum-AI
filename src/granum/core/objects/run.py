@@ -15,16 +15,15 @@ import json
 from collections.abc import Callable, Sequence
 from typing import Any
 
-import pyarrow.parquet as pq
-
 from granum.core.config import Config, get_config
-from granum.core.layout import ROW_CACHE_FILENAME, ProjectLayout, sanitize
+from granum.core.layout import ProjectLayout, sanitize
 from granum.core.objects.base import (
     GranumObject,
     read_object_payload,
     register_object_type,
     utcnow,
     write_object_payload,
+    write_table_payload,
 )
 from granum.core.objects.table import Table, _build_arrow
 from granum.core.schemas import (
@@ -33,6 +32,7 @@ from granum.core.schemas import (
     TableSchema,
     infer_metric_schema,
 )
+from granum.core.storage import workspace_lock
 from granum.core.url import Url
 from granum.errors import GranumError
 
@@ -215,21 +215,33 @@ class Run(GranumObject):
 
     # -- hyperparameters ----------------------------------------------------
 
+    @workspace_lock()
     def set_parameters(self, parameters: dict[str, Any]) -> Run:
         """Record or update hyperparameters. Safe to call after the Run starts."""
-        merged = {**self.parameters, **parameters}
+        payload = read_object_payload(self.url)
+        merged = {**payload.get("parameters", {}), **parameters}
         object.__setattr__(self, "parameters", merged)
-        return self._save()
+        write_object_payload(self.url, {**payload, "parameters": merged})
+        return self
 
+    @workspace_lock()
     def set_status(self, status: str) -> Run:
         object.__setattr__(self, "status", status)
-        return self._save()
+        write_object_payload(self.url, {**read_object_payload(self.url), "status": status})
+        return self
 
     # -- metrics tables -----------------------------------------------------
 
     def _next_metrics_url(self) -> Url:
         existing = [u.name for u in self.url.ls() if u.name.startswith(METRICS_DIR_PREFIX)]
-        return self.url / f"{METRICS_DIR_PREFIX}{len(existing):04d}"
+        number = max((int(n[len(METRICS_DIR_PREFIX):]) for n in existing if n[len(METRICS_DIR_PREFIX):].isdigit()), default=-1) + 1
+        while True:
+            target = self.url / f"{METRICS_DIR_PREFIX}{number:04d}"
+            try:
+                target.mkdir(exist_ok=False)
+                return target
+            except FileExistsError:
+                number += 1
 
     def metrics_tables(self) -> list[MetricsTable]:
         """Every metrics table on this Run, in creation order."""
@@ -297,9 +309,7 @@ class Run(GranumObject):
             foreign_table_url=foreign_table_url,
             constants=constants,
         )
-        target.mkdir()
-        pq.write_table(arrow, (target / ROW_CACHE_FILENAME).path, filesystem=target.fs)
-        write_object_payload(target, table.to_dict())
+        write_table_payload(target, arrow, table.to_dict())
         return table
 
     # -- aggregate metrics --------------------------------------------------
@@ -308,6 +318,7 @@ class Run(GranumObject):
     def _aggregate_url(self) -> Url:
         return self.url / AGGREGATE_FILENAME
 
+    @workspace_lock()
     def log(self, values: dict[str, Any]) -> Run:
         """Append a row of aggregate scalars.
 
@@ -376,6 +387,7 @@ def _check_licence(layout: ProjectLayout, project_name: str) -> None:
         raise RunError(str(exc)) from exc
 
 
+@workspace_lock()
 def init(
     project_name: str = "default",
     run_name: str | None = None,

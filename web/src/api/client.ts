@@ -5,7 +5,7 @@
  */
 
 import type { AugmentExample, AugmentRecipe, LicenceStatus,
-  BrowseResult, ComparisonReport, DatasetHealth, EmbeddingReport, EmbeddingScores, EmbeddingStatus, EvaluationExample, EvaluationReport, ExampleDataset, ExportResult, FindingsReport, FormatsReport, Health, QaEvent, QaVersionCounts, QaImageDetail, QaOverview, QaState, QaStatus, Release, TaskId, LibraryClass, LibraryProject, PullResult, ImageBoxes, ImageRounds, ImagesOverview, LearningReport, RemovedImage, VersionRef, ReviewEvent, TrainingResult, TrainingStatus, ImportResult, ImportSource, ImportSummary, Job, LineageGraph,
+  BrowseResult, ComparisonReport, DatasetHealth, EmbeddingReport, EmbeddingScores, EmbeddingStatus, EvaluationExample, EvaluationOutcomes, EvaluationReport, ExampleDataset, ExportResult, FindingsReport, FormatsReport, Health, QaEvent, QaVersionCounts, QaImageDetail, QaOverview, QaState, QaStatus, Release, TaskId, LibraryClass, LibraryProject, PullResult, ImageBoxes, ImageRounds, ImagesOverview, LearningReport, RemovedImage, VersionRef, ReviewEvent, TrainingResult, TrainingStatus, ImportResult, ImportSource, ImportSummary, Job, LineageGraph,
   ModelOptions, ObjectEntry, PreflightReport, PrelabelResult, TagOverview, ProjectCard, ProjectSummary, CommitResult, RowPage, RunMetadata, SavedView, ScreeningOptions, SimilarImages, TableMetadata,
 } from "./types";
 import type { CommitPayload } from "../store/editing";
@@ -18,6 +18,29 @@ export class ServiceError extends Error {
 }
 
 const BASE = "";
+
+/** Bound decoded JSON even if the service/proxy omits Content-Length. */
+async function readJson(response: Response): Promise<unknown> {
+  const warning = response.headers.get("X-Granum-Audit-Warning");
+  if (warning) window.dispatchEvent(new CustomEvent("granum:service-warning", { detail: warning }));
+  const limit = 64 * 1024 * 1024;
+  if (!response.body) return response.json();
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let bytes = 0;
+  const chunks: string[] = [];
+  try {
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      bytes += value.byteLength;
+      if (bytes > limit) { await reader.cancel(); throw new ServiceError("Response exceeds the 64 MiB browser budget. Narrow the dataset; no partial result was loaded.", 413); }
+      chunks.push(decoder.decode(value, { stream: true }));
+    }
+    chunks.push(decoder.decode());
+    return JSON.parse(chunks.join("")) as unknown;
+  } finally { reader.releaseLock(); }
+}
 
 async function request<T>(
   path: string,
@@ -57,7 +80,7 @@ async function request<T>(
     if (response.status === 402) window.dispatchEvent(new CustomEvent("granum:licence", { detail }));
     throw new ServiceError(detail, response.status);
   }
-  return (await response.json()) as T;
+  return (await readJson(response)) as T;
 }
 
 /** A request with a method the plain helper does not cover, e.g. deleting a saved view. */
@@ -80,11 +103,14 @@ async function requestMethod<T>(method: string, path: string, params?: Record<st
     if (response.status === 402) window.dispatchEvent(new CustomEvent("granum:licence", { detail }));
     throw new ServiceError(typeof detail === "string" ? detail : String(detail), response.status);
   }
-  return (await response.json()) as T;
+  return (await readJson(response)) as T;
 }
 
 export const api = {
   health: () => request<Health>("/api/health"),
+  access: () => request<{ mode: "local" | "shared"; name: string | null; role: string; scope: string; attribution: string; audit_available?: boolean }>("/api/access"),
+  approveRelease: (project: string, dataset: string, release_id: string) =>
+    request<{ release: Release }>("/api/qa/approve", undefined, { project, dataset, release_id }),
 
   licence: () => request<LicenceStatus>("/api/licence"),
   installLicence: (key: string) => request<LicenceStatus>("/api/licence/install", undefined, { key }),
@@ -129,7 +155,7 @@ export const api = {
 
   /** Write an editing session to a new revision. Only changed cells are sent. */
   commit: (payload: CommitPayload & { name?: string; description?: string }) =>
-    request<CommitResult>("/api/table/commit", undefined, payload),
+    request<CommitResult>("/api/table/commit", undefined, { ...payload, expected_head: payload.url }),
 
   reindex: () => request<{ objects: number }>("/api/reindex", undefined, {}),
 
@@ -237,6 +263,14 @@ export const api = {
     Object.fromEntries(Object.entries(params).filter(([, v]) => v !== undefined)) as Record<string, string | number>,
   ),
 
+  /** Every object a run got right, invented or missed, as rows to cut crops from. */
+  evaluationOutcomes: (params: {
+    url: string; split?: string; kinds?: string; labels?: string; confidence?: number; limit?: number;
+  }) => request<EvaluationOutcomes>(
+    "/api/run/evaluation/outcomes",
+    Object.fromEntries(Object.entries(params).filter(([, v]) => v !== undefined)) as Record<string, string | number>,
+  ),
+
   /** The neighbour graph: a second or so the first time, then served from the service's cache. */
   embeddingReport: (project: string, dataset: string, limit = 5000) =>
     request<EmbeddingReport>("/api/embeddings/report", { project, dataset, limit }),
@@ -273,7 +307,7 @@ export const api = {
   /** Words people have put on this dataset's images. */
   tags: (project: string, dataset: string) => request<TagOverview>("/api/tags", { project, dataset }),
 
-  tagImages: (payload: { project: string; dataset: string; samples: string[]; add?: string[]; remove?: string[]; author?: string }) =>
+  tagImages: (payload: { project: string; dataset: string; samples: string[]; add?: string[]; remove?: string[]; objects?: string[]; author?: string }) =>
     request<TagOverview & { images_tagged: Record<string, string[]> }>("/api/tags", undefined, payload),
 
   /** Named filter sets for this dataset. */
@@ -301,6 +335,7 @@ export const api = {
     request<TrainingStatus>("/api/training/status", { project }),
 
   startTraining: (payload: {
+    release_id?: string; require_approved?: boolean;
     project: string; train_table: string; valid_table: string; test_table?: string | null; rounds: number;
     family: string; version: string; image_size: number; track_learning: boolean;
     compare_with?: string | null;

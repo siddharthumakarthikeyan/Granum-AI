@@ -8,11 +8,16 @@
  * Every cell of the matrix is a button, and picking one shows the objects behind it, cropped
  * to the box: a matrix nobody can look through is a decoration. The label is drawn solid and
  * the model's box dashed over it, which is the whole disagreement in one picture.
+ *
+ * Under it, the same predictions unrolled the other way: one tile per object the run got
+ * right, invented or missed. A cell of the matrix has already pooled its objects into a
+ * number; forty false positives of one class seen side by side say in a glance whether the
+ * model is wrong or the labels are, which is the thing a reader can act on.
  */
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { api } from "../api/client";
-import type { EvaluationExample, EvaluationReport } from "../api/types";
+import type { EvaluationExample, EvaluationOutcome, EvaluationOutcomes, EvaluationReport } from "../api/types";
 import { EmptyState, Icon, PageHeader, formatNumber, plural } from "../components/ui";
 import { navigate, routeHref } from "../router";
 import { useStore } from "../store/store";
@@ -25,6 +30,19 @@ interface Cell {
 }
 
 const percent = (value: number) => `${(value * 100).toFixed(1)}%`;
+
+type Outcome = "tp" | "fp" | "fn";
+
+/** What each kind is called, and what it means, in the reader's terms rather than the
+ *  scorer's: nobody thinks in true positives while looking at a picture. */
+const OUTCOME_LABEL: Record<Outcome, { name: string; detail: string }> = {
+  tp: { name: "Found", detail: "A label the model covered with a box of the same class" },
+  fp: { name: "Invented", detail: "A confident box with no label of that class under it" },
+  fn: { name: "Missed", detail: "A label nothing of its class found" },
+};
+
+/** Objects drawn at once. A page a reader can actually scan, and more on request. */
+const OUTCOME_PAGE = 300;
 
 export function EvaluationPage({ project, url }: { project: string; url?: string }) {
   const runs = useStore((s) => s.runs);
@@ -42,6 +60,12 @@ export function EvaluationPage({ project, url }: { project: string; url?: string
   const [confidence, setConfidence] = useState(0.25);
   const [cell, setCell] = useState<Cell | null>(null);
   const [examples, setExamples] = useState<EvaluationExample[] | null>(null);
+  // The mistakes are the point of the page, so it opens on them rather than on what worked.
+  const [kinds, setKinds] = useState<Set<Outcome>>(new Set<Outcome>(["fp", "fn"]));
+  const [outcomeClass, setOutcomeClass] = useState<number | null>(null);
+  const [outcomes, setOutcomes] = useState<EvaluationOutcomes | null>(null);
+  const [outcomesError, setOutcomesError] = useState<string | null>(null);
+  const [outcomeLimit, setOutcomeLimit] = useState(OUTCOME_PAGE);
 
   const load = useCallback(async () => {
     if (!runUrl) return;
@@ -60,6 +84,39 @@ export function EvaluationPage({ project, url }: { project: string; url?: string
     setCell(null);
     void load();
   }, [load]);
+
+  /** The objects themselves, asked for again whenever the reading they belong to changes.
+   *  Kept out of `/api/run/evaluation` on purpose: the report is cached per operating point
+   *  and every reader wants it, while six hundred crops are wanted by the reader who scrolls
+   *  that far. */
+  useEffect(() => {
+    if (!runUrl || !report?.stores_boxes) {
+      setOutcomes(null);
+      return;
+    }
+    let alive = true;
+    setOutcomesError(null);
+    api.evaluationOutcomes({
+      url: runUrl,
+      split: split ?? undefined,
+      confidence,
+      kinds: [...kinds].join(",") || "tp,fp,fn",
+      ...(outcomeClass === null ? {} : { labels: String(outcomeClass) }),
+      limit: outcomeLimit,
+    })
+      .then((next) => alive && setOutcomes(next))
+      .catch((e) => {
+        if (!alive) return;
+        setOutcomes(null);
+        setOutcomesError(e instanceof Error ? e.message : String(e));
+      });
+    return () => {
+      alive = false;
+    };
+  }, [runUrl, split, confidence, kinds, outcomeClass, outcomeLimit, report?.stores_boxes]);
+
+  /** A new reading is a new set of objects: do not keep paging through the old one. */
+  useEffect(() => setOutcomeLimit(OUTCOME_PAGE), [runUrl, split, confidence, kinds, outcomeClass]);
 
   useEffect(() => {
     if (!cell || !runUrl) {
@@ -181,6 +238,31 @@ export function EvaluationPage({ project, url }: { project: string; url?: string
               <Examples examples={examples} report={report} project={project} />
             </section>
           )}
+
+          <section className="eval-section">
+            <h3 className="card-title">Every object, one tile each</h3>
+            <p className="muted small">
+              The matrix pools its objects into a number; these are the objects. A wall of one
+              class's invented boxes says in a glance whether the model is wrong or the labels
+              are. A found object is drawn with the label solid and the model's box dashed over
+              it; an invented one is dashed alone; a missed one is solid alone.
+            </p>
+            <OutcomeBar
+              report={report}
+              outcomes={outcomes}
+              kinds={kinds}
+              onKinds={setKinds}
+              chosen={outcomeClass}
+              onClass={setOutcomeClass}
+            />
+            <Outcomes
+              outcomes={outcomes}
+              error={outcomesError}
+              report={report}
+              project={project}
+              onMore={() => setOutcomeLimit(outcomeLimit + OUTCOME_PAGE)}
+            />
+          </section>
 
           <section className="eval-section">
             <h3 className="card-title">Every class</h3>
@@ -316,6 +398,127 @@ function Matrix({ report, chosen, onPick }: {
       </table>
     </div>
   );
+}
+
+/** Which kinds of object to show, and of which class. Each toggle carries its own count, so
+ *  the choice is made knowing what is behind it. */
+function OutcomeBar({ report, outcomes, kinds, onKinds, chosen, onClass }: {
+  report: EvaluationReport;
+  outcomes: EvaluationOutcomes | null;
+  kinds: Set<Outcome>;
+  onKinds: (next: Set<Outcome>) => void;
+  chosen: number | null;
+  onClass: (label: number | null) => void;
+}) {
+  const classes = useMemo(
+    () => Object.entries(report.classes ?? {}).map(([key, label]) => ({ key: Number(key), label }))
+      .sort((a, b) => a.label.localeCompare(b.label)),
+    [report.classes],
+  );
+  const toggle = (kind: Outcome) => {
+    const next = new Set(kinds);
+    if (next.has(kind)) next.delete(kind);
+    else next.add(kind);
+    // Nothing chosen is a blank page rather than a choice; the last one stays on.
+    if (next.size > 0) onKinds(next);
+  };
+
+  return (
+    <div className="ribbon eval-outcome-bar">
+      <div className="segmented" role="group" aria-label="Which objects">
+        {(["tp", "fp", "fn"] as Outcome[]).map((kind) => (
+          <button
+            key={kind}
+            className={kinds.has(kind) ? "on" : ""}
+            aria-pressed={kinds.has(kind)}
+            onClick={() => toggle(kind)}
+            title={OUTCOME_LABEL[kind].detail}
+          >
+            {OUTCOME_LABEL[kind].name}
+            <span className="split-toggle-count">{outcomes ? formatNumber(outcomes.counts[kind]) : "—"}</span>
+          </button>
+        ))}
+      </div>
+      <div className="select-wrap">
+        <select
+          aria-label="Class"
+          value={chosen === null ? "" : String(chosen)}
+          onChange={(e) => onClass(e.target.value === "" ? null : Number(e.target.value))}
+        >
+          <option value="">All classes</option>
+          {classes.map((entry) => <option key={entry.key} value={entry.key}>{entry.label}</option>)}
+        </select>
+      </div>
+      <span className="spacer" />
+      {outcomes && (
+        <span className="muted small">
+          {formatNumber(outcomes.objects.length)} drawn
+          {outcomes.capped ? ` of ${formatNumber([...kinds].reduce((sum, kind) => sum + outcomes.counts[kind], 0))}` : ""}
+          {" "}· over {plural(outcomes.images, "image")}
+        </span>
+      )}
+    </div>
+  );
+}
+
+/** The objects themselves. The crop is the same one the matrix draws, because it is the same
+ *  question asked from the other end. */
+function Outcomes({ outcomes, error, report, project, onMore }: {
+  outcomes: EvaluationOutcomes | null;
+  error: string | null;
+  report: EvaluationReport;
+  project: string;
+  onMore: () => void;
+}) {
+  if (error) return <p className="form-error">{error}</p>;
+  if (outcomes === null) return <p className="muted"><span className="spinner" /> Matching every box</p>;
+  if (outcomes.objects.length === 0) return <p className="muted">No object of this kind at this threshold.</p>;
+  const name = (label: number) => report.classes?.[String(label)] ?? String(label);
+
+  return (
+    <>
+      <div className="eval-examples">
+        {outcomes.objects.map((object, i) => (
+          <a
+            key={`${object.image}-${object.kind}-${i}`}
+            className={`eval-example outcome-${object.kind}`}
+            href={routeHref({ name: "images", project, dataset: report.dataset ?? undefined, open: object.image ?? undefined })}
+            title={`${OUTCOME_LABEL[object.kind].name} · ${name(object.label)}${
+              object.confidence !== null ? `\nconfidence ${object.confidence.toFixed(2)}` : ""}${
+              object.iou !== undefined ? `\noverlap ${object.iou.toFixed(2)}` : ""}\n${object.image ?? ""}`}
+          >
+            <Crop example={asExample(object)} project={project} dataset={report.dataset ?? null} />
+            <span className="eval-example-foot">
+              <span className="truncate">{name(object.label)}</span>
+              <span className="faint">
+                {object.confidence !== null ? `${Math.round(object.confidence * 100)}%` : "missed"}
+              </span>
+            </span>
+          </a>
+        ))}
+      </div>
+      {outcomes.capped && (
+        <div className="qa-more">
+          <button className="button" onClick={onMore}>Show more objects</button>
+        </div>
+      )}
+    </>
+  );
+}
+
+/** An outcome drawn by the crop the matrix uses: a label is solid, a prediction is dashed.
+ *
+ * Found is both -- the label with the model's box over it. Invented is the prediction alone,
+ * which the crop draws dashed when there is no label. Missed is the label alone.
+ */
+function asExample(object: EvaluationOutcome): EvaluationExample {
+  const shared = { image: object.image, example_id: null, width: object.width, height: object.height,
+                   predicted_label: object.kind === "fn" ? null : object.label, confidence: object.confidence };
+  if (object.kind === "tp") {
+    return { ...shared, box: object.label_box ?? object.box, predicted_box: object.box, label: object.label };
+  }
+  if (object.kind === "fn") return { ...shared, box: object.box, label: object.label };
+  return { ...shared, box: object.box, label: null };
 }
 
 /** The objects behind a cell, cropped to the box with a little of the picture around it. */

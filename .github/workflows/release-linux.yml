@@ -11,7 +11,12 @@ permissions:
   contents: write
 
 jobs:
+  checks:
+    uses: ./.github/workflows/ci.yml
   appimage:
+    needs: checks
+    env:
+      GRANUM_RELEASE_BUILD: "1"
     # The oldest supported Ubuntu, so the app runs on it and everything newer.
     runs-on: ubuntu-22.04
     steps:
@@ -42,10 +47,18 @@ jobs:
       - uses: actions/upload-artifact@v5
         with:
           name: Granum-linux-x86_64
-          path: dist/*.AppImage
+          path: |
+            dist/*.AppImage
+            dist/*.AppImage.manifest.json
+            dist/*.AppImage.sha256
           compression-level: 0
       - name: Attach to the release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/*.AppImage
+          prerelease: true
+          fail_on_unmatched_files: true
+          files: |
+            dist/*.AppImage
+            dist/*.AppImage.manifest.json
+            dist/*.AppImage.sha256

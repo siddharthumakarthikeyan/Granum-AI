@@ -1581,6 +1581,8 @@ button.danger-solid:disabled { background: var(--panel-3); border-color: var(--b
 
 .images-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; align-items: start; }
 .images-page.with-detail .images-body { grid-template-columns: minmax(0, 1fr) 360px; }
+.images-page.with-fields .images-body { grid-template-columns: minmax(0, 1fr) 300px; }
+.images-page.with-fields.with-detail .images-body { grid-template-columns: minmax(0, 1fr) 300px 360px; }
 .images-main { min-width: 0; }
 
 .images-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(176px, 1fr)); gap: 10px; }
@@ -1665,7 +1667,9 @@ button.class-chip.dimmed { opacity: .45; }
 .image-detail-actions .button { flex: 1; justify-content: center; }
 
 @media (max-width: 1100px) {
-  .images-page.with-detail .images-body { grid-template-columns: minmax(0, 1fr); }
+  .images-page.with-detail .images-body,
+  .images-page.with-fields .images-body,
+  .images-page.with-fields.with-detail .images-body { grid-template-columns: minmax(0, 1fr); }
   .image-detail { position: static; max-height: none; }
 }
 
@@ -2239,6 +2243,8 @@ button.image-card-frame { width: 100%; padding: 0; border: 0; border-radius: 0; 
 
 .aug-range { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; }
 .aug-to { font-size: 12px; color: var(--text-3); padding-bottom: 7px; }
+.aug-ranges { display: flex; flex-direction: column; gap: 12px; }
+.aug-range-name { flex: 0 0 100%; font-size: 12px; font-weight: 500; color: var(--text-2); }
 .aug-bounds { margin-left: auto; padding-bottom: 7px; }
 .aug-number { display: flex; flex-direction: column; gap: 4px; }
 .aug-number-label { font-size: 11px; color: var(--text-3); }
@@ -2588,3 +2594,99 @@ button.image-card-frame { width: 100%; padding: 0; border: 0; border-radius: 0; 
 .compare-facts { list-style: none; margin: 0 0 6px; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12.5px; color: var(--text-2); }
 .compare-facts span { font-variant-numeric: tabular-nums; color: var(--text); font-weight: 600; }
 .compare-cost .data-table-wrap { margin: 0 0 8px; }
+
+/* ---------- fields: a control per column of the set ---------- */
+/* Sticky like the stats panel and for the same reason: a widget is read against the images
+   it narrows, so it follows them down the page rather than taking room from them. */
+.fields-panel {
+  position: sticky; top: 12px; align-self: start; max-height: calc(100vh - 24px); overflow-y: auto;
+  background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius-m);
+}
+.fields-panel .qa-side-head { position: sticky; top: 0; z-index: 1; background: var(--panel); }
+.qa-side-empty { padding: 12px 14px; }
+.field-widget { padding: 10px 12px; border-bottom: 1px solid var(--border); }
+.field-widget.on { background: var(--panel-2); }
+.field-head { display: flex; align-items: center; gap: 6px; min-height: 22px; margin-bottom: 6px; }
+.field-head .name { font: 600 12px var(--sans); color: var(--text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.field-head .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--cyan); flex: none; }
+.field-head .icon-button { width: 22px; height: 22px; }
+.field-head .icon-button.on { color: var(--cyan); }
+.fields-divider { padding: 8px 12px 2px; font: 600 11px var(--sans); color: var(--text-3); text-transform: uppercase; letter-spacing: .04em; }
+.field-missing {
+  display: grid; grid-template-columns: 14px minmax(0, 1fr); column-gap: 8px; align-items: center;
+  width: 100%; margin-top: 4px; padding: 4px 6px; border: 0; border-radius: 3px; background: none;
+  color: var(--text-2); text-align: left; font: 12px var(--sans); cursor: pointer;
+}
+.field-missing:hover { background: var(--panel-3); color: var(--text); }
+.field-missing.off { color: var(--text-3); }
+.field-missing.off .value-check { background: none; box-shadow: inset 0 0 0 1.5px var(--border-2); }
+.field-missing.off .value-check::after { display: none; }
+.field-summary { margin: 8px 0 0; padding: 8px 0 0; border-top: 1px dashed var(--border-2); font-size: 12px; }
+.field-summary > div { display: flex; align-items: baseline; gap: 8px; min-height: 18px; }
+.field-summary dt { color: var(--text-3); }
+.field-summary dd { margin: 0 0 0 auto; color: var(--text); }
+.field-summary-top { flex-direction: column; align-items: stretch; }
+.field-summary-top dd { margin: 2px 0 0; color: var(--text-2); }
+
+/* ---------- shuffle, skip and take ---------- */
+.sample-menu { min-width: 232px; padding: 8px; }
+.sample-row { display: flex; align-items: center; gap: 8px; height: 28px; font-size: 12.5px; color: var(--text-2); }
+.sample-row > span:first-child { min-width: 42px; }
+.sample-row input[type="number"] { flex: 1; max-width: 82px; height: 24px; }
+.sample-foot { display: flex; align-items: center; gap: 8px; margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border); }
+.sample-foot .button { margin-left: auto; }
+
+/* ---------- grouped gallery ---------- */
+.group-head {
+  grid-column: 1 / -1; display: flex; align-items: baseline; gap: 8px; margin: 6px 0 0;
+  padding-bottom: 5px; border-bottom: 1px solid var(--border);
+  font: 600 13px var(--sans); color: var(--text);
+}
+.group-head:first-child { margin-top: 0; }
+.group-head .faint { font: 500 11.5px var(--sans); font-variant-numeric: tabular-nums; }
+.group-head-row td {
+  background: var(--panel-2); font: 600 12px var(--sans); color: var(--text-2);
+  border-top: 1px solid var(--border);
+}
+.group-head-row td .faint { margin-left: 8px; font-weight: 400; font-variant-numeric: tabular-nums; }
+.group-head-row:hover td { background: var(--panel-2); }
+.field-text { display: flex; align-items: center; gap: 8px; }
+.field-text input { flex: 1; min-width: 0; height: 26px; }
+/* A listable column can still have hundreds of values (260 flights in a drone set); the
+   list scrolls inside its own widget rather than pushing every other field off the panel. */
+.field-widget .value-list.scrolls { max-height: 232px; overflow-y: auto; }
+.group-head button {
+  display: flex; align-items: baseline; gap: 8px; width: 100%; padding: 0; border: 0;
+  background: none; color: inherit; font: inherit; text-align: left; cursor: pointer;
+}
+.group-head button:hover { color: var(--cyan); }
+.group-head .group-more { margin-left: auto; font: 500 11.5px var(--sans); color: var(--text-3); }
+.group-head button:hover .group-more { color: var(--cyan); }
+.group-head-row button {
+  display: flex; align-items: baseline; gap: 8px; width: 100%; padding: 0; border: 0;
+  background: none; color: inherit; font: inherit; text-align: left; cursor: pointer;
+}
+.group-head-row button:hover { color: var(--cyan); }
+
+/* ---------- every object of a run, one tile each ---------- */
+.eval-outcome-bar { margin: 8px 0 10px; }
+/* A stripe on the tile, so a mixed wall reads as three kinds without a legend: green for
+   what it found, cyan for what it invented, pink for what it missed. */
+.eval-example.outcome-tp { box-shadow: inset 0 -2px 0 var(--pass); }
+.eval-example.outcome-fp { box-shadow: inset 0 -2px 0 var(--cyan); }
+.eval-example.outcome-fn { box-shadow: inset 0 -2px 0 var(--pink); }
+.eval-example-foot { display: flex; align-items: baseline; gap: 6px; }
+.eval-example-foot .truncate { flex: 1; min-width: 0; color: var(--text-2); }
+
+/* ---------- a word on one box ---------- */
+.box-tags { margin-top: 8px; }
+.box-tag-row { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; min-height: 22px; }
+.tag.box-tag { display: inline-flex; align-items: center; gap: 4px; }
+.box-tag .tag-remove {
+  display: inline-grid; place-items: center; width: 14px; height: 14px; padding: 0; border: 0;
+  border-radius: 50%; background: none; color: inherit; font: 12px/1 var(--sans); cursor: pointer; opacity: .7;
+}
+.box-tag .tag-remove:hover { opacity: 1; }
+.box-tag-add { display: flex; gap: 6px; margin-top: 6px; }
+.box-tag-add input { flex: 1; min-width: 0; height: 26px; }
+.class-menu .tag-boxes { margin-left: 6px; color: var(--cyan); }

@@ -107,14 +107,19 @@ export function Sidebar({ route }: { route: Route }) {
 
       <div className="sidebar-spacer" />
 
-      <a className={`sidebar-licence${route.name === "licence" ? " active" : ""}${licence && licence.mode !== "full" ? " off" : ""}`} href={routeHref({ name: "licence" })}>
-        <Icon name="shield" size={15} />
-        <span>Licence</span>
-        <span className="sidebar-licence-state">
-          {!licence ? "" : licence.mode !== "full" ? "Read-only"
-            : licence.state === "unrestricted" ? "" : licence.days_left != null ? `${Math.floor(licence.days_left)} d left` : "Active"}
-        </span>
-      </a>
+      {/* A build that holds nobody to a licence says nothing about licences: no link, no
+          badge, nothing to buy. The page itself is still at #/licence for the build that
+          turns enforcement back on. */}
+      {licence && licence.state !== "unrestricted" && (
+        <a className={`sidebar-licence${route.name === "licence" ? " active" : ""}${licence.mode !== "full" ? " off" : ""}`} href={routeHref({ name: "licence" })}>
+          <Icon name="shield" size={15} />
+          <span>Licence</span>
+          <span className="sidebar-licence-state">
+            {licence.mode !== "full" ? "Read-only"
+              : licence.days_left != null ? `${Math.floor(licence.days_left)} d left` : "Active"}
+          </span>
+        </a>
+      )}
 
       <div className="sidebar-status" title={health ? `Scan roots:\n${health.roots.join("\n")}\n\nImport folders:\n${health.data_roots.join("\n")}` : undefined}>
         <span className={`status-dot${health ? " ok" : ""}`} />

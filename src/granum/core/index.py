@@ -174,7 +174,7 @@ class Index:
 
     def _walk(self, location: Url, found: dict[str, IndexEntry], depth: int = 0) -> None:
         """Recursively discover objects beneath ``location``."""
-        if depth > 12 or self._should_skip(location):
+        if depth > 12 or location.name.startswith(".granum-") or self._should_skip(location):
             return
 
         # An object directory: record it, then keep going -- Runs contain metrics tables.

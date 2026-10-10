@@ -30,3 +30,15 @@ export function saveReviewer(name: string): void {
     /* the name is a convenience; without storage it lasts the session */
   }
 }
+
+/** How one box of an image is addressed by a tag.
+ *
+ * The same rule as `granum.core.tags.object_key`, and it has to be: the browser writes a key
+ * the service reads back. By annotation id where the import gave the box one, because that
+ * survives the boxes being reordered, and by position where it did not — kept apart by their
+ * prefix so that box 3 of an unnumbered image cannot collide with annotation 3.
+ */
+export function objectKey(box: Record<string, unknown> | undefined, index: number): string {
+  const annotation = box?.annotation_id;
+  return typeof annotation === "number" && Number.isFinite(annotation) ? `a${annotation}` : `i${index}`;
+}

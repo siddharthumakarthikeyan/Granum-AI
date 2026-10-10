@@ -5,7 +5,7 @@ A recipe names the augmentations to use and their ranges. Every training image g
 Only a train set is augmented -- validation and test must stay real images, or their
 scores stop meaning anything.
 
-Geometry (flips, 90-degree turns, crop, rotation, shear) is composed into one affine
+Geometry (flips, 90-degree turns, crop, rotation, shear, translation, zoom) is composed into one affine
 transform, so the image is resampled once and every label is mapped by the same matrix:
 boxes through their corners, mask polygons point by point (then clipped to the frame),
 keypoints point by point (those pushed out of the frame become unlabelled). A box whose
@@ -14,8 +14,8 @@ crop that leaves a sliver of an object would teach the model a wrong box.
 Run-length masks cannot be transformed here; under a geometric change they are dropped
 and counted.
 
-Colour changes (hue, saturation, brightness, exposure, grayscale), blur, noise and
-cutout change pixels only.
+Colour changes (hue, saturation, brightness, exposure, gamma, grayscale), blur, noise,
+cutout and grid mask change pixels only.
 """
 
 from __future__ import annotations
@@ -30,15 +30,13 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from threading import Event
 from typing import Any
-import cv2
+
 import numpy as np
 import pyarrow as pa
-import pyarrow.parquet as pq
-from PIL import Image, ImageEnhance, ImageFilter, ImageOps, ImageStat
 
 from granum.core.config import get_config
-from granum.core.layout import ROW_CACHE_FILENAME, ProjectLayout, sanitize
-from granum.core.objects.base import write_object_payload
+from granum.core.layout import ProjectLayout, sanitize
+from granum.core.objects.base import write_table_payload
 from granum.core.objects.table import Table, _unique_url
 from granum.core.schemas import Geometry2DSchema, StringSchema
 from granum.core.url import Url
@@ -49,16 +47,20 @@ AUGMENTED_FROM = "augmented_from"
 #: Boxes that keep less than this share of their transformed area inside the frame are dropped.
 MIN_VISIBLE = 0.15
 MAX_COPIES = 10
+#: The widest median blur window computed at full size, in pixels.
+MEDIAN_WINDOW = 5
 
 #: name -> (field, low, high) bounds of every numeric setting, and the unit it is in.
 BOUNDS: dict[str, dict[str, tuple[float, float]]] = {
     "crop": {"min": (0, 90), "max": (0, 90)},
     "rotation": {"min": (-180, 180), "max": (-180, 180)},
     # Translation as percentage of image dimensions.
-    "translation": {"horizontal_min": (-100, 100),
-                    "horizontal_max": (-100, 100),
-                    "vertical_min": (-100, 100),
-                    "vertical_max": (-100, 100),},
+    "translation": {
+        "horizontal_min": (-100, 100),
+        "horizontal_max": (-100, 100),
+        "vertical_min": (-100, 100),
+        "vertical_max": (-100, 100),
+    },
     # Zoom factor. 100 = no zoom, 200 = 2x, 50 = 0.5x.
     "zoom": {"min": (10, 400), "max": (10, 400)},
     "shear": {"horizontal": (0, 45), "vertical": (0, 45)},
@@ -71,11 +73,16 @@ BOUNDS: dict[str, dict[str, tuple[float, float]]] = {
     "blur": {"max": (0, 20)},
     "noise": {"max": (0, 50)},
     "cutout": {"count": (1, 20), "size": (1, 50)},
-    "gridmask": {"ratio": (0, 0.9), "size": (2, 200)},
+    # Grid spacing in pixels at full size; ratio is the share of each cell blacked out.
+    "gridmask": {"size_min": (2, 200), "size_max": (2, 200), "ratio_min": (0, 0.9), "ratio_max": (0, 0.9)},
 }
 SWITCHES: dict[str, tuple[str, ...]] = {
     "flip": ("horizontal", "vertical"),
     "rotate90": ("clockwise", "counterclockwise", "upside_down"),
+}
+#: Kinds an augmentation with numeric settings can also choose between; each copy gets one
+#: of those chosen. The first is used when a recipe names none.
+KINDS: dict[str, tuple[str, ...]] = {
     "blur": ("gaussian", "median", "average", "box"),
     "noise": ("gaussian", "salt_pepper", "iso"),
 }
@@ -117,7 +124,8 @@ def normalize_recipe(raw: dict[str, Any] | None) -> dict[str, Any] | None:
             raise AugmentError(f"unknown augmentation {name!r}")
         if not isinstance(value, dict):
             raise AugmentError(f"{name} must be an object")
-        unknown = set(value) - set(BOUNDS[name])
+        kinds = KINDS.get(name, ())
+        unknown = set(value) - set(BOUNDS[name]) - set(kinds)
         if unknown:
             raise AugmentError(f"{name} has no setting {sorted(unknown)[0]!r}")
         settings: dict[str, float] = {}
@@ -130,15 +138,13 @@ def normalize_recipe(raw: dict[str, Any] | None) -> dict[str, Any] | None:
             settings[key] = float(number)
         if "min" in settings and "max" in settings and settings["min"] > settings["max"]:
             raise AugmentError(f"{name}: min must not be above max")
-        if name == "translation":
-            if settings["horizontal_min"] > settings["horizontal_max"]:
-                raise AugmentError(
-                    "translation horizontal_min must not be above horizontal_max"
-                )
-            if settings["vertical_min"] > settings["vertical_max"]:
-                raise AugmentError(
-                    "translation vertical_min must not be above vertical_max"
-                )
+        for key in settings:
+            if key.endswith("_min") and settings[key] > settings.get(key[:-3] + "max", math.inf):
+                raise AugmentError(f"{name} {key} must not be above {key[:-3]}max")
+        if kinds:
+            chosen_kinds = [k for k in kinds if value.get(k) is True] or [kinds[0]]
+            out[name] = {**settings, **{k: True for k in chosen_kinds}}
+            continue
         out[name] = settings
     if len(out) == 1:
         return None
@@ -156,7 +162,9 @@ def describe(recipe: dict[str, Any]) -> list[str]:
         elif "min" in value and "max" in value:
             parts.append(f"{name} {value['min']:g} to {value['max']:g}")
         else:
-            parts.append(f"{name} " + ", ".join(f"{k} {v:g}" for k, v in value.items()))
+            numbers = ", ".join(f"{k} {v:g}" for k, v in value.items() if v is not True)
+            kinds = ", ".join(k for k, v in value.items() if v is True)
+            parts.append(f"{name} {numbers}" + (f" ({kinds})" if kinds else ""))
     return parts
 
 
@@ -202,25 +210,33 @@ def apply_gamma(image: Any, gamma: float) -> Any:
         ],
         dtype=np.uint8,
     )
-    lut = np.concatenate([table, table, table])
-    return image.point(lut.tolist())
+    return image.point(table.tolist() * 3)
 
 def apply_blur(image: Any, blur_type: str, amount: float) -> Any:
+    from PIL import ImageFilter
+
     if amount <= 0:
         return image
     if blur_type == "gaussian":
         return image.filter(ImageFilter.GaussianBlur(amount))
     if blur_type == "median":
         size = max(3, int(round(amount)) * 2 + 1)
-        return image.filter(ImageFilter.MedianFilter(size=size))
+        if size <= MEDIAN_WINDOW:
+            return image.filter(ImageFilter.MedianFilter(size=size))
+        # A median's cost grows with the square of its window: a 41 px one takes a minute on
+        # a 1080p image. A large one is taken on a smaller image instead, then scaled back.
+        from PIL import Image
+
+        shrink = size / MEDIAN_WINDOW
+        small = image.resize((max(1, round(image.width / shrink)), max(1, round(image.height / shrink))), Image.BILINEAR)
+        return small.filter(ImageFilter.MedianFilter(size=MEDIAN_WINDOW)).resize(image.size, Image.BILINEAR)
     if blur_type == "box":
         size = max(3, int(round(amount)) * 2 + 1)
         return image.filter(ImageFilter.BoxBlur(size / 2))
     if blur_type == "average":
+        # The mean of a size x size window, which is a box blur of radius (size - 1) / 2.
         size = max(3, int(round(amount)) * 2 + 1)
-        return Image.fromarray(
-            cv2.blur(np.array(image), (size, size))
-        )
+        return image.filter(ImageFilter.BoxBlur((size - 1) / 2))
     raise AugmentError(f"unknown blur type {blur_type!r}")
 
 def add_gaussian_noise(pixels: np.ndarray, amount: float, rng: np.random.Generator) -> np.ndarray:
@@ -250,6 +266,8 @@ def add_iso_noise(pixels: np.ndarray, amount: float, rng: np.random.Generator) -
     return np.clip(noisy * 255.0, 0, 255).astype(np.uint8)
 
 def apply_gridmask(image: Any, size: int, ratio: float, seed: int) -> Any:
+    from PIL import Image
+
     if size <= 0 or ratio <= 0:
         return image
     pixels = np.array(image)
@@ -345,6 +363,23 @@ def draw(recipe: dict[str, Any], width: int, height: int, rng: np.random.Generat
         if sx or sy:
             then(back @ np.array([[1, sx, 0], [sy, 1, 0], [0, 0, 1.0]]) @ to_center)
 
+    if "translation" in recipe:
+        t = recipe["translation"]
+        if fixed:
+            tx_percent, ty_percent = t[f"horizontal_{fixed}"], t[f"vertical_{fixed}"]
+        else:
+            tx_percent = float(rng.uniform(t["horizontal_min"], t["horizontal_max"]))
+            ty_percent = float(rng.uniform(t["vertical_min"], t["vertical_max"]))
+        # Percentage of image dimensions.
+        tx, ty = tx_percent / 100.0 * w, ty_percent / 100.0 * h
+        if tx or ty:
+            then(np.array([[1, 0, tx], [0, 1, ty], [0, 0, 1.0]]))
+    if "zoom" in recipe:
+        # About the centre, in the same frame: above 100 crops in, below leaves a black border.
+        zoom = pick(recipe["zoom"]) / 100.0
+        if zoom != 1.0:
+            then(back @ np.array([[zoom, 0, 0], [0, zoom, 0], [0, 0, 1.0]]) @ to_center)
+
     out = Draw(matrix=m, size=(round(w), round(h)), geometric=geometric)
     if "grayscale" in recipe:
         out.grayscale = bool(fixed) or bool(rng.random() * 100 < recipe["grayscale"]["percent"])
@@ -354,18 +389,14 @@ def draw(recipe: dict[str, Any], width: int, height: int, rng: np.random.Generat
     if "blur" in recipe:
         out.blur = recipe["blur"]["max"] if fixed else float(
         rng.uniform(0, recipe["blur"]["max"]))
-        blur_options = [
-            k for k in ("gaussian", "median", "average", "box")
-            if recipe["blur"].get(k)]
+        blur_options = [k for k in KINDS["blur"] if recipe["blur"].get(k)]
         if blur_options:
             out.blur_type = blur_options[0] if fixed else str(
                 rng.choice(blur_options))
     if "noise" in recipe:
         out.noise = recipe["noise"]["max"] if fixed else float(
             rng.uniform(0, recipe["noise"]["max"]))
-        noise_options = [
-            k for k in ("gaussian", "salt_pepper", "iso")
-            if recipe["noise"].get(k)]
+        noise_options = [k for k in KINDS["noise"] if recipe["noise"].get(k)]
         if noise_options:
             out.noise_type = noise_options[0] if fixed else str(
                 rng.choice(noise_options))
@@ -391,67 +422,15 @@ def draw(recipe: dict[str, Any], width: int, height: int, rng: np.random.Generat
             ]
         for x, y in positions:
             out.cutouts.append((x, y, x + side, y + side))
-    if "translation" in recipe:
-        t = recipe["translation"]
-        if fixed:
-            tx_percent = (
-                t["horizontal_min"]
-                if fixed == "min"
-                else t["horizontal_max"])
-            ty_percent = (
-                t["vertical_min"]
-                if fixed == "min"
-                else t["vertical_max"])
-        else:
-            tx_percent = float(rng.uniform(t["horizontal_min"], t["horizontal_max"], ))
-            ty_percent = float(rng.uniform(t["vertical_min"], t["vertical_max"],))
-        # Percentage of image dimensions.
-        tx = tx_percent / 100.0 * w
-        ty = ty_percent / 100.0 * h
-        if tx or ty:
-            then(np.array([
-                [1, 0, tx],
-                [0, 1, ty],
-                [0, 0, 1.0],
-            ]))
-
-    if "zoom" in recipe:
-        zoom = pick(recipe["zoom"]) / 100.0
-        if zoom != 1.0:
-            cx, cy = w / 2, h / 2
-            to_center = np.array([
-                [1, 0, -cx],
-                [0, 1, -cy],
-                [0, 0, 1.0],
-            ])
-            back = np.array([
-                [1, 0, cx],
-                [0, 1, cy],
-                [0, 0, 1.0],
-            ])
-            then(back @ np.array([[zoom, 0, 0],
-                                  [0, zoom, 0],
-                                  [0, 0, 1.0],
-                                ]) @ to_center)
     if "gamma" in recipe:
         out.gamma = pick(recipe["gamma"])
 
     if "gridmask" in recipe:
+        g = recipe["gridmask"]
         out.gridmask = True
-        out.gridmask_size = int(
-            pick(recipe["gridmask"]["size"])
-        )
-        out.gridmask_ratio = (
-            recipe["gridmask"]["ratio"][fixed]
-            if fixed
-            else float(
-                rng.uniform(
-                    recipe["gridmask"]["ratio"]["min"],
-                    recipe["gridmask"]["ratio"]["max"],
-                )
-            )
-        )
-        out.gridmask_seed = ( 0 if fixed else int(rng.integers(0, 2**31)))
+        out.gridmask_size = round(g[f"size_{fixed}"] if fixed else float(rng.uniform(g["size_min"], g["size_max"])))
+        out.gridmask_ratio = g[f"ratio_{fixed}"] if fixed else float(rng.uniform(g["ratio_min"], g["ratio_max"]))
+        out.gridmask_seed = 0 if fixed else int(rng.integers(0, 2**31))
     return out
 
 
@@ -467,6 +446,7 @@ def apply_noise(pixels: np.ndarray, noise_type: str, amount: float, rng: np.rand
 
 def apply_image(image: Any, d: Draw, *, scale: float = 1.0) -> Any:
     """``image`` (PIL, RGB, in label coordinates times ``scale``) with the draw applied."""
+    from PIL import Image, ImageEnhance
 
     if d.geometric:
         # Scale into and out of label space, so a preview at reduced size warps the same way.
@@ -647,6 +627,7 @@ def box_column(table: Table) -> str | None:
 
 def load_image(url: str, width: int, height: int) -> Any:
     """The image as RGB, oriented as it is shown, at the size its labels are in."""
+    from PIL import Image, ImageOps
 
     image = Image.open(io.BytesIO(Url(url).read_bytes()))
     image = ImageOps.exif_transpose(image).convert("RGB")
@@ -787,9 +768,7 @@ def write_augmented_set(
         description=f"{release_name}: {len(records)} images of {source.name} and {len(new_rows)} augmented copies",
         arrow=combined,
     )
-    target.mkdir()
-    pq.write_table(combined, (target / ROW_CACHE_FILENAME).path, filesystem=target.fs)
-    write_object_payload(target, table.to_dict())
+    write_table_payload(target, combined, table.to_dict())
     return table, counts
 
 
@@ -812,6 +791,8 @@ def _record(source: Table, row: int) -> tuple[dict[str, Any], dict[str, Any] | N
 def _render(image: Any, geometry: dict[str, Any] | None, d: Draw | None, size: int) -> dict[str, Any]:
     """One small JPEG (as a data URL) of ``image`` under ``d``, with its boxes."""
     import base64
+
+    from PIL import Image
 
     width, height = image.size
     scale = min(1.0, size / max(width, height))
@@ -844,6 +825,7 @@ def sample_row(source: Table, sample: int = 60, looked_at: int = 10) -> int:
     key = str(source.url)
     if key in _sample_rows:
         return _sample_rows[key]
+    from PIL import Image, ImageStat
 
     column = box_column(source)
     rows = list(range(0, len(source), max(1, len(source) // sample)))[:sample]
@@ -873,6 +855,7 @@ def sample_row(source: Table, sample: int = 60, looked_at: int = 10) -> int:
             best, best_score = row, score
     _sample_rows[key] = best
     return best
+
 
 def examples(source: Table, items: dict[str, tuple[dict[str, Any], str]], *, row: int | None = None, size: int = 320) -> dict[str, Any]:
     """One image of ``source``, as it is and under each item's recipe at a fixed end.

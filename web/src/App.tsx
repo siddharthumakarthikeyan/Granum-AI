@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { api } from "./api/client";
 import { EmptyState, Icon } from "./components/ui";
 import { ComparePage } from "./compare/ComparePage";
 import { FindingsPage } from "./findings/FindingsPage";
@@ -20,6 +21,17 @@ import { Workspace } from "./shell/Workspace";
 import { useStore } from "./store/store";
 
 export default function App() {
+  const [access, setAccess] = useState<Awaited<ReturnType<typeof api.access>> | null>(null);
+  useEffect(() => { void api.access().then(setAccess).catch(() => undefined); }, []);
+  const [serviceWarning, setServiceWarning] = useState("");
+  useEffect(() => {
+    const warn = (event: Event) => setServiceWarning(String((event as CustomEvent<string>).detail));
+    window.addEventListener("granum:service-warning", warn);
+    return () => window.removeEventListener("granum:service-warning", warn);
+  }, []);
+  useEffect(() => {
+    if (access?.audit_available === false) setServiceWarning("Audit storage failed. Further changes are blocked; contact the workspace administrator.");
+  }, [access]);
   const route = useRoute();
   const boot = useStore((s) => s.boot);
   const error = useStore((s) => s.error);
@@ -117,6 +129,9 @@ export default function App() {
     <div className={`app${inWorkspace ? " app-workspace" : ""}`}>
       <Sidebar route={route} />
       <main className="app-main">
+        {access?.mode === "shared" && <div className="licence-banner" role="status">
+          <Icon name="lock" size={14} /><span>Signed in as <strong>{access.name}</strong> · {access.role} · entire workspace. Author names are enforced by the service.</span>
+        </div>}
         {licence?.mode === "read_only" && route.name !== "licence" && (
           <div className="licence-banner" role="status">
             <Icon name="lock" size={14} />
@@ -129,7 +144,7 @@ export default function App() {
         {route.name === "overview" && <ProjectOverview project={route.project} />}
         {route.name === "health" && <HealthPage project={route.project} dataset={route.dataset} />}
         {route.name === "evaluation" && <EvaluationPage project={route.project} url={route.url} />}
-        {route.name === "images" && <ImagesPage project={route.project} dataset={route.dataset} review={Boolean(route.review)} edit={Boolean(route.edit)} similar={Boolean(route.similar)} patches={Boolean(route.patches)} stats={Boolean(route.stats)} like={route.like} open={route.open} />}
+        {route.name === "images" && <ImagesPage project={route.project} dataset={route.dataset} review={Boolean(route.review)} edit={Boolean(route.edit)} similar={Boolean(route.similar)} patches={Boolean(route.patches)} stats={Boolean(route.stats)} fieldsOpen={Boolean(route.fields)} like={route.like} open={route.open} />}
         {route.name === "datasets" && <DatasetsPage project={route.project} />}
         {route.name === "runs" && <RunsPage project={route.project} />}
         {route.name === "import" && <ImportPage project={route.project} example={route.example} />}
@@ -142,6 +157,7 @@ export default function App() {
           <Workspace key={route.name} kind={route.name} project={route.project} url={route.url} />
         )}
       </main>
+      {serviceWarning && <div className="licence-refused" role="alert"><Icon name="lock" size={15} /><span>{serviceWarning}</span></div>}
       {refused && (
         <div className="licence-refused" role="alert">
           <Icon name="lock" size={15} />

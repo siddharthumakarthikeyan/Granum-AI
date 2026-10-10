@@ -18,11 +18,10 @@ from datetime import datetime, timezone
 from typing import Any
 
 import pyarrow as pa
-import pyarrow.parquet as pq
 
 from granum.core.config import Config, get_config
-from granum.core.layout import ROW_CACHE_FILENAME, ProjectLayout, sanitize
-from granum.core.objects.base import write_object_payload
+from granum.core.layout import ProjectLayout, sanitize
+from granum.core.objects.base import write_table_payload
 from granum.core.objects.table import Table, _unique_url
 from granum.core.reviews import ReviewLog
 from granum.core.schemas import StringSchema, TableSchema
@@ -86,9 +85,7 @@ def write_version(
         description=description,
         arrow=arrow,
     )
-    target.mkdir()
-    pq.write_table(arrow, (target / ROW_CACHE_FILENAME).path, filesystem=target.fs)
-    write_object_payload(target, table.to_dict())
+    write_table_payload(target, arrow, table.to_dict())
     return table
 
 
@@ -122,9 +119,7 @@ def write_release_set(source: Table, keep: Iterable[str], *, release_id: str, re
         description=f"{release_name}: {_plain(len(rows), 'verified image')} of {source.name}",
         arrow=arrow,
     )
-    target.mkdir()
-    pq.write_table(arrow, (target / ROW_CACHE_FILENAME).path, filesystem=target.fs)
-    write_object_payload(target, table.to_dict())
+    write_table_payload(target, arrow, table.to_dict())
     return table
 
 

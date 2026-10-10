@@ -340,3 +340,90 @@ def examples(
             found.append({**row, "image": image, "width": width, "height": height,
                           "example_id": record.get("example_id")})
     return found
+
+
+#: What one object was, once a run's predictions have been matched against the labels.
+OUTCOMES = ("tp", "fp", "fn")
+
+
+def outcomes(
+    records: Iterable[Mapping[str, Any]],
+    *,
+    policy: EvalPolicy = EvalPolicy(),
+    kinds: Sequence[str] = OUTCOMES,
+    labels: Sequence[int] | None = None,
+    limit: int = 600,
+) -> dict[str, Any]:
+    """Every object a run got right, invented or missed, one row each.
+
+    The matrix answers "which classes are confused"; this answers "show me the mistakes".
+    They are different questions and the second is the one a reader acts on: forty false
+    positives of one class, seen side by side as crops, say in a glance whether the model
+    is wrong or the labels are -- and a cell of the matrix cannot say that, because it has
+    already pooled them into a number.
+
+    Matched within a class, the rule the score is computed under, so these rows and the
+    headline cannot disagree: a true positive is a label a prediction of its own class
+    covered, a false positive is a prediction that covered no such label, and a false
+    negative is a label no prediction of its class found. A box in the right place with the
+    wrong class is therefore two rows -- one invented, one missed -- which is what the score
+    counts it as; the matrix is where it reads as one confusion.
+
+    ``kinds`` and ``labels`` narrow before the limit is applied, so asking for one class's
+    false positives gives that class's false positives rather than the first six hundred
+    objects of any kind. ``counts`` are over the classes asked for and over every kind, so
+    that a reader switching between right, invented and missed sees a number on each.
+    """
+    wanted_kinds = {k for k in kinds if k in OUTCOMES} or set(OUTCOMES)
+    wanted_labels = set(labels) if labels else None
+    found: list[dict[str, Any]] = []
+    counts = {kind: 0 for kind in OUTCOMES}
+    scanned = 0
+    for record in records:
+        truth = labels_of(record)
+        predicted = predictions_of(record, policy)
+        size = record.get("truth") if isinstance(record.get("truth"), Mapping) else {}
+        width, height = float((size or {}).get("width") or 0), float((size or {}).get("height") or 0)
+        image = record.get("image")
+        scanned += 1
+        for label in {int(i["label"]) for i in truth} | {int(p["label"]) for p in predicted}:
+            if wanted_labels is not None and label not in wanted_labels:
+                continue
+            mine = [i for i in truth if int(i["label"]) == label]
+            theirs = [p for p in predicted if int(p["label"]) == label]
+            took, taken = match_any_class(mine, theirs, policy.match_iou)
+            overlaps = _iou_matrix(theirs, mine)
+            for at, prediction in enumerate(theirs):
+                kind = "tp" if took[at] >= 0 else "fp"
+                counts[kind] += 1
+                if kind not in wanted_kinds or len(found) >= limit:
+                    continue
+                row = {
+                    "kind": kind, "image": image, "width": width, "height": height,
+                    "label": label, "box": [float(v) for v in prediction["vertices"][:4]],
+                    "confidence": float(prediction.get("confidence", 0)),
+                }
+                if took[at] >= 0:
+                    row["label_box"] = [float(v) for v in mine[took[at]]["vertices"][:4]]
+                    row["iou"] = round(float(overlaps[at][took[at]]), 4)
+                found.append(row)
+            for at, instance in enumerate(mine):
+                if taken[at] >= 0:
+                    continue
+                counts["fn"] += 1
+                if "fn" not in wanted_kinds or len(found) >= limit:
+                    continue
+                found.append({
+                    "kind": "fn", "image": image, "width": width, "height": height,
+                    "label": label, "box": [float(v) for v in instance["vertices"][:4]],
+                    "confidence": None,
+                })
+    return {"objects": found, "counts": counts, "images": scanned,
+            "capped": sum(counts[k] for k in wanted_kinds) > len(found)}
+
+
+def _iou_matrix(predicted: Sequence[Mapping[str, Any]], truth: Sequence[Mapping[str, Any]]) -> np.ndarray:
+    """Overlap of every prediction with every label, or an empty grid when either is empty."""
+    if not predicted or not truth:
+        return np.zeros((len(predicted), len(truth)), dtype=np.float64)
+    return np.asarray(box_iou(_boxes(predicted), _boxes(truth)), dtype=np.float64)

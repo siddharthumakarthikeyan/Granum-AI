@@ -233,6 +233,29 @@ def test_table_columns_describe_editability_and_classes(client):
     assert columns["weight"]["writable"] is True
 
 
+def test_commit_retry_is_idempotent_and_stale_writer_gets_conflict(client):
+    api, _, child, *_ = client
+    payload = {"url": str(child.url), "expected_head": str(child.url), "values": {"label": {"0": 1}}}
+    first = api.post("/api/table/commit", json=payload)
+    assert first.status_code == 200, first.text
+    retry = api.post("/api/table/commit", json=payload)
+    assert retry.status_code == 200 and retry.json()["url"] == first.json()["url"]
+    stale = api.post("/api/table/commit", json={**payload, "values": {"label": {"1": 0}}})
+    assert stale.status_code == 409 and "draft" in stale.json()["detail"]
+
+
+def test_approval_is_separate_from_verified_subset_and_requires_current_contents(client):
+    api, _, child, _, paths = client
+    base = {"project": "demo", "dataset": "train"}
+    version = api.post("/api/qa/release", json={**base, "name": "exploration", "mode": "all"}).json()["release"]
+    approve = {**base, "release_id": version["id"]}
+    assert version["approval"] == "exploratory"
+    assert api.post("/api/qa/approve", json=approve).status_code == 409
+    assert api.post("/api/qa/status", json={**base, "table": str(child.url), "samples": paths[:2], "status": "reviewed"}).status_code == 200
+    assert api.post("/api/qa/approve", json=approve).json()["release"]["approval"] == "approved"
+    assert api.get("/api/releases", params={"project": "demo"}).json()["releases"][0]["approval"] == "approved"
+
+
 def test_commit_writes_one_revision_and_indexes_it(client):
     api, table, _, run, _ = client
     response = api.post("/api/table/commit", json={
@@ -581,7 +604,7 @@ def test_ship_any_version_of_any_set(client):
     # The earlier, three-image version can ship on its own once its images are reviewed.
     older = api.get("/api/qa/version", params={**base, "table": str(table.url)}).json()
     assert older["images"] == 3 and older["ready"] is False
-    api.post("/api/qa/status", json={**base, "samples": paths, "status": "reviewed"})
+    api.post("/api/qa/status", json={**base, "table": str(table.url), "samples": paths, "status": "reviewed"})
     assert api.get("/api/qa/version", params={**base, "table": str(table.url)}).json()["ready"] is True
     shipped = api.post("/api/qa/ship", json={**base, "sets": {"initial": str(table.url)}, "note": "full"})
     assert shipped.status_code == 200, shipped.text
@@ -961,6 +984,63 @@ def test_dataset_version_with_augmented_train_copies(client, tmp_path):
     [working] = api.get("/api/qa", params={"project": "aug", "dataset": dataset}).json()["sets"]
     assert len(working["images"]) == 2
     assert _json.loads(_Path(train["url"], "object.granum.json").read_text())["producer"]["args"]["augmented"] == 6
+
+
+def test_dataset_version_with_every_kind_of_augmentation(client, tmp_path):
+    api = client[0]
+    folder = _dataset(tmp_path)
+    job = api.post("/api/import/preflight", json={"sources": [{"split": "train", "annotations": str(folder / "_annotations.coco.json")}], "media": "none"}).json()
+    _wait(api, job)
+    _wait(api, api.post("/api/import/commit", json={"preflight_job": job["id"], "project_name": "kinds", "tasks": ["object_detection"]}).json())
+    [dataset] = {t["dataset_name"] for t in api.get("/api/projects/kinds/tables").json()["tables"]}
+    settings = {
+        "translation": {"horizontal_min": -25, "horizontal_max": 25, "vertical_min": 0, "vertical_max": 0},
+        "zoom": {"min": 50, "max": 110},
+        "gamma": {"min": 0.5, "max": 2},
+        "blur": {"max": 2, "median": True, "box": True},
+        "noise": {"max": 5, "salt_pepper": True, "iso": True},
+        "gridmask": {"size_min": 4, "size_max": 8, "ratio_min": 0.3, "ratio_max": 0.5},
+    }
+
+    # What the dashboard asks for: each one alone, at both ends, and each blur and noise kind alone.
+    items = {f"{name}:{at}": {"recipe": {name: value}, "at": at} for name, value in settings.items() for at in ("min", "max")}
+    items |= {f"blur:{kind}": {"recipe": {"blur": {"max": 2, kind: True}}} for kind in ("gaussian", "median", "average", "box")}
+    items |= {f"noise:{kind}": {"recipe": {"noise": {"max": 5, kind: True}}} for kind in ("gaussian", "salt_pepper", "iso")}
+    shown = api.post("/api/augment/examples", json={"project": "kinds", "dataset": dataset, "items": items})
+    assert shown.status_code == 200, shown.text
+    shown = shown.json()
+    assert set(shown["items"]) == set(items)
+    assert all(e["image"].startswith("data:image/jpeg;base64,") for e in shown["items"].values())
+    [box] = [b["box"] for b in shown["original"]["boxes"] if b["box"][2] - b["box"][0] >= 1]
+    # A quarter of the 40 px width each way: to the left only a sliver of the box stays, so it is
+    # dropped; to the right it moves whole. Colour and masks leave it where it was.
+    left, right = ([b["box"] for b in shown["items"][f"translation:{at}"]["boxes"] if b["box"][2] - b["box"][0] >= 1] for at in ("min", "max"))
+    assert left == [] and right == [[box[0] + 10, box[1], box[2] + 10, box[3]]]
+    assert all([b["box"] for b in shown["items"][key]["boxes"] if b["box"][2] - b["box"][0] >= 1] == [box]
+               for key in ("gamma:max", "blur:median", "noise:iso", "gridmask:max"))
+    small, large = (shown["items"][f"zoom:{at}"]["boxes"][0]["box"] for at in ("min", "max"))
+    assert small[2] - small[0] < box[2] - box[0] < large[2] - large[0]
+
+    for bad in ({"gridmask": {"size": 8, "ratio": 0.5}}, {"blur": {"max": 2, "motion": True}},
+                {"translation": {"horizontal_min": 5, "horizontal_max": 0, "vertical_min": 0, "vertical_max": 0}}):
+        refused = api.post("/api/qa/release", json={"project": "kinds", "dataset": dataset, "name": "bad", "augmentation": {"copies": 1, **bad}})
+        assert refused.status_code == 400, refused.text
+
+    started = api.post("/api/qa/release", json={"project": "kinds", "dataset": dataset, "name": "everything", "mode": "all",
+                                                "augmentation": {"copies": 4, **settings}})
+    assert started.status_code == 200, started.text
+    done = _wait(api, started.json()["job"])
+    assert done["status"] == "done", done
+    release = done["result"]["release"]
+    assert release["augmentation"]["blur"] == {"max": 2.0, "median": True, "box": True}
+    assert release["augmentation"]["gridmask"] == {"size_min": 4.0, "size_max": 8.0, "ratio_min": 0.3, "ratio_max": 0.5}
+    train = release["sets"]["train"]
+    assert train["originals"] == 2 and train["augmented"] == 8 and train["images"] == 10
+    rows = api.get("/api/table/rows", params={"url": train["url"], "limit": 20}).json()["rows"]
+    assert sum(1 for r in rows if r["augmented_from"]) == 8
+    # The recipe comes back as it was saved, for the version's summary in the dashboard.
+    [listed] = [r for r in api.get("/api/releases", params={"project": "kinds"}).json()["releases"] if r["name"] == "everything"]
+    assert listed["augmentation"] == release["augmentation"]
 
 
 def test_deleting_a_dataset_version_removes_only_its_own_files(client, tmp_path):

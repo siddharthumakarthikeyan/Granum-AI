@@ -23,9 +23,11 @@ from __future__ import annotations
 import hashlib
 import io
 import json
+import logging
 import mimetypes
 import os
 import re
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
@@ -35,6 +37,7 @@ from fastapi import Body, FastAPI, HTTPException, Query, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel, Field
+from starlette.concurrency import run_in_threadpool
 
 from granum import __version__
 from granum.core.config import Config, get_config
@@ -45,6 +48,7 @@ from granum.core.objects.table import ROW_PRESERVING_OPS, Table
 from granum.core.prelabel import MODEL as PRELABEL_MODEL
 from granum.core.prelabel import SOURCE
 from granum.core.schemas import CategoricalLabelSchema, Geometry2DSchema, ImageSchema, Schema
+from granum.core.storage import workspace_lock
 from granum.core.url import Url, real_local_path
 from granum.errors import GranumError
 from granum.importing.example import is_example_project
@@ -52,8 +56,10 @@ from granum.licensing import LEASE_DAYS, LicenceError, Licensing, get_licensing
 from granum.metrics.findings import RULES as RULES_FOR_HEALTH
 from granum.processes import console_python, no_window
 from granum.service import thumbnails as thumbs
+from granum.service.auth import AttributedRequest, SharedAccess, is_loopback, principal
 from granum.service.cache import ByteCache
 from granum.service.jobs import JobRegistry
+from granum.service.limits import WorkflowLimits
 
 MAX_PAGE = 10_000
 #: Sizes rendered on request when no thumbnail was published; a fixed set bounds the cache.
@@ -107,6 +113,7 @@ class CommitRequest(BaseModel):
     """A dashboard editing session, sent sparsely: only the cells that changed."""
 
     url: str
+    expected_head: str | None = None
     values: dict[str, dict[str, Any]] = Field(default_factory=dict)
     new_columns: dict[str, tuple[str, Any]] = Field(default_factory=dict)
     value_maps: dict[str, dict[str, Any]] = Field(default_factory=dict)
@@ -141,7 +148,7 @@ class ReviewRequest(BaseModel):
     table: str | None = None
 
 
-class QaStatusRequest(BaseModel):
+class QaStatusRequest(AttributedRequest):
     project: str
     dataset: str
     samples: list[str] = Field(min_length=1, max_length=200_000)
@@ -151,7 +158,7 @@ class QaStatusRequest(BaseModel):
     table: str | None = None
 
 
-class QaCommentRequest(BaseModel):
+class QaCommentRequest(AttributedRequest):
     project: str
     dataset: str
     sample: str
@@ -160,7 +167,7 @@ class QaCommentRequest(BaseModel):
     table: str | None = None
 
 
-class QaMoveRequest(BaseModel):
+class QaMoveRequest(AttributedRequest):
     """Isolate or delete images of one set version, or return isolated images."""
 
     project: str
@@ -181,7 +188,7 @@ class DeleteProjectRequest(BaseModel):
     confirm: str
 
 
-class ShipRequest(BaseModel):
+class ShipRequest(AttributedRequest):
     project: str
     dataset: str
     author: str = ""
@@ -190,7 +197,7 @@ class ShipRequest(BaseModel):
     sets: dict[str, str] | None = None
 
 
-class ReleaseRequest(BaseModel):
+class ReleaseRequest(AttributedRequest):
     project: str
     dataset: str
     name: str
@@ -221,11 +228,15 @@ class LicenceActivateRequest(BaseModel):
     code: str = Field(min_length=4, max_length=12)
 
 
-class DeleteReleaseRequest(BaseModel):
+class DeleteReleaseRequest(AttributedRequest):
     project: str
     dataset: str
     release_id: str
     author: str = ""
+
+
+class ApproveReleaseRequest(DeleteReleaseRequest):
+    """Approval is a separate, server-validated action, never a client-supplied flag."""
 
 
 class AugmentExample(BaseModel):
@@ -265,6 +276,8 @@ class TrainingRequest(BaseModel):
     track_learning: bool = True
     compare_with: str | None = None
     run_name: str | None = None
+    release_id: str | None = None
+    require_approved: bool = False
 
 
 class ScreeningRequest(BaseModel):
@@ -293,7 +306,7 @@ class ExportRequest(BaseModel):
     images: str = "symlink"
 
 
-class TagRequest(BaseModel):
+class TagRequest(AttributedRequest):
     """Put words on images, or take them off."""
 
     project: str
@@ -301,10 +314,12 @@ class TagRequest(BaseModel):
     samples: list[str] = Field(min_length=1, max_length=200_000)
     add: list[str] = Field(default_factory=list, max_length=20)
     remove: list[str] = Field(default_factory=list, max_length=20)
+    #: Object keys, when the tags belong on particular boxes of one image rather than on it.
+    objects: list[str] = Field(default_factory=list, max_length=500)
     author: str = ""
 
 
-class ViewRequest(BaseModel):
+class ViewRequest(AttributedRequest):
     """A named set of filters worth coming back to."""
 
     project: str
@@ -395,6 +410,8 @@ def create_app(
     data_roots: list[str] | None = None,
     serve_dashboard: bool = True,
     licensing: Licensing | None = None,
+    access: SharedAccess | None = None,
+    limits: WorkflowLimits | None = None,
 ) -> FastAPI:
     """Build the service. Injectable pieces keep it testable without a live server.
 
@@ -404,9 +421,12 @@ def create_app(
     ``licensing`` decides whether writes are allowed (:mod:`granum.licensing`).
     """
     config = config or get_config()
+    if access and config.project_root.scheme != "file":
+        raise ValueError("Shared access requires a local project filesystem; distributed cloud writers are unsupported.")
     licensing = licensing or get_licensing()
     index = index or get_index(config=config)
     cache = cache or ByteCache()
+    limits = limits or WorkflowLimits()
     jobs = JobRegistry()
     #: Images listed by each finished preflight, so its examples can be previewed.
     preflight_media: dict[str, frozenset[str]] = {}
@@ -435,11 +455,21 @@ def create_app(
     app.state.config = config
     app.state.cache = cache
     app.state.jobs = jobs
+    app.state.audit_degraded = False
 
     # -- local access ---------------------------------------------------------
 
     @app.middleware("http")
     async def local_access(request: Request, call_next: Any) -> Response:
+        actor = None
+        if access:
+            try:
+                actor = await run_in_threadpool(access.authenticate, request)
+                access.authorize(actor, request.method, request.url.path)
+            except HTTPException as exc:
+                return JSONResponse({"detail": exc.detail}, exc.status_code, headers=exc.headers)
+        elif request.client and not is_loopback(request.client.host):
+            return JSONResponse({"detail": "Local mode accepts loopback clients only; configure authenticated shared access."}, 403)
         host = (request.headers.get("host") or "").lower()
         hostname = host.rsplit(":", 1)[0] if not host.endswith("]") else host
         if hostname not in hosts:
@@ -461,7 +491,49 @@ def create_app(
             status = licensing.status()
             if status["mode"] != "full":
                 return JSONResponse({"detail": f"Granum is read-only. {status['reason']}", "licence": status}, 402)
-        return await call_next(request)
+        token = principal.set(actor)
+        try:
+            if actor and request.method not in ("GET", "HEAD", "OPTIONS"):
+                import uuid
+
+                from granum.core.qa import _append, _now
+
+                audit_url = config.project_root / "access-audit.jsonl"
+                event = {"id": uuid.uuid4().hex, "author": actor.name, "role": actor.role,
+                         "method": request.method, "path": request.url.path, "time": _now()}
+                if app.state.audit_degraded:
+                    return JSONResponse({"detail": "Audit storage failed. Further changes are blocked; repair audit storage and restart the service."}, 503)
+                try:
+                    await run_in_threadpool(_append, audit_url, [{**event, "phase": "requested"}])
+                except (OSError, GranumError):
+                    return JSONResponse({"detail": "Audit storage unavailable; no change was attempted."}, 503)
+                response = await call_next(request)
+                response.headers["X-Granum-Request-ID"] = event["id"]
+                try:
+                    await run_in_threadpool(_append, audit_url, [{**event, "phase": "responded", "status": response.status_code}])
+                except (OSError, GranumError):
+                    # Preserve the real result: a committed edit must not look like a failed one.
+                    app.state.audit_degraded = True
+                    response.headers["X-Granum-Audit-Warning"] = "Operation completed; audit completion failed. Further changes are blocked. Contact the workspace administrator."
+                    logging.getLogger(__name__).exception("Audit completion failed for request %s", event["id"])
+            else:
+                response = await call_next(request)
+            if actor:
+                response.headers["Cache-Control"] = "private, no-store"
+                response.headers["Vary"] = "Authorization"
+            response.headers["X-Content-Type-Options"] = "nosniff"
+            response.headers["Referrer-Policy"] = "same-origin"
+            return response
+        finally:
+            principal.reset(token)
+
+    @app.get("/api/access")
+    def access_status() -> dict[str, Any]:
+        actor = principal.get()
+        return {"mode": "shared" if actor else "local", "name": actor.name if actor else None,
+                "role": actor.role if actor else "owner", "scope": "entire workspace",
+            "audit_available": not app.state.audit_degraded,
+                "attribution": "authenticated" if actor else "self-reported"}
 
     # -- licence --------------------------------------------------------------
 
@@ -634,8 +706,12 @@ def create_app(
         # Per-epoch score summaries (no boxes) feed the learning view, not the row view.
         metrics = [t for t in run.metrics_tables()
                    if t.foreign_table_url is not None and not t.constants.get("summary_only")]
-        resolved = {str(t.url): _input_revision(t) for t in metrics}
+        limits.check(metrics, "Run inspection")
+        by_source = {str(t.foreign_table_url): t for t in metrics}
+        resolved_sources = {source: _input_revision(t) for source, t in by_source.items()}
+        resolved = {str(t.url): resolved_sources[str(t.foreign_table_url)] for t in metrics}
         inputs = {k: v[0] for k, v in resolved.items()}
+        limits.check(list({str(t.url): t for t in inputs.values()}.values()), "Run input tables")
         version = tuple(sorted(str(t.url) for t in metrics)) + tuple(
             sorted(str(t.url) for t in inputs.values())
         )
@@ -664,6 +740,19 @@ def create_app(
         rows: list[dict[str, Any]] = []
         collected_columns: dict[str, dict[str, Any]] = {}
         described = []
+        sample_rows: dict[tuple[str, bool], list[dict[str, Any]]] = {}
+
+        def selected_rows(table: Table, excluded: list[str]) -> list[dict[str, Any]]:
+            # Do not deserialize every epoch's geometry only to replace it with None.
+            import pyarrow.parquet as pq
+
+            from granum.core.layout import ROW_CACHE_FILENAME
+
+            path = table.url / ROW_CACHE_FILENAME
+            columns = [n for n in table.columns if n not in excluded]
+            arrow = pq.read_table(path.path, filesystem=path.fs, columns=columns)
+            return [{n: table.schema[n].from_storage(v) for n, v in row.items()} for row in arrow.to_pylist()]
+
         # Last epochs first, so the view opens on rows that carry the model's boxes.
         def is_last(table: MetricsTable) -> bool:
             epoch = epoch_of(table)
@@ -689,7 +778,15 @@ def create_app(
                     collected_columns[info["name"]] = info
             heavy = [n for n in (*table.columns, *source.columns)
                      if n == "gt_match" or isinstance((table.schema[n] if n in table.columns else source.schema[n]), Geometry2DSchema)] if slim else []
-            for row in table.join_input(input_table=source):
+            sample_key = (str(source.url), slim)
+            if sample_key not in sample_rows:
+                sample_rows[sample_key] = selected_rows(source, heavy)
+            samples = sample_rows[sample_key]
+            for metric_row in selected_rows(table, heavy):
+                example = metric_row["example_id"]
+                if not isinstance(example, int) or not 0 <= example < len(samples):
+                    raise _error(400, "metrics example_id is out of range; the input join is broken")
+                row = {**samples[example], **metric_row, **table.constants}
                 for name in heavy:
                     row[name] = None
                 row["_src"] = position
@@ -710,7 +807,8 @@ def create_app(
             "collected_columns": list(collected_columns.values()),
         }
         joined_cache.pop(key, None)
-        while len(joined_cache) >= JOINED_CACHE_RUNS:
+        while joined_cache and (len(joined_cache) >= JOINED_CACHE_RUNS
+                                or sum(len(item[1]["rows"]) for item in joined_cache.values()) + len(rows) > limits.rows):
             joined_cache.pop(next(iter(joined_cache)))
         joined_cache[key] = (version, result)
         return result
@@ -740,6 +838,8 @@ def create_app(
 
     @app.get("/api/health")
     def health() -> dict[str, Any]:
+        from granum.build_info import build_info
+
         return {
             "status": "ok",
             "version": __version__,
@@ -748,6 +848,8 @@ def create_app(
             "objects": len(index.entries()),
             "scans": index.stats.scans,
             "dashboard_bundled": _dashboard_dir() is not None,
+            "workflow_limits": limits.to_dict(),
+            "build": build_info(),
         }
 
     @app.get("/api/stats")
@@ -1051,6 +1153,7 @@ def create_app(
         limit: int = Query(100, ge=1, le=MAX_PAGE),
     ) -> dict[str, Any]:
         table = _table_at(url)
+        limits.check([table], "Table inspection")
         stop = min(offset + limit, len(table))
         rows = [table[i] for i in range(offset, stop)]
         for index_, row in zip(range(offset, stop), rows):
@@ -1089,6 +1192,7 @@ def create_app(
     ) -> Response:
         """Columnar rows for the dashboard grid -- no JSON parse on the client."""
         table = _table_at(url)
+        limits.check([table], "Arrow inspection")
         sliced = table.to_arrow().slice(offset, limit)
         sink = io.BytesIO()
         with pa.ipc.new_stream(sink, sliced.schema) as writer:
@@ -1099,6 +1203,7 @@ def create_app(
         )
 
     @app.post("/api/table/commit")
+    @workspace_lock()
     def commit(request: CommitRequest = Body(...)) -> dict[str, Any]:
         """Write a dashboard editing session as one new revision of a Table."""
         target = _check_within_roots(Url(request.url))
@@ -1109,6 +1214,20 @@ def create_app(
             table = Table.from_url(target)
         except GranumError as exc:
             raise _error(404, str(exc)) from exc
+        from granum.core.curation import is_release
+
+        if is_release(table):
+            raise _error(409, "frozen dataset versions are read-only; edit the working set and create a new version")
+        if access and request.expected_head is None:
+            raise _error(428, "shared edits require expected_head; reload the current table before committing")
+        actor = principal.get()
+        digest = hashlib.sha256(json.dumps({"request": request.model_dump(), "author": actor.name if actor else None}, sort_keys=True).encode()).hexdigest()
+        index.refresh(force=True)
+        previous = next((e for e in index.children_of(target) if e.payload.get("producer", {}).get("commit_fingerprint") == digest), None)
+        if previous is None and request.expected_head is not None:
+            head = _newest_sets(table.project_name, table.dataset_name).get(table.base_name)
+            if head is None or str(head.url) != request.expected_head or request.expected_head != str(table.url):
+                raise _error(409, "this dataset changed since editing began; your draft is retained. Reload and reconcile it with the current version")
         try:
             values = {
                 column: {int(row): value for row, value in cells.items()}
@@ -1117,16 +1236,34 @@ def create_app(
         except ValueError as exc:
             raise _error(400, f"row keys must be integers: {exc}") from exc
         try:
-            revision = table.apply_edits(
+            revision = Table.from_url(previous.url) if previous else table.apply_edits(
                 values=values,
                 new_columns={name: (kind, default) for name, (kind, default) in request.new_columns.items()},
                 value_maps=request.value_maps,
                 instance_properties=request.instance_properties,
                 table_name=request.name or None,
                 description=request.description,
+                provenance={"commit_fingerprint": digest, "author": actor.name if actor else "local"},
             )
         except (GranumError, ValueError) as exc:
             raise _error(400, str(exc)) from exc
+        # Annotation changes invalidate review on the server, including edits from API clients.
+        # No second, best-effort browser request is needed to make labels unreviewed.
+        from granum.core.curation import CurationError, image_column
+        from granum.core.qa import QaLog
+
+        try:
+            image_col = image_column(revision)
+            rows = sorted({r for cells in values.values() for r in cells})
+            if request.value_maps or request.instance_properties or request.new_columns:
+                rows = list(range(len(revision)))
+            images = revision.to_arrow().column(image_col).take(pa.array(rows, type=pa.int64())).to_pylist()
+            log = QaLog(table.project_name, table.dataset_name, config=config)
+            if not any(e.get("table") == str(revision.url) for e in log.events()):
+                log.set_status(images, "unreviewed", table_url=str(revision.url),
+                               author=actor.name if actor else None, comment=request.description or "Dataset contents edited")
+        except CurationError:
+            pass  # Non-image tables have no annotation review workflow.
         index.refresh(force=True)
         return {
             "url": str(revision.url),
@@ -1188,6 +1325,7 @@ def create_app(
         from granum.metrics.dynamics import image_learning
 
         run = _run_at(url)
+        limits.check(run.metrics_tables(), "Learning history")
         by_split: dict[str, list[MetricsTable]] = {}
         for table in run.metrics_tables():
             if table.foreign_table_url is None or "f1" not in table.columns or "epoch" not in table.columns:
@@ -1283,6 +1421,7 @@ def create_app(
 
         tables = [t for t in run.metrics_tables()
                   if t.foreign_table_url is not None and {"bbs_predicted", "gt_match", "epoch"} <= set(t.columns)]
+        limits.check(tables, "Label findings")
         key = tuple(sorted(str(t.url) for t in tables))
         hit = findings_cache.get(str(run.url))
         if hit is not None and hit[0] == key:
@@ -1564,6 +1703,29 @@ def create_app(
         return {"split": entry["split"], "dataset": entry["dataset"], "project": entry["project"],
                 "classes": entry["classes"], "truth": truth, "predicted": predicted, "examples": found}
 
+    @app.get("/api/run/evaluation/outcomes")
+    def run_evaluation_outcomes(
+        url: str = Query(...),
+        split: str | None = Query(None),
+        kinds: str = Query("tp,fp,fn", description="which of tp, fp and fn to return"),
+        labels: str = Query("", description="comma-separated class indices; empty means every class"),
+        confidence: float = Query(0.25, ge=0.01, le=0.99),
+        limit: int = Query(600, ge=1, le=2000),
+    ) -> dict[str, Any]:
+        """Every object a run got right, invented or missed, as rows to cut crops from."""
+        from granum.metrics.evaluation import EvalPolicy, outcomes
+
+        entry, _names = _evaluation_records(_run_at(url), split)
+        if entry is None:
+            raise _error(404, "this run did not store the model's boxes")
+        records = [{**record, "image": image} for image, record in entry["images"].items()]
+        chosen = [k.strip() for k in kinds.split(",") if k.strip()]
+        wanted = [int(v) for v in labels.split(",") if v.strip().lstrip("-").isdigit()]
+        found = outcomes(records, policy=EvalPolicy(operating_confidence=confidence),
+                         kinds=chosen, labels=wanted or None, limit=limit)
+        return {"split": entry["split"], "dataset": entry["dataset"], "project": entry["project"],
+                "classes": entry["classes"], **found}
+
     # -- comparing two runs ------------------------------------------------------------
 
     def _evaluation_data(run: Run, only: str | None = None) -> dict[str, dict[str, Any]]:
@@ -1580,6 +1742,7 @@ def create_app(
         """
         from granum.core.url import sample_key
 
+        limits.check([t for t in run.metrics_tables() if only is None or str(t.constants.get("split") or "all") == only], "Evaluation")
         by_split: dict[str, list[MetricsTable]] = {}
         for table in run.metrics_tables():
             if table.foreign_table_url is None or not {"example_id", "tp", "fp", "fn"} <= set(table.columns):
@@ -1948,7 +2111,9 @@ def create_app(
         if request.table is not None:
             _check_within_roots(Url(request.table))
         try:
-            recorded = log.record(request.samples, request.status, reason=request.reason, table_url=request.table)
+            actor = principal.get()
+            recorded = log.record(request.samples, request.status, reason=request.reason, table_url=request.table,
+                                  reviewer=actor.name if actor else None)
         except ReviewError as exc:
             raise _error(400, str(exc)) from exc
         return {"recorded": recorded, "counts": log.counts()}
@@ -1979,6 +2144,7 @@ def create_app(
             column = image_column(table)
         except CurationError:
             return []
+        limits.check([table], "Image review", images=True)
         arrow = table.to_arrow()
         box_column = next((n for n in table.columns if isinstance(table.schema[n], Geometry2DSchema)), None)
         boxes = arrow.column(box_column).to_pylist() if box_column else [None] * len(arrow)
@@ -2104,14 +2270,24 @@ def create_app(
 
     @app.post("/api/qa/status")
     def qa_status(request: QaStatusRequest = Body(...)) -> dict[str, Any]:
-        from granum.core.qa import QaError
+        from granum.core.qa import QaError, review_fingerprints
 
         log = _qa_log(request.project, request.dataset)
-        if request.table is not None:
-            _check_within_roots(Url(request.table))
+        sources = ([_table_at(request.table)] if request.table is not None
+                   else list(_newest_sets(request.project, request.dataset).values()))
+        limits.check(sources, "Image review", images=True)
+        fingerprints: dict[str, str] = {}
+        for source in sources:
+            if source.project_name != request.project or source.dataset_name != request.dataset:
+                raise _error(400, "choose a version of this dataset")
+            fingerprints.update(review_fingerprints(source, request.samples))
+        from granum.core.url import sample_key
+
+        if any(sample_key(s) not in fingerprints for s in request.samples):
+            raise _error(400, "reviewed images must belong to the selected dataset version")
         try:
             recorded = log.set_status(request.samples, request.status, comment=request.comment,
-                                      author=request.author, table_url=request.table)
+                                      author=request.author, table_url=request.table, fingerprints=fingerprints)
         except QaError as exc:
             raise _error(400, str(exc)) from exc
         current = log.current()
@@ -2132,8 +2308,10 @@ def create_app(
 
     @app.get("/api/qa/image")
     def qa_image(project: str = Query(...), dataset: str = Query(...), table: str = Query(...), image: str = Query(...)) -> dict[str, Any]:
-        """One image for review: its labelled boxes, class names and comment thread."""
+        """One image for review: its labelled boxes, class names, tags and comment thread."""
         from granum.core.curation import CurationError, image_column
+        from granum.core.tags import TagStore
+        from granum.core.url import sample_key
 
         log = _qa_log(project, dataset)
         source = _table_at(table)
@@ -2163,6 +2341,9 @@ def create_app(
             "height": value.get("height"),
             "labels": {str(k): (v.display_name or v.internal_name) for k, v in value_map.items()},
             "boxes": value.get("instances", []),
+            # The tags on this image's own boxes, keyed as they are addressed: the inspector
+            # is where a box is picked, so it is where one gets a word put on it.
+            "box_tags": TagStore(project, dataset, config=config).current_objects().get(sample_key(image), {}),
             "thread": log.thread(image),
         }
 
@@ -2343,6 +2524,14 @@ def create_app(
         if train is None:
             raise _error(404, "this dataset has no train set to augment")
         return train
+
+    @app.post("/api/qa/approve")
+    def approve_release(request: ApproveReleaseRequest = Body(...)) -> dict[str, Any]:
+        try:
+            release = _qa_log(request.project, request.dataset).approve(request.release_id, author=request.author)
+        except GranumError as exc:
+            raise _error(409, str(exc)) from exc
+        return {"release": {**release, "dataset": request.dataset}}
 
     @app.post("/api/augment/examples")
     def augment_examples(request: AugmentExamplesRequest = Body(...)) -> dict[str, Any]:
@@ -2528,13 +2717,17 @@ def create_app(
 
     # -- browsing images -----------------------------------------------------
 
-    def _image_rows(table: Table) -> list[dict[str, Any]]:
+    def _image_rows(table: Table, fields: Sequence[dict[str, Any]] = ()) -> list[dict[str, Any]]:
         """Every image of a set with the classes it uses, for the Images tab.
 
         Separate from ``_set_images``: the class list is only wanted here, and on a large
         set it is the bulk of the payload.
+
+        ``fields`` are the schema columns the caller will let a reader sort, group, filter
+        and summarise by; each row carries their values under ``values``.
         """
         from granum.core.curation import CurationError, image_column
+        from granum.core.fields import field_values
         from granum.importing.library import count_instances
 
         try:
@@ -2560,16 +2753,24 @@ def create_app(
             for value in arrow.column(box_column).to_pylist():
                 instances = (value or {}).get("instances") or []
                 drafted.append(sum(1 for x in instances if x.get(SOURCE) == PRELABEL_MODEL))
+        values = field_values(table, fields) if fields else None
         return [{"row": i, "image": image, "objects": objects[i], "classes": classes[i],
-                 **({"drafted": drafted[i]} if drafted else {})}
+                 **({"drafted": drafted[i]} if drafted else {}),
+                 **({"values": values[i]} if values and values[i] else {})}
                 for i, image in enumerate(images) if image]
 
     @app.get("/api/images")
     def images_overview(project: str = Query(...), dataset: str = Query(...)) -> dict[str, Any]:
         """Every image of the dataset's newest sets, with its classes and review status.
 
-        One call feeds the whole Images tab: filtering by class, split and status, and
-        ordering by name or by when the image was last touched, all happen in the browser.
+        One call feeds the whole Images tab: filtering by class, split and status, ordering
+        by any field, grouping by one, and the summary of a column, all happen in the
+        browser over this one payload.
+
+        ``fields`` are the set's own scalar columns -- whatever the import or a later pass
+        put beside the picture -- described well enough for the ribbon to build a control
+        for each, and each image carries their values. Columns holding one value for every
+        image are dropped: a control that cannot narrow anything is worse than none.
         """
         log = _qa_log(project, dataset)
         current = log.current()
@@ -2577,18 +2778,28 @@ def create_app(
         images: list[dict[str, Any]] = []
         labels: dict[str, str] = {}
         from granum.core.curation import ISOLATED_SET, image_column
+        from granum.core.fields import scalar_fields, usable_fields
 
         newest = _newest_sets(project, dataset)
         chosen = list(_review_sets(project, dataset).values())
         # Images set aside in review come along, marked, so they can be fixed and returned.
         if ISOLATED_SET in newest and len(newest[ISOLATED_SET]):
             chosen.append(newest[ISOLATED_SET])
+        limits.check(chosen, "Images workspace", images=True)
+        # One descriptor per column name across the sets: the same column means the same
+        # thing in train and in valid, and the ribbon offers it once.
+        described: dict[str, dict[str, Any]] = {}
+        for table in chosen:
+            for field in scalar_fields(table):
+                described.setdefault(field["name"], field)
+        offered = list(described.values())
+
         for table in chosen:
             box_column = next((n for n in table.columns if isinstance(table.schema[n], Geometry2DSchema)), None)
             value_map = (table.schema[box_column].value_map or {}) if box_column else {}
             for label, entry in value_map.items():
                 labels.setdefault(str(label), entry.display_name or entry.internal_name)
-            rows = _image_rows(table)
+            rows = _image_rows(table, offered)
             origins: dict[str, Any] = {}
             if table.base_name == ISOLATED_SET and "removed_from" in table.columns:
                 arrow = table.to_arrow()
@@ -2603,9 +2814,21 @@ def create_app(
                 images.append({**row, **extra, "set": table.base_name, "table": str(table.url), "added": table.created})
         order = ["train", "valid", "val", "validation", "test", ISOLATED_SET]
         sets.sort(key=lambda s: (order.index(s["set"]) if s["set"] in order else len(order), s["set"]))
+        fields = usable_fields(offered, (i.get("values") or {} for i in images))
+        kept = {f["name"] for f in fields}
+        for image in images:
+            values = image.get("values")
+            if values is None:
+                continue
+            pruned = {k: v for k, v in values.items() if k in kept}
+            if pruned:
+                image["values"] = pruned
+            else:
+                image.pop("values")
         return {
             "sets": sets,
             "labels": labels,
+            "fields": fields,
             "images": images,
             "statuses": {image: current[image] for image in {i["image"] for i in images} & set(current)},
         }
@@ -3000,6 +3223,18 @@ def create_app(
         for url in chosen_tables:
             if url not in shipped:
                 raise _error(409, f"{tables[url].name} is not part of a dataset version; create one from Images first")
+        if request.release_id or request.require_approved:
+            selected_release = next((r for r in releases(request.project)["releases"] if r["id"] == request.release_id), None)
+            if selected_release is None:
+                raise _error(409, "choose a dataset version for this training request")
+            members = {v["url"] for v in selected_release["sets"].values()}
+            if any(url not in members for url in chosen_tables):
+                raise _error(409, "all training inputs must belong to the selected dataset version")
+            if request.require_approved:
+                try:
+                    _qa_log(request.project, selected_release["dataset"]).require_approved(request.release_id, chosen_tables)
+                except GranumError as exc:
+                    raise _error(409, str(exc)) from exc
 
         from granum.cli.desktop import app_executable, running_appimage
         from granum.service import trainers
@@ -3013,6 +3248,8 @@ def create_app(
             "--train-table", request.train_table, "--valid-table", request.valid_table,
             "--run-name", name, "--epochs", str(request.rounds), "--imgsz", str(request.image_size),
             "--family", request.family, "--version", request.version,
+            *(["--release-id", request.release_id] if request.release_id else []),
+            *(["--require-approved"] if request.require_approved else []),
             *(["--test-table", request.test_table] if request.test_table else []),
             *(["--track-learning"] if request.track_learning else []),
             *(["--compare-with", request.compare_with] if request.compare_with else []),
@@ -3246,27 +3483,31 @@ def create_app(
 
     # -- tags and saved views ---------------------------------------------------------
 
+    def _tags_payload(store: Any) -> dict[str, Any]:
+        """Everything tagged in one dataset: the images, their objects, and the tallies."""
+        return {"images": store.current(), "counts": store.counts(),
+                "objects": store.current_objects(), "object_counts": store.object_counts()}
+
     @app.get("/api/tags")
     def tags_overview(project: str = Query(...), dataset: str = Query(...)) -> dict[str, Any]:
-        """Every image of this dataset that carries a tag, and how much each tag is used."""
+        """Everything in this dataset that carries a tag, and how much each tag is used."""
         from granum.core.tags import TagStore
 
         store = TagStore(project, dataset, config=config)
-        return {"project": project, "dataset": dataset,
-                "images": store.current(), "counts": store.counts()}
+        return {"project": project, "dataset": dataset, **_tags_payload(store)}
 
     @app.post("/api/tags")
     def tags_record(request: TagRequest = Body(...)) -> dict[str, Any]:
-        """Tag images, untag them, or both at once for a whole selection."""
+        """Tag images or particular boxes of one image, untag them, or both at once."""
         from granum.core.tags import TagError, TagStore
 
         store = TagStore(request.project, request.dataset, config=config)
         try:
             written = store.record(request.samples, add=request.add, remove=request.remove,
-                                   author=request.author or None)
+                                   objects=request.objects, author=request.author or None)
         except TagError as exc:
             raise _error(400, str(exc)) from exc
-        return {**written, "images_tagged": store.current(), "counts": store.counts()}
+        return {**written, "images_tagged": store.current(), **_tags_payload(store)}
 
     @app.get("/api/views")
     def views_list(project: str = Query(...), dataset: str = Query(...)) -> dict[str, Any]:

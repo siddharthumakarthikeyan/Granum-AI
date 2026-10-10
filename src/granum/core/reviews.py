@@ -22,8 +22,6 @@ Statuses:
 from __future__ import annotations
 
 import getpass
-import json
-import threading
 from collections import Counter
 from collections.abc import Iterable
 from datetime import datetime, timezone
@@ -31,23 +29,15 @@ from typing import Any
 
 from granum.core.config import Config, get_config
 from granum.core.layout import ProjectLayout, sanitize
+from granum.core.qa import _append, _read
 from granum.core.url import Url, sample_key
 from granum.errors import GranumError
 
 STATUSES = ("correct", "corrected", "ambiguous", "deferred", "excluded", "unreviewed")
 MAX_REASON = 2000
 
-_locks: dict[str, threading.Lock] = {}
-_locks_guard = threading.Lock()
-
-
 class ReviewError(GranumError):
     """A review decision could not be recorded."""
-
-
-def _lock_for(key: str) -> threading.Lock:
-    with _locks_guard:
-        return _locks.setdefault(key, threading.Lock())
 
 
 def _reviewer() -> str:
@@ -86,34 +76,18 @@ class ReviewLog:
             return 0
         now = datetime.now(timezone.utc).isoformat(timespec="seconds")
         who = _reviewer() if reviewer is None else reviewer
-        lines = "".join(
-            json.dumps({
+        _append(self.url, [
+            {
                 "sample": key, "status": status, "reason": reason, "table": table_url,
                 "reviewer": who, "time": now,
-            }, separators=(",", ":")) + "\n"
+            }
             for key in keys
-        )
-        with _lock_for(str(self.url)):
-            self.url.parent.mkdir()
-            with self.url.fs.open(self.url.path, "ab") as handle:
-                handle.write(lines.encode("utf-8"))
+        ])
         return len(keys)
 
     def events(self) -> list[dict[str, Any]]:
-        """Every decision ever recorded, oldest first. Unreadable lines are skipped."""
-        if not self.url.exists():
-            return []
-        out = []
-        with _lock_for(str(self.url)):
-            text = self.url.read_text()
-        for line in text.splitlines():
-            try:
-                event = json.loads(line)
-            except json.JSONDecodeError:
-                continue  # a torn final line from an interrupted write
-            if isinstance(event, dict) and event.get("status") in STATUSES and event.get("sample"):
-                out.append(event)
-        return out
+        """Every decision, oldest first. Only an incomplete final record is ignored."""
+        return [e for e in _read(self.url) if e.get("status") in STATUSES and e.get("sample")]
 
     def current(self) -> dict[str, dict[str, Any]]:
         """The latest decision per sample, leaving out samples cleared back to unreviewed."""
