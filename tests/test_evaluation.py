@@ -139,7 +139,7 @@ def test_an_empty_set_does_not_raise():
 # -- through the service ---------------------------------------------------------
 
 
-def image(index: int) -> str:
+def stored_path(index: int) -> str:
     """The path the fixture stores for an image: on Windows it carries the drive."""
     from granum.core.url import Url
 
@@ -204,12 +204,12 @@ def test_the_service_reads_a_run_class_by_class(isolated_project, tmp_path):
     # The cell behind the swap names the image, so a reader can go and look at it.
     cell = api.get("/api/run/evaluation/examples",
                    params={"url": str(run.url), "truth": 0, "predicted": 1}).json()
-    assert [e["image"] for e in cell["examples"]] == [image(0)]
+    assert [e["image"] for e in cell["examples"]] == [stored_path(0)]
     assert cell["examples"][0]["confidence"] == pytest.approx(0.9)  # float32, as stored
 
     missed = api.get("/api/run/evaluation/examples",
                      params={"url": str(run.url), "truth": 1}).json()
-    assert [e["image"] for e in missed["examples"]] == [image(2)]
+    assert [e["image"] for e in missed["examples"]] == [stored_path(2)]
 
     empty = api.get("/api/run/evaluation/examples", params={"url": str(run.url)})
     assert empty.status_code == 400
@@ -218,9 +218,9 @@ def test_the_service_reads_a_run_class_by_class(isolated_project, tmp_path):
     every = api.get("/api/run/evaluation/outcomes", params={"url": str(run.url)}).json()
     assert every["counts"] == {"tp": 1, "fp": 1, "fn": 2}
     assert {(row["kind"], row["image"]) for row in every["objects"]} == {
-        ("tp", image(1)), ("fp", image(0)), ("fn", image(0)), ("fn", image(2))}
+        ("tp", stored_path(1)), ("fp", stored_path(0)), ("fn", stored_path(0)), ("fn", stored_path(2))}
     assert every["classes"] == {"0": "van", "1": "car"} and every["dataset"] == "streets"
 
     invented = api.get("/api/run/evaluation/outcomes",
                        params={"url": str(run.url), "kinds": "fp", "labels": "1"}).json()
-    assert [row["image"] for row in invented["objects"]] == [image(0)]
+    assert [row["image"] for row in invented["objects"]] == [stored_path(0)]
