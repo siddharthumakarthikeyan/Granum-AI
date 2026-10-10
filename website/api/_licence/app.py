@@ -5,6 +5,7 @@ admin token."""
 from __future__ import annotations
 
 import hmac
+from collections.abc import Callable
 from typing import Any
 
 from fastapi import Body, FastAPI, Header, Query, Request
@@ -70,10 +71,18 @@ class LidRequest(BaseModel):
     machine: str | None = None
 
 
-def create_app(service: LicenceService, *, admin_token: str = "", site: dict[str, Any] | None = None) -> FastAPI:
-    """``site`` is what the web pages read: download links, version, contact address."""
+def create_app(service: LicenceService, *, admin_token: str = "",
+               site: dict[str, Any] | Callable[[], dict[str, Any]] | None = None) -> FastAPI:
+    """``site`` is what the web pages read: download links, version, contact address.
+
+    Given as a function, it is asked on every request, so the pages follow a release
+    approved after the server started (see releases.py).
+    """
     app = FastAPI(title="Granum licence server", docs_url=None, redoc_url=None, openapi_url=None)
-    site = site or {}
+    settings = site or {}
+
+    def current() -> dict[str, Any]:
+        return settings() if callable(settings) else settings
 
     def publication() -> dict[str, Any]:
         import re
@@ -86,6 +95,7 @@ def create_app(service: LicenceService, *, admin_token: str = "", site: dict[str
             except ValueError:
                 return False
 
+        site = current()
         release = site.get("release") or {}
         checksums = site.get("checksums") or {}
         manifests = site.get("manifests") or {}
@@ -117,7 +127,7 @@ def create_app(service: LicenceService, *, admin_token: str = "", site: dict[str
     def site_config() -> dict[str, Any]:
         """What the pages show: the version, whether downloads are up, how to get in touch."""
         published = publication()
-        return {"version": published["version"], "contact": site.get("contact"), "release": published["release"],
+        return {"version": published["version"], "contact": current().get("contact"), "release": published["release"],
             "downloads": {name: name in published["downloads"] for name in ("windows", "linux")}}
 
     @app.post("/v1/download/code")
@@ -137,7 +147,7 @@ def create_app(service: LicenceService, *, admin_token: str = "", site: dict[str
         if request.website:
             return {"ok": True}
         return service.quote(request.email, name=request.name, company=request.company, computers=request.computers,
-                             message=request.message, plan=request.plan, notify=site.get("contact") or "")
+                             message=request.message, plan=request.plan, notify=current().get("contact") or "")
 
     @app.post("/v1/register")
     def register(request: EmailRequest = Body(...)) -> dict[str, Any]:

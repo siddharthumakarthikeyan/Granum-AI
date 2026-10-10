@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import base64
 import os
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
@@ -48,7 +49,17 @@ def service_from_env() -> LicenceService:
                           mailer=mailer, settings=settings)
 
 
-def site_from_env() -> dict[str, Any]:
+#: The public repository whose approved release the site offers, unless links are set by hand.
+RELEASE_REPOSITORY = "siddharthumakarthikeyan/Granum-AI"
+
+
+def site_from_env() -> dict[str, Any] | Callable[[], dict[str, Any]]:
+    """What the pages show. Installer links set by hand win; otherwise the approved release is followed."""
+    if not (os.environ.get("DOWNLOAD_WINDOWS_URL") or os.environ.get("DOWNLOAD_LINUX_URL")):
+        from .releases import ApprovedRelease
+
+        return ApprovedRelease(os.environ.get("DOWNLOAD_RELEASE_REPOSITORY") or RELEASE_REPOSITORY,
+                               contact=os.environ.get("CONTACT_EMAIL", ""))
     return {
         "version": os.environ.get("APP_VERSION", ""),
         "contact": os.environ.get("CONTACT_EMAIL", ""),

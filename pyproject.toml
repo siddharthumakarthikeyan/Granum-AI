@@ -64,7 +64,7 @@ artifacts = ["src/granum/service/static/**", "src/granum/_build.json"]
 [tool.hatch.build.targets.wheel.hooks.custom]
 
 [tool.hatch.build.targets.sdist]
-exclude = ["web/node_modules", "web/test-results", "web/playwright-report", "src/granum/service/static", "src/granum/_build.json", "docs/assets"]
+exclude = ["website", "web/node_modules", "web/test-results", "web/playwright-report", "src/granum/service/static", "src/granum/_build.json", "docs/assets"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

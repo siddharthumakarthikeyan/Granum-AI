@@ -338,6 +338,7 @@ granum/
 │       ├── shell/          Sidebar and inspection workspace
 │       └── store/          State, filtering, editing, selection
 ├── .github/workflows/      CI: lint, backend tests (3.10 to 3.12), dashboard tests and build
+├── website/                The public site, its documentation and the licence server (deployed on Vercel)
 ├── packaging/linux/        Builds the self-contained AppImage (Python, Qt WebEngine window, dashboard)
 ├── packaging/windows/      Builds the Windows installer (same bundle, packed by Inno Setup)
 ├── install.sh              One-command install, upgrade and uninstall as a desktop app

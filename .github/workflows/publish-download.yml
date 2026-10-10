@@ -1,0 +1,53 @@
+name: publish-download
+# Approves the current build of main as the download the website offers.
+#
+# Every push to main is built by release-linux and release-windows and kept as the
+# "main-build" pre-release. Nothing reaches the website until this workflow is run by
+# hand (Actions -> publish-download -> Run workflow): it checks that both installers are
+# the files their checksums and manifests describe, built from one clean commit, and
+# publishes them as a full release with release.json. The website reads the newest full
+# release, so it offers the build a few minutes later.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publish-download
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Fetch the build of main
+        run: |
+          mkdir build-files
+          gh release download main-build --dir build-files
+          ls -l build-files
+      - name: Check the files and describe them
+        run: |
+          revision=$(gh api "repos/$GITHUB_REPOSITORY/commits/main-build" --jq .sha)
+          python -I tools/approve_release.py --dir build-files --out build-files/release.json --revision "$revision"
+      - name: Publish as the website's download
+        run: |
+          read_field() { python -c "import json, sys; print(json.load(open('build-files/release.json'))[sys.argv[1]])" "$1"; }
+          tag=$(read_field tag)
+          version=$(read_field version)
+          revision=$(read_field source_revision)
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "::error::$tag is already published. Merge something new to main, or delete that release to publish it again."
+            exit 1
+          fi
+          gh release create "$tag" --target "$revision" --latest \
+            --title "Granum $version (${revision:0:12})" \
+            --notes "Approved build of main at commit $revision. This is the download the website offers. Each installer comes with its SHA-256 checksum and a manifest of what it was built from." \
+            build-files/*
+          echo "Published https://github.com/$GITHUB_REPOSITORY/releases/tag/$tag" >> "$GITHUB_STEP_SUMMARY"

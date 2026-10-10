@@ -1,7 +1,9 @@
 # Granum website and licence server
 
 The public site (landing page, email-gated download, product documentation, privacy notice)
-and the licence server the Granum app signs in to, in one Vercel project.
+and the licence server the Granum app signs in to, in one Vercel project. It lives in the
+`website/` folder of the app's repository; every path below is relative to that folder, and
+commands are run from it.
 
 **Current channel: unrestricted-alpha.** The app's licensing enforcement remains disabled.
 Public copy must not promise a timed trial, automatic expiry or paid quotas that this build does
@@ -89,9 +91,11 @@ It reads the signing key from `~/.config/granum-admin/signing-k1.pem` unless
 
 ## Deploy on Vercel
 
-1. **Push** this folder to a new GitHub repository (it can be private).
-2. **Import** it in Vercel: *Add New → Project → Import*. Framework preset **Other**; leave the
-   build and output settings empty (vercel.json sets them).
+1. **Import** the app's repository in Vercel: *Add New → Project → Import*, or on an existing
+   project *Settings → Git* to connect it. Production branch `main`.
+2. *Settings → Build and Deployment*: **Root Directory** `website`. Framework preset **Other**;
+   leave the build and output settings empty (vercel.json sets them). To deploy only when the
+   site changes, set **Ignored Build Step** to `git diff --quiet HEAD^ HEAD -- .`
 3. **Database**: in the project, *Storage → Create Database → Neon (Postgres)*, and connect it
    to the project. That adds `DATABASE_URL`. Tables are created on first use.
 4. **Environment variables** (*Settings → Environment Variables*, for Production):
@@ -104,38 +108,37 @@ It reads the signing key from `~/.config/granum-admin/signing-k1.pem` unless
    | `SMTP_USER` / `SMTP_PASSWORD` | your Gmail address / a Gmail **app password** (Google Account → Security → 2-Step Verification → App passwords) |
    | `SMTP_FROM` | `Granum <you@gmail.com>` |
    | `CONTACT_EMAIL` | where people write to you (shown on the site) |
-   | `APP_VERSION` | `0.1.0` |
-   | `DOWNLOAD_WINDOWS_URL` / `DOWNLOAD_LINUX_URL` | the installer links (next section) |
-   | `APP_SOURCE_REVISION` | full clean source commit recorded inside the qualified artifacts |
-   | `DOWNLOAD_WINDOWS_SHA256` / `DOWNLOAD_LINUX_SHA256` | 64-character SHA-256 from the exact final installers |
-   | `DOWNLOAD_WINDOWS_MANIFEST_URL` / `DOWNLOAD_LINUX_MANIFEST_URL` | HTTPS URLs for their generated artifact manifests |
-   | `APP_RELEASE_QUALIFIED` | `1` only after the publication checklist below; otherwise downloads are withheld |
+   | `DOWNLOAD_RELEASE_REPOSITORY` | optional; the public repository whose approved release is offered. Default `siddharthumakarthikeyan/Granum-AI` |
+
+   The download links, version, checksums and manifests need no variables: they come from the
+   approved release (next section). Setting `DOWNLOAD_WINDOWS_URL` or `DOWNLOAD_LINUX_URL` switches
+   to links set by hand instead, which then also need `APP_VERSION`, `APP_SOURCE_REVISION`,
+   `DOWNLOAD_<OS>_SHA256`, `DOWNLOAD_<OS>_MANIFEST_URL` and `APP_RELEASE_QUALIFIED=1`.
    | `LICENCE_TRIAL_DAYS` / `LICENCE_TRIAL_PROJECTS` | optional; default `7` / `1` |
 
    Never set `LICENCE_DEV` in production: it returns sign-in codes in responses.
 5. **Deploy**, then open `https://<project>.vercel.app/v1/health`; it answers `{"ok":true}`.
 
-## Host the installers
+## The download the site offers
 
-Vercel is not for 200 MB files. Use GitHub Releases on a **public** repository that holds
-only the installers (your code repositories stay private):
+Vercel is not for 200 MB files; the installers are GitHub release files of the app's repository.
 
-1. Create a public repository, e.g. `granum-downloads`.
-2. Build from a clean, tagged source revision with passing backend and browser CI. Use the packaging
-   scripts' installer, `.manifest.json` and `.sha256` outputs together. Do not reuse unstamped September
-   installers as evidence for later source changes. Windows remains unsigned unless separately signed
-   and the final signed artifact is re-hashed.
-3. Check the embedded channel is `unrestricted-alpha`, `licensing_enforced` is false, `source_dirty`
-   is false, package/dashboard hashes match, and the version/revision agree across both platforms.
-4. Rehearse installation, launch, import/edit/reload, backup/restore, upgrade and uninstall on the
-   operating systems you will list as supported. Record outcomes and limitations; CI definitions are
-   not evidence that the jobs have run. No clean-machine Windows qualification was run in this source change.
-5. Publish as an **alpha/prerelease** and attach the artifacts plus manifests/checksums. Download the
-   public copies and recompute their hashes. Set the metadata variables above, then explicitly set
-   `APP_RELEASE_QUALIFIED=1` and redeploy. A bare installer URL is deliberately insufficient.
+1. **Every push or merge to `main`** builds the Windows Setup.exe and the Linux AppImage, each with a
+   `.sha256` and a `.manifest.json`, and keeps them as the *Build of main* pre-release (tag
+   `main-build`), replacing the build before. The site does not offer this.
+2. **You approve a build**: on GitHub, *Actions → publish-download → Run workflow*. It checks that both
+   installers are the bytes their checksums and manifests describe and were built from one clean commit,
+   then publishes them as a full release (`build-<version>-<commit>`) carrying `release.json`.
+3. **The site follows**: `api/_licence/releases.py` reads the newest full release's `release.json`
+   (asked again every five minutes) and passes it through the same publication gate as before: a
+   known channel, a real commit, an https link, a 64-character checksum and a manifest per installer.
+   With no approved release, or one that fails the gate, the site shows no current desktop release.
 
-The gate validates publication metadata, not remote artifact bytes or a signature. The release operator
-must complete these checks. With no qualified metadata, the site shows no current desktop release.
+Approving is the publication decision. Before running the workflow, rehearse installation, launch,
+import/edit/reload, backup/restore, upgrade and uninstall of the *Build of main* files on the operating
+systems you list as supported; the workflow proves the files are what they say, not that they work on a
+clean machine. Windows remains unsigned unless separately signed. To withdraw a download, delete its
+release on GitHub: the site returns to the approved build before it.
 
 The links are public once someone has them; the form is how you learn who downloads.
 
