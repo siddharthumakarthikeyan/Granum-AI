@@ -24,6 +24,8 @@ $Version = ((Select-String -Path "$Repo\pyproject.toml" -Pattern '^version = "(.
 
 function Say($text) { Write-Host "build " -ForegroundColor Cyan -NoNewline; Write-Host $text }
 
+# A lone "-I" must be passed quoted: unquoted, PowerShell takes it for one of this function's own
+# parameters (-InformationAction, -InformationVariable) instead of Python's isolated-mode flag.
 function Invoke-Checked {
     param([string]$Exe, [Parameter(ValueFromRemainingArguments = $true)][string[]]$Arguments)
     & $Exe @Arguments
@@ -75,7 +77,7 @@ if (-not $Wheel) {
     Invoke-Checked $Py -m pip uninstall --quiet -y build pyproject_hooks
 }
 $Wheel = (Resolve-Path $Wheel).Path
-Invoke-Checked $Py -I "$Repo\tools\release_manifest.py" --wheel $Wheel --version $Version
+Invoke-Checked $Py "-I" "$Repo\tools\release_manifest.py" --wheel $Wheel --version $Version
 
 # 3. Everything Granum needs, into the bundled Python.
 Say "installing granum and its dependencies"
@@ -107,7 +109,7 @@ Remove-Item Env:PYTHONPATH
 # Fail the build, not the user's first launch, if trimming broke anything.
 Say "checking the bundle imports"
 Invoke-Checked $Py -c "import PySide6.QtWebEngineWidgets, PySide6.QtWebEngineCore, granum.service.app, granum.cli.window, pandas, pyarrow, PIL, fastapi, uvicorn, pip; print('bundle imports ok')"
-Invoke-Checked $Py -I "$Repo\tools\smoke_package.py"
+Invoke-Checked $Py "-I" "$Repo\tools\smoke_package.py"
 
 # 5. Precompile, so the first launch does not wait for bytecode.
 Invoke-Checked $Py -m compileall -q -j 0 (Join-Path $pyRoot "Lib")
@@ -141,5 +143,5 @@ $size = "{0:N0} MB" -f ((Get-ChildItem -Recurse -File $App | Measure-Object Leng
 Say "packing $size into the installer"
 Invoke-Checked $iscc /Q "/DAppVersion=$Version" "/DSourceDir=$App" "/DOutputDir=$Repo\dist" "$Repo\packaging\windows\granum.iss"
 $out = Join-Path $Repo "dist\Granum-$Version-Setup.exe"
-Invoke-Checked $Py -I "$Repo\tools\release_manifest.py" --wheel $Wheel --version $Version --artifact $out
+Invoke-Checked $Py "-I" "$Repo\tools\release_manifest.py" --wheel $Wheel --version $Version --artifact $out
 Say ("done: $out ({0:N0} MB)" -f ((Get-Item $out).Length / 1MB))
