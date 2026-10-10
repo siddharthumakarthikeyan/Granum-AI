@@ -74,7 +74,9 @@ Type: filesandordirs; Name: "{app}"
 
 [Code]
 { Stop every process running from the install folder: the window, the background service and
-  any training it started. Their files cannot be replaced or removed while they run. }
+  any training it started. Their files cannot be replaced or removed while they run.
+  The uninstaller is left alone: it also starts from that folder and waits there for its
+  working copy, and stopping it made a successful uninstall report failure. }
 procedure StopGranum();
 var
   Folder, Command: String;
@@ -83,7 +85,8 @@ begin
   Folder := AddBackslash(ExpandConstant('{app}'));
   StringChangeEx(Folder, '''', '''''', True);
   Command := '-NoProfile -NonInteractive -ExecutionPolicy Bypass -Command "' +
-    'Get-Process | Where-Object { $_.Path -and $_.Path.StartsWith(''' + Folder + ''', ''OrdinalIgnoreCase'') } | ' +
+    'Get-Process | Where-Object { $_.Path -and $_.Path.StartsWith(''' + Folder + ''', ''OrdinalIgnoreCase'') ' +
+    '-and $_.ProcessName -notlike ''unins*'' } | ' +
     'Stop-Process -Force -ErrorAction SilentlyContinue; Start-Sleep -Milliseconds 800"';
   Exec(ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe'), Command, '', SW_HIDE, ewWaitUntilTerminated, Code);
 end;
