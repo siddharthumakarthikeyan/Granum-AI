@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Per-image learning · Granum documentation</title>
+  <meta name="description" content="Which images the model learned early, late, unstably or never — and what to do with each group.">
+  <meta name="theme-color" content="#ffffff">
+  <meta property="og:title" content="Per-image learning · Granum documentation">
+  <meta property="og:description" content="Which images the model learned early, late, unstably or never — and what to do with each group.">
+  <meta property="og:type" content="article">
+  <meta property="og:image" content="/assets/og.jpg">
+  <link rel="canonical" href="https://granum.app/docs/guides/learning">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/docs/docs.css">
+  <script>document.documentElement.classList.remove("no-js");</script>
+</head>
+<body class="doc-body">
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header doc-header">
+    <div class="wrap">
+      <a class="brand" href="/" aria-label="Granum home"><img src="/assets/lockup-ink.svg" alt="Granum" width="128" height="32"></a>
+      <span class="doc-badge"><a href="/docs">Docs</a></span>
+      <nav class="nav" id="nav" aria-label="Main">
+        <a href="/#tour">Product</a>
+        <a href="/#plans">Pilots</a>
+        <a href="/docs/help/faq">FAQ</a>
+      </nav>
+      <div class="header-actions">
+        <button class="doc-search-button" type="button" data-search aria-label="Search documentation">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3 3"/></svg>
+          <span>Search</span><kbd>/</kbd>
+        </button>
+        <a class="btn primary small" href="/download">Download</a>
+        <button class="menu-button" type="button" aria-controls="doc-sidebar" aria-expanded="false" aria-label="Menu" data-sidebar-toggle>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="doc-shell">
+    <div class="doc-sidebar" id="doc-sidebar">
+      <nav class="doc-nav" aria-label="Documentation">
+<a class="doc-nav-home" href="/docs">Start here</a>
+<div class="doc-nav-group"><p class="doc-nav-title">Guided aerial-data course</p><ul>
+<li><a href="/docs/course/start">Start the guided course</a></li>
+<li><a href="/docs/course/setup">1. Prepare the workspace</a></li>
+<li><a href="/docs/course/data">2. Understand the sample</a></li>
+<li><a href="/docs/course/import">3. Import with preflight</a></li>
+<li><a href="/docs/course/explore">4. Explore before changing labels</a></li>
+<li><a href="/docs/course/baseline">5. Freeze an exploratory baseline</a></li>
+<li><a href="/docs/course/review">6. Review, edit and recover</a></li>
+<li><a href="/docs/course/train">7. Train the first model</a></li>
+<li><a href="/docs/course/results">8. Read the model evidence</a></li>
+<li><a href="/docs/course/compare">9. Make a controlled comparison</a></li>
+<li><a href="/docs/course/handoff">10. Approve and export an excerpt</a></li>
+<li><a href="/docs/course/backup">11. Back up, restore and share safely</a></li>
+<li><a href="/docs/course/next">12. Move to your own project</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Getting started</p><ul>
+<li><a href="/docs/start/install">Install Granum</a></li>
+<li><a href="/docs/start/activate">Alpha access and licences</a></li>
+<li><a href="/docs/start/first-project">Your first project</a></li>
+<li><a href="/docs/start/the-loop">Run the loop once</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Concepts</p><ul>
+<li><a href="/docs/concepts/model">How Granum is organised</a></li>
+<li><a href="/docs/concepts/projects">Projects and project types</a></li>
+<li><a href="/docs/concepts/versions">Versions and lineage</a></li>
+<li><a href="/docs/concepts/dataset-versions">Dataset versions</a></li>
+<li><a href="/docs/concepts/verification">Verification and decisions</a></li>
+<li><a href="/docs/concepts/identity">Image identity</a></li>
+<li><a href="/docs/concepts/runs">Runs and metrics</a></li>
+<li><a href="/docs/concepts/evidence">What the evidence is worth</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Guides</p><ul>
+<li><a href="/docs/guides/import">Import data</a></li>
+<li><a href="/docs/guides/pull-from-projects">Build from existing projects</a></li>
+<li><a href="/docs/guides/browse">Browse images</a></li>
+<li><a href="/docs/guides/review">Review and verify</a></li>
+<li><a href="/docs/guides/edit">Edit annotations</a></li>
+<li><a href="/docs/guides/isolate-remove">Isolate, remove and restore</a></li>
+<li><a href="/docs/guides/dataset-versions">Create a dataset version</a></li>
+<li><a href="/docs/guides/augmentation">Augmentation</a></li>
+<li><a href="/docs/guides/train">Train a model</a></li>
+<li><a href="/docs/guides/runs">Read a run</a></li>
+<li><a href="/docs/guides/learning" class="on" aria-current="page">Per-image learning</a></li>
+<li><a href="/docs/guides/findings">Work the Findings queue</a></li>
+<li><a href="/docs/guides/compare">Compare two runs</a></li>
+<li><a href="/docs/guides/projects">Manage projects</a></li>
+<li><a href="/docs/guides/python">Use Granum from Python</a></li>
+<li><a href="/docs/guides/operations">Operate a pilot workspace</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Reference</p><ul>
+<li><a href="/docs/reference/screens">Map of the app</a></li>
+<li><a href="/docs/reference/shortcuts">Keyboard shortcuts</a></li>
+<li><a href="/docs/reference/preflight">Import checks</a></li>
+<li><a href="/docs/reference/models">Models you can train</a></li>
+<li><a href="/docs/reference/files">Files and settings</a></li>
+<li><a href="/docs/reference/limits">Scale and limits</a></li>
+<li><a href="/docs/reference/glossary">Glossary</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Help</p><ul>
+<li><a href="/docs/help/troubleshooting">Troubleshooting</a></li>
+<li><a href="/docs/help/faq">Frequently asked questions</a></li>
+<li><a href="/docs/help/privacy">Your data and privacy</a></li>
+</ul></div>
+</nav>
+    </div>
+    <main class="doc-main" id="main">
+      <article class="doc-article">
+        <nav class="doc-crumb" aria-label="Breadcrumb"><a href="/docs">Documentation</a><span aria-hidden="true">/</span><a href="/docs#guides">Guides</a></nav>
+        <h1>Per-image learning</h1>
+        <p class="doc-summary">Which images the model learned early, late, unstably or never — and what to do with each group.</p>
+        <p><strong>Samples</strong>, on a run that recorded per-image metrics every round, groups every image by how it behaved
+across the run. A single round says which images the model gets wrong now; the sequence says much more.</p>
+<h2 id="the-categories">The categories</h2>
+<table>
+<thead>
+<tr>
+<th>Category</th>
+<th>What happened</th>
+<th>What it usually means</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Early</strong></td>
+<td>Learned quickly and stayed learned</td>
+<td>Ordinary, well-labelled images</td>
+</tr>
+<tr>
+<td><strong>Mid</strong></td>
+<td>Learned somewhere in the middle</td>
+<td>Ordinary</td>
+</tr>
+<tr>
+<td><strong>Late</strong></td>
+<td>Only learned near the end</td>
+<td>Hard examples, or labels that fight the convention</td>
+</tr>
+<tr>
+<td><strong>Unstable</strong></td>
+<td>Learned, then lost again, perhaps repeatedly</td>
+<td>Inconsistent labelling, or genuinely ambiguous content</td>
+</tr>
+<tr>
+<td><strong>Not learned</strong></td>
+<td>Never reached the threshold</td>
+<td>Where wrong labels concentrate — check these first</td>
+</tr>
+<tr>
+<td><strong>Too few observations</strong></td>
+<td>Seen in under three rounds, or in less than half the rounds other images were</td>
+<td>No verdict. Not a judgement about the image</td>
+</tr>
+<tr>
+<td><strong>Empty</strong></td>
+<td>No labels and no predictions</td>
+<td>Negatives, or images nobody labelled</td>
+</tr>
+</tbody>
+</table>
+<p>Speed is judged relative to this run, not at fixed epoch numbers: an image learned at round 5 is late in
+a run where most images are learned by round 2, and early in one where most take ten. Fixed cut-offs put
+nearly everything in one bucket for the short schedules people actually run.</p>
+<h2 id="how-to-use-it">How to use it</h2>
+<p><strong>Not learned</strong> and <strong>Unstable</strong> are the two groups worth your attention. Sort by them, open a few, and
+you will usually find one of four things: a label that is wrong, a label your convention does not
+actually want, an object that is genuinely invisible at this resolution, or a hard case worth keeping.</p>
+<p>The first two are fixes. The third is a reason to raise the image size. The fourth is a reason to leave
+the label alone — and Granum expects that answer often enough that "keep" is a first-class decision
+everywhere.</p>
+<h2 id="the-image-viewer">The image viewer</h2>
+<p>Click any card to open it full screen. Beyond the usual zoom and pan:</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><kbd>[</kbd> <kbd>]</kbd></td>
+<td>Step back and forward through the rounds</td>
+</tr>
+<tr>
+<td><kbd>Space</kbd></td>
+<td>Play the rounds as an animation</td>
+</tr>
+<tr>
+<td><kbd>L</kbd> / <kbd>G</kbd></td>
+<td>Show labels / show the model's boxes</td>
+</tr>
+<tr>
+<td><kbd>M</kbd></td>
+<td>Show only the mistakes</td>
+</tr>
+<tr>
+<td><kbd>K</kbd> / <kbd>R</kbd></td>
+<td>Keep the image / mark it for removal</td>
+</tr>
+<tr>
+<td><kbd>U</kbd></td>
+<td>Undo that decision</td>
+</tr>
+<tr>
+<td><kbd>F</kbd>, <kbd>+</kbd> <kbd>−</kbd></td>
+<td>Fit, zoom</td>
+</tr>
+</tbody>
+</table>
+<p>Watching the boxes move round by round is the quickest way to tell a hard example from a bad label: a
+hard example is found late and then held; a bad label is fought the whole way, or found confidently and
+then abandoned as the model learns the labelled version.</p>
+<p>The round strip marks the threshold and the rounds where the image dropped below it, so an unstable image
+shows its own history at a glance.</p>
+<h2 id="applying-removals">Applying removals</h2>
+<p>Images marked for removal are collected; applying them writes a new version of the set without them and
+records them in the dataset's removed set, where they can be put back.
+→ <a href="/docs/guides/isolate-remove">Isolate, remove and restore</a></p>
+<div class="admonition note">
+<p class="admonition-title">Per-image F1 alone will not find every label error</p>
+<p>An image with one wrong box among thirty correct ones scores well all run and never appears in
+<em>Not learned</em>. That is exactly what <a href="/docs/guides/findings">Findings</a> is for: it works at the level of
+the individual box rather than the image.</p>
+</div>
+        <div class="doc-steps"><a class="doc-step prev" href="/docs/guides/runs"><span>Previous</span>Read a run</a><a class="doc-step next" href="/docs/guides/findings"><span>Next</span>Work the Findings queue</a></div>
+      </article>
+      <aside class="doc-toc" aria-label="On this page"><p>On this page</p><ul><li><a href="#the-categories">The categories</a></li><li><a href="#how-to-use-it">How to use it</a></li><li><a href="#the-image-viewer">The image viewer</a></li><li><a href="#applying-removals">Applying removals</a></li></ul></aside>
+    </main>
+  </div>
+
+  <footer class="doc-footer">
+    <div class="wrap">
+    <p>© Granum. Local-first data workflows.</p>
+      <p><a href="/">Product</a><a href="/download">Download</a><a href="/privacy">Privacy</a><a href="/docs/help/troubleshooting">Support</a></p>
+    </div>
+  </footer>
+
+  <div class="doc-search" data-search-panel hidden>
+    <div class="doc-search-box" role="dialog" aria-modal="true" aria-label="Search documentation">
+    <input type="search" aria-label="Search documentation" aria-controls="doc-search-results" placeholder="Search the documentation" autocomplete="off" spellcheck="false" data-search-input>
+    <ul id="doc-search-results" aria-label="Search results" aria-live="polite" data-search-results></ul>
+      <p class="doc-search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move · <kbd>Enter</kbd> to open · <kbd>Esc</kbd> to close</p>
+    </div>
+  </div>
+
+  <script src="/docs/docs.js" defer></script>
+</body>
+</html>

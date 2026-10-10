@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Augmentation · Granum documentation</title>
+  <meta name="description" content="Generate augmented copies into a dataset version, and see exactly what the model will see.">
+  <meta name="theme-color" content="#ffffff">
+  <meta property="og:title" content="Augmentation · Granum documentation">
+  <meta property="og:description" content="Generate augmented copies into a dataset version, and see exactly what the model will see.">
+  <meta property="og:type" content="article">
+  <meta property="og:image" content="/assets/og.jpg">
+  <link rel="canonical" href="https://granum.app/docs/guides/augmentation">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/docs/docs.css">
+  <script>document.documentElement.classList.remove("no-js");</script>
+</head>
+<body class="doc-body">
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header doc-header">
+    <div class="wrap">
+      <a class="brand" href="/" aria-label="Granum home"><img src="/assets/lockup-ink.svg" alt="Granum" width="128" height="32"></a>
+      <span class="doc-badge"><a href="/docs">Docs</a></span>
+      <nav class="nav" id="nav" aria-label="Main">
+        <a href="/#tour">Product</a>
+        <a href="/#plans">Pilots</a>
+        <a href="/docs/help/faq">FAQ</a>
+      </nav>
+      <div class="header-actions">
+        <button class="doc-search-button" type="button" data-search aria-label="Search documentation">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3 3"/></svg>
+          <span>Search</span><kbd>/</kbd>
+        </button>
+        <a class="btn primary small" href="/download">Download</a>
+        <button class="menu-button" type="button" aria-controls="doc-sidebar" aria-expanded="false" aria-label="Menu" data-sidebar-toggle>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="doc-shell">
+    <div class="doc-sidebar" id="doc-sidebar">
+      <nav class="doc-nav" aria-label="Documentation">
+<a class="doc-nav-home" href="/docs">Start here</a>
+<div class="doc-nav-group"><p class="doc-nav-title">Guided aerial-data course</p><ul>
+<li><a href="/docs/course/start">Start the guided course</a></li>
+<li><a href="/docs/course/setup">1. Prepare the workspace</a></li>
+<li><a href="/docs/course/data">2. Understand the sample</a></li>
+<li><a href="/docs/course/import">3. Import with preflight</a></li>
+<li><a href="/docs/course/explore">4. Explore before changing labels</a></li>
+<li><a href="/docs/course/baseline">5. Freeze an exploratory baseline</a></li>
+<li><a href="/docs/course/review">6. Review, edit and recover</a></li>
+<li><a href="/docs/course/train">7. Train the first model</a></li>
+<li><a href="/docs/course/results">8. Read the model evidence</a></li>
+<li><a href="/docs/course/compare">9. Make a controlled comparison</a></li>
+<li><a href="/docs/course/handoff">10. Approve and export an excerpt</a></li>
+<li><a href="/docs/course/backup">11. Back up, restore and share safely</a></li>
+<li><a href="/docs/course/next">12. Move to your own project</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Getting started</p><ul>
+<li><a href="/docs/start/install">Install Granum</a></li>
+<li><a href="/docs/start/activate">Alpha access and licences</a></li>
+<li><a href="/docs/start/first-project">Your first project</a></li>
+<li><a href="/docs/start/the-loop">Run the loop once</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Concepts</p><ul>
+<li><a href="/docs/concepts/model">How Granum is organised</a></li>
+<li><a href="/docs/concepts/projects">Projects and project types</a></li>
+<li><a href="/docs/concepts/versions">Versions and lineage</a></li>
+<li><a href="/docs/concepts/dataset-versions">Dataset versions</a></li>
+<li><a href="/docs/concepts/verification">Verification and decisions</a></li>
+<li><a href="/docs/concepts/identity">Image identity</a></li>
+<li><a href="/docs/concepts/runs">Runs and metrics</a></li>
+<li><a href="/docs/concepts/evidence">What the evidence is worth</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Guides</p><ul>
+<li><a href="/docs/guides/import">Import data</a></li>
+<li><a href="/docs/guides/pull-from-projects">Build from existing projects</a></li>
+<li><a href="/docs/guides/browse">Browse images</a></li>
+<li><a href="/docs/guides/review">Review and verify</a></li>
+<li><a href="/docs/guides/edit">Edit annotations</a></li>
+<li><a href="/docs/guides/isolate-remove">Isolate, remove and restore</a></li>
+<li><a href="/docs/guides/dataset-versions">Create a dataset version</a></li>
+<li><a href="/docs/guides/augmentation" class="on" aria-current="page">Augmentation</a></li>
+<li><a href="/docs/guides/train">Train a model</a></li>
+<li><a href="/docs/guides/runs">Read a run</a></li>
+<li><a href="/docs/guides/learning">Per-image learning</a></li>
+<li><a href="/docs/guides/findings">Work the Findings queue</a></li>
+<li><a href="/docs/guides/compare">Compare two runs</a></li>
+<li><a href="/docs/guides/projects">Manage projects</a></li>
+<li><a href="/docs/guides/python">Use Granum from Python</a></li>
+<li><a href="/docs/guides/operations">Operate a pilot workspace</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Reference</p><ul>
+<li><a href="/docs/reference/screens">Map of the app</a></li>
+<li><a href="/docs/reference/shortcuts">Keyboard shortcuts</a></li>
+<li><a href="/docs/reference/preflight">Import checks</a></li>
+<li><a href="/docs/reference/models">Models you can train</a></li>
+<li><a href="/docs/reference/files">Files and settings</a></li>
+<li><a href="/docs/reference/limits">Scale and limits</a></li>
+<li><a href="/docs/reference/glossary">Glossary</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Help</p><ul>
+<li><a href="/docs/help/troubleshooting">Troubleshooting</a></li>
+<li><a href="/docs/help/faq">Frequently asked questions</a></li>
+<li><a href="/docs/help/privacy">Your data and privacy</a></li>
+</ul></div>
+</nav>
+    </div>
+    <main class="doc-main" id="main">
+      <article class="doc-article">
+        <nav class="doc-crumb" aria-label="Breadcrumb"><a href="/docs">Documentation</a><span aria-hidden="true">/</span><a href="/docs#guides">Guides</a></nav>
+        <h1>Augmentation</h1>
+        <p class="doc-summary">Generate augmented copies into a dataset version, and see exactly what the model will see.</p>
+        <p>Granum augments by <strong>generating images into the dataset version</strong>, not by transforming batches during
+training. That costs disk and a few minutes; it buys two things:</p>
+<ul>
+<li>you can look at exactly what the model will be trained on, image by image;</li>
+<li>a run's input is a fixed set of files rather than a recipe plus a seed, so two runs on the same version
+  saw the same pictures.</li>
+</ul>
+<p>Only the <strong>train</strong> set is augmented. Validation and test sets are left alone, because augmenting what you
+measure with makes the measurement meaningless.</p>
+<h2 id="building-a-recipe">Building a recipe</h2>
+<p>In the Create dataset dialog, choose <strong>Yes</strong>, then how many augmented copies of each image to make
+(1–5×). Below that is a grid of cards, one per operation, each showing that operation applied to a real
+image from your own train set. Click a card to open its settings: the original, the minimum and the
+maximum of the range, with the controls between them. <strong>Add</strong> puts it in the recipe.</p>
+<table>
+<thead>
+<tr>
+<th>Group</th>
+<th>Operations</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Geometry</strong></td>
+<td>Flip (horizontal, vertical), 90° rotate, Crop, Rotation, Shear</td>
+</tr>
+<tr>
+<td><strong>Colour and noise</strong></td>
+<td>Grayscale, Hue, Saturation, Brightness, Exposure, Blur, Noise, Cutout</td>
+</tr>
+</tbody>
+</table>
+<p>Each copy draws each operation's value independently within its range, so a recipe of ±15° rotation and
+±20% brightness gives copies that vary in both.</p>
+<h2 id="what-happens-to-the-labels">What happens to the labels</h2>
+<p>Geometric operations are composed into a single transform and applied to the image and to everything on
+it — boxes, mask polygons and keypoints together — so annotations stay attached to the pixels they
+describe.</p>
+<p>Two rules are worth knowing before you pick a range:</p>
+<ul>
+<li><strong>Boxes that end up less than 15% visible are dropped.</strong> Heavy crops and large rotations therefore
+  remove objects at the edges. The dataset version records how many were dropped, per set.</li>
+<li><strong>Run-length masks cannot be transformed and are dropped under geometry.</strong> Polygon masks are
+  transformed and clipped normally.</li>
+</ul>
+<div class="admonition warning">
+<p class="admonition-title">Flips and left/right keypoints</p>
+<p>A horizontal flip mirrors keypoints but does not rename them, so a "left wrist" stays "left wrist"
+on what is now the right side. For keypoint projects with sided names, avoid horizontal flip until
+Granum swaps the pairs. The dialog says so where it matters.</p>
+</div>
+<h2 id="what-it-costs">What it costs</h2>
+<p>The dialog estimates the disk the generated images will take before you commit. As a rough guide, 2×
+copies of an 11,000-image set is 22,000 new JPEGs — a few gigabytes.</p>
+<p>The version records, per set, how many originals, how many augmented copies, and how many boxes and masks
+were dropped, and the Datasets screen shows the recipe, so nobody has to guess later what "v3 —
+augmented" contained.</p>
+<h2 id="when-to-use-it">When to use it</h2>
+<p>Augmentation is a way to make a small dataset go further, not a fix for a bad one. If Findings says 200
+of your labels are wrong, augmenting produces five copies of each wrong label. Fix the data first, then
+augment the version you trust.</p>
+        <div class="doc-steps"><a class="doc-step prev" href="/docs/guides/dataset-versions"><span>Previous</span>Create a dataset version</a><a class="doc-step next" href="/docs/guides/train"><span>Next</span>Train a model</a></div>
+      </article>
+      <aside class="doc-toc" aria-label="On this page"><p>On this page</p><ul><li><a href="#building-a-recipe">Building a recipe</a></li><li><a href="#what-happens-to-the-labels">What happens to the labels</a></li><li><a href="#what-it-costs">What it costs</a></li><li><a href="#when-to-use-it">When to use it</a></li></ul></aside>
+    </main>
+  </div>
+
+  <footer class="doc-footer">
+    <div class="wrap">
+    <p>© Granum. Local-first data workflows.</p>
+      <p><a href="/">Product</a><a href="/download">Download</a><a href="/privacy">Privacy</a><a href="/docs/help/troubleshooting">Support</a></p>
+    </div>
+  </footer>
+
+  <div class="doc-search" data-search-panel hidden>
+    <div class="doc-search-box" role="dialog" aria-modal="true" aria-label="Search documentation">
+    <input type="search" aria-label="Search documentation" aria-controls="doc-search-results" placeholder="Search the documentation" autocomplete="off" spellcheck="false" data-search-input>
+    <ul id="doc-search-results" aria-label="Search results" aria-live="polite" data-search-results></ul>
+      <p class="doc-search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move · <kbd>Enter</kbd> to open · <kbd>Esc</kbd> to close</p>
+    </div>
+  </div>
+
+  <script src="/docs/docs.js" defer></script>
+</body>
+</html>

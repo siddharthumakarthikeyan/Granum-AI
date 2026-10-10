@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Operate a pilot workspace · Granum documentation</title>
+  <meta name="description" content="Approval, browser recovery, authenticated shared access, audit failures, integrity checks, portable backups and safe upgrade rehearsal.">
+  <meta name="theme-color" content="#ffffff">
+  <meta property="og:title" content="Operate a pilot workspace · Granum documentation">
+  <meta property="og:description" content="Approval, browser recovery, authenticated shared access, audit failures, integrity checks, portable backups and safe upgrade rehearsal.">
+  <meta property="og:type" content="article">
+  <meta property="og:image" content="/assets/og.jpg">
+  <link rel="canonical" href="https://granum.app/docs/guides/operations">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/docs/docs.css">
+  <script>document.documentElement.classList.remove("no-js");</script>
+</head>
+<body class="doc-body">
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header doc-header">
+    <div class="wrap">
+      <a class="brand" href="/" aria-label="Granum home"><img src="/assets/lockup-ink.svg" alt="Granum" width="128" height="32"></a>
+      <span class="doc-badge"><a href="/docs">Docs</a></span>
+      <nav class="nav" id="nav" aria-label="Main">
+        <a href="/#tour">Product</a>
+        <a href="/#plans">Pilots</a>
+        <a href="/docs/help/faq">FAQ</a>
+      </nav>
+      <div class="header-actions">
+        <button class="doc-search-button" type="button" data-search aria-label="Search documentation">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3 3"/></svg>
+          <span>Search</span><kbd>/</kbd>
+        </button>
+        <a class="btn primary small" href="/download">Download</a>
+        <button class="menu-button" type="button" aria-controls="doc-sidebar" aria-expanded="false" aria-label="Menu" data-sidebar-toggle>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="doc-shell">
+    <div class="doc-sidebar" id="doc-sidebar">
+      <nav class="doc-nav" aria-label="Documentation">
+<a class="doc-nav-home" href="/docs">Start here</a>
+<div class="doc-nav-group"><p class="doc-nav-title">Guided aerial-data course</p><ul>
+<li><a href="/docs/course/start">Start the guided course</a></li>
+<li><a href="/docs/course/setup">1. Prepare the workspace</a></li>
+<li><a href="/docs/course/data">2. Understand the sample</a></li>
+<li><a href="/docs/course/import">3. Import with preflight</a></li>
+<li><a href="/docs/course/explore">4. Explore before changing labels</a></li>
+<li><a href="/docs/course/baseline">5. Freeze an exploratory baseline</a></li>
+<li><a href="/docs/course/review">6. Review, edit and recover</a></li>
+<li><a href="/docs/course/train">7. Train the first model</a></li>
+<li><a href="/docs/course/results">8. Read the model evidence</a></li>
+<li><a href="/docs/course/compare">9. Make a controlled comparison</a></li>
+<li><a href="/docs/course/handoff">10. Approve and export an excerpt</a></li>
+<li><a href="/docs/course/backup">11. Back up, restore and share safely</a></li>
+<li><a href="/docs/course/next">12. Move to your own project</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Getting started</p><ul>
+<li><a href="/docs/start/install">Install Granum</a></li>
+<li><a href="/docs/start/activate">Alpha access and licences</a></li>
+<li><a href="/docs/start/first-project">Your first project</a></li>
+<li><a href="/docs/start/the-loop">Run the loop once</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Concepts</p><ul>
+<li><a href="/docs/concepts/model">How Granum is organised</a></li>
+<li><a href="/docs/concepts/projects">Projects and project types</a></li>
+<li><a href="/docs/concepts/versions">Versions and lineage</a></li>
+<li><a href="/docs/concepts/dataset-versions">Dataset versions</a></li>
+<li><a href="/docs/concepts/verification">Verification and decisions</a></li>
+<li><a href="/docs/concepts/identity">Image identity</a></li>
+<li><a href="/docs/concepts/runs">Runs and metrics</a></li>
+<li><a href="/docs/concepts/evidence">What the evidence is worth</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Guides</p><ul>
+<li><a href="/docs/guides/import">Import data</a></li>
+<li><a href="/docs/guides/pull-from-projects">Build from existing projects</a></li>
+<li><a href="/docs/guides/browse">Browse images</a></li>
+<li><a href="/docs/guides/review">Review and verify</a></li>
+<li><a href="/docs/guides/edit">Edit annotations</a></li>
+<li><a href="/docs/guides/isolate-remove">Isolate, remove and restore</a></li>
+<li><a href="/docs/guides/dataset-versions">Create a dataset version</a></li>
+<li><a href="/docs/guides/augmentation">Augmentation</a></li>
+<li><a href="/docs/guides/train">Train a model</a></li>
+<li><a href="/docs/guides/runs">Read a run</a></li>
+<li><a href="/docs/guides/learning">Per-image learning</a></li>
+<li><a href="/docs/guides/findings">Work the Findings queue</a></li>
+<li><a href="/docs/guides/compare">Compare two runs</a></li>
+<li><a href="/docs/guides/projects">Manage projects</a></li>
+<li><a href="/docs/guides/python">Use Granum from Python</a></li>
+<li><a href="/docs/guides/operations" class="on" aria-current="page">Operate a pilot workspace</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Reference</p><ul>
+<li><a href="/docs/reference/screens">Map of the app</a></li>
+<li><a href="/docs/reference/shortcuts">Keyboard shortcuts</a></li>
+<li><a href="/docs/reference/preflight">Import checks</a></li>
+<li><a href="/docs/reference/models">Models you can train</a></li>
+<li><a href="/docs/reference/files">Files and settings</a></li>
+<li><a href="/docs/reference/limits">Scale and limits</a></li>
+<li><a href="/docs/reference/glossary">Glossary</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Help</p><ul>
+<li><a href="/docs/help/troubleshooting">Troubleshooting</a></li>
+<li><a href="/docs/help/faq">Frequently asked questions</a></li>
+<li><a href="/docs/help/privacy">Your data and privacy</a></li>
+</ul></div>
+</nav>
+    </div>
+    <main class="doc-main" id="main">
+      <article class="doc-article">
+        <nav class="doc-crumb" aria-label="Breadcrumb"><a href="/docs">Documentation</a><span aria-hidden="true">/</span><a href="/docs#guides">Guides</a></nav>
+        <h1>Operate a pilot workspace</h1>
+        <p class="doc-summary">Approval, browser recovery, authenticated shared access, audit failures, integrity checks, portable backups and safe upgrade rehearsal.</p>
+        <p>This guide is for the person responsible for keeping a pilot workspace usable and recoverable.
+For a worked example with real results, follow <a href="/docs/course/start">the aerial course</a>, especially
+<a href="/docs/course/review">review/recovery</a>, <a href="/docs/course/handoff">approval/export</a> and
+<a href="/docs/course/backup">backup/restore</a>.</p>
+<h2 id="approval-is-an-explicit-gate">Approval is an explicit gate</h2>
+<p>Creating a dataset version—entire dataset or verified subset—creates an <strong>exploratory</strong> version.
+Use <strong>Datasets → Approve… → Check and approve</strong> to approve exact contents. Every included image must
+have matching review evidence for its row, schema and media bytes. Empty sets, stale reviews,
+duplicate image references, missing media and changed contents can fail the gate.</p>
+<p>Approved-only training validates release membership and approval in both the service and the training
+process. Exploratory dashboard training requires acknowledgement. Direct SDK callers remain trusted
+and may deliberately explore; approval is not a blanket ban on all unapproved Python experiments.</p>
+<p>Approval records review evidence, not objective label truth. It checks media at approval/startup,
+not continuously for the entire run. Protect media against external writers. Local logs are unsigned
+and filesystem administrators can modify them; this is not tamper-proof attestation.</p>
+<h2 id="browser-recovery-and-stale-saves">Browser recovery and stale saves</h2>
+<p>The annotation editor and review inspector store recovery copies in <strong>IndexedDB</strong>. Wait for the
+storage acknowledgement. Recover in the same browser profile and origin; a new port, desktop profile
+or private session may have different storage.</p>
+<ul>
+<li>A matching base can be recovered; a different base disables automatic replay.</li>
+<li>On conflict, retain/export the draft, open the latest revision and reconcile explicitly.</li>
+<li>Server save failure keeps the draft. A confirmed server commit is not undone merely because browser
+  cleanup failed; read the separate warning before retrying.</li>
+<li>Export drafts before clearing site data, reinstalling a browser profile or abandoning a failed save.</li>
+<li>Browser drafts contain potentially sensitive annotations/comments. They are not server backups or
+  cross-device synchronization.</li>
+</ul>
+<p>The service rejects stale shared commits. Identical supported commit retries reuse the committed child
+revision; arbitrary manual retries after an ambiguous failure still require state inspection.</p>
+<h2 id="local-mode-versus-shared-mode">Local mode versus shared mode</h2>
+<p>Default local mode accepts loopback peers only. Host, Origin and path checks are defence in depth,
+not a login system. Local author names are self-reported and local filesystem users are trusted.</p>
+<p>Shared mode is <strong>one whole workspace</strong>. Every account can read every project, media item, run and job
+visible to that service. There is no per-project access isolation, SSO, managed hosting or user-assignment
+system. Use separate workspaces/services if datasets must not be visible to the same readers.</p>
+<table>
+<thead>
+<tr>
+<th>Role</th>
+<th>Writes allowed</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Viewer</td>
+<td>None; read-only analysis requests remain available</td>
+</tr>
+<tr>
+<td>Annotator</td>
+<td>Annotation commits, comments, tags, saved views and exploratory versions</td>
+</tr>
+<tr>
+<td>Reviewer</td>
+<td>Annotator actions plus review/approval, recoverable curation and supported training/analysis jobs</td>
+</tr>
+<tr>
+<td>Administrator</td>
+<td>All routes, including management, installation and permanent deletion</td>
+</tr>
+</tbody>
+</table>
+<p>Shared requests derive authors from the authenticated account, overriding submitted names. Do not
+equate this with protection against an administrator who directly edits filesystem records.</p>
+<h2 id="provision-shared-access-deliberately">Provision shared access deliberately</h2>
+<p>Keep the account registry and TLS private key <strong>outside all project/media scan roots and backups</strong>.
+Use a certificate trusted by clients and restrict network exposure with a firewall or VPN. The following
+uses illustrative administrator-owned paths and a hostname you must replace with your actual setup.</p>
+<pre><code class="language-bash">granum access add-user admin --role admin --file /secure/granum-users.json
+granum access add-user reviewer --role reviewer --file /secure/granum-users.json
+granum --project-root-url /srv/granum service --host 0.0.0.0 \
+  --auth-file /secure/granum-users.json \
+  --tls-cert /secure/granum-cert.pem --tls-key /secure/granum-key.pem \
+  --allow-host granum.example.org
+</code></pre>
+<p>Passwords are prompted invisibly and stored as salted scrypt hashes. Never put them in command-line
+arguments, URLs, source files or support chat. HTTP Basic credentials must travel over <strong>HTTPS</strong>.
+Non-loopback startup without the required authentication/TLS fails closed. A loopback backend behind a
+trusted TLS proxy must not also be exposed as unauthenticated HTTP; forwarded headers are trusted only
+from loopback.</p>
+<p>POSIX registry files must be owner-only; on Windows use appropriate NTFS permissions. Account changes
+and revocations require a service restart. A browser may cache Basic credentials; closing its window
+is not administrative revocation. Review or cancel already-running jobs separately.</p>
+<h2 id="handle-an-audit-failure-without-duplicating-work">Handle an audit failure without duplicating work</h2>
+<p>Shared mutations append request and completion records to the workspace audit log. If the request
+cannot be recorded, mutation is refused. If completion logging fails <strong>after</strong> a change was committed,
+the service preserves the real result, returns a warning/request identifier and blocks subsequent writes.</p>
+<ol>
+<li>Retain the error, request ID and operation details.</li>
+<li>Inspect project state to determine whether the operation committed.</li>
+<li>Preserve the audit log; do not delete it to clear the warning.</li>
+<li>Repair the storage/permission problem and restart the service.</li>
+<li>Reconcile an interrupted request with no completion record before deciding whether to retry.</li>
+</ol>
+<p>The log does not include credentials, but it can contain sensitive project/operation information.
+Back it up separately with suitable permissions; it is not a cryptographically signed record.</p>
+<h2 id="media-integrity-and-portable-backup">Media integrity and portable backup</h2>
+<p>Stop service, model jobs and other project/media writers before a snapshot. Use a destination outside
+the source project. The following is the same workflow used in the course, with generic project names:</p>
+<pre><code class="language-bash">granum --project-root-url /srv/granum integrity snapshot my-project --output /backups/media.json
+granum integrity verify /backups/media.json
+granum --project-root-url /srv/granum backup create my-project --output /backups/my-project.zip
+granum --project-root-url /srv/granum-rehearsal backup restore /backups/my-project.zip --name restored-check
+</code></pre>
+<p>Integrity verification reports changed/missing bytes without replacing them. Baseline manifests are
+not overwritten. Portable backup includes supported local project records, local referenced media and
+recorded weights. Restore validates checksums/names/sizes in staging, relocates supported references
+and refuses an existing target.</p>
+<p>Limits include <strong>200,000 files</strong>, a <strong>32 MiB manifest</strong> and a default <strong>100 GiB expanded restore</strong>;
+<code>--max-gib</code> can raise the last limit. Large Parquet relocation can require substantial RAM. Cloud media
+and external table/cross-project dependencies must be materialised first or backup is refused. Archives
+are not encrypted.</p>
+<p>A project archive is not a complete system backup: separately protect app artifacts, Python/CUDA
+environments, relevant external outputs, training caches, browser drafts, workspace audit logs and
+credentials. Preserve access controls when transferring backups.</p>
+<h2 id="rehearse-an-upgrade-and-rollback">Rehearse an upgrade and rollback</h2>
+<ol>
+<li>Retain the current application artifact, its build identity and an offline project snapshot.</li>
+<li>Restore into a disposable separate root with the candidate build.</li>
+<li>Verify media hashes, images, reviews, release contents and run/weight references.</li>
+<li>Test read/edit/recovery and intended approval/training selection there—not on the only original.</li>
+<li>Keep the original unchanged as rollback until qualification is complete.</li>
+</ol>
+<p>Future object formats are refused explicitly. Do not assume an older application can read records
+written by a newer one; no universal automatic in-place schema migration is promised. Unusual non-media
+path fields may require re-review after relocation.</p>
+<h2 id="know-the-qualification-boundary">Know the qualification boundary</h2>
+<p>Local writer locks and atomic publication are not distributed locks for cloud stores, NFS or network
+shares. Interrupted-record tests do not emulate every filesystem, disk controller or power loss.
+Some large operations remain materialising rather than streaming; consult <a href="/docs/reference/limits">measured limits</a>.</p>
+<p>The course demonstrates a small Linux source workflow, real YOLO GPU jobs and one local restore.
+Qualify your exact installer, OS, GPU, storage, access setup and workload before promising them to a pilot.</p>
+        <div class="doc-steps"><a class="doc-step prev" href="/docs/guides/python"><span>Previous</span>Use Granum from Python</a><a class="doc-step next" href="/docs/reference/screens"><span>Next</span>Map of the app</a></div>
+      </article>
+      <aside class="doc-toc" aria-label="On this page"><p>On this page</p><ul><li><a href="#approval-is-an-explicit-gate">Approval is an explicit gate</a></li><li><a href="#browser-recovery-and-stale-saves">Browser recovery and stale saves</a></li><li><a href="#local-mode-versus-shared-mode">Local mode versus shared mode</a></li><li><a href="#provision-shared-access-deliberately">Provision shared access deliberately</a></li><li><a href="#handle-an-audit-failure-without-duplicating-work">Handle an audit failure without duplicating work</a></li><li><a href="#media-integrity-and-portable-backup">Media integrity and portable backup</a></li><li><a href="#rehearse-an-upgrade-and-rollback">Rehearse an upgrade and rollback</a></li><li><a href="#know-the-qualification-boundary">Know the qualification boundary</a></li></ul></aside>
+    </main>
+  </div>
+
+  <footer class="doc-footer">
+    <div class="wrap">
+    <p>© Granum. Local-first data workflows.</p>
+      <p><a href="/">Product</a><a href="/download">Download</a><a href="/privacy">Privacy</a><a href="/docs/help/troubleshooting">Support</a></p>
+    </div>
+  </footer>
+
+  <div class="doc-search" data-search-panel hidden>
+    <div class="doc-search-box" role="dialog" aria-modal="true" aria-label="Search documentation">
+    <input type="search" aria-label="Search documentation" aria-controls="doc-search-results" placeholder="Search the documentation" autocomplete="off" spellcheck="false" data-search-input>
+    <ul id="doc-search-results" aria-label="Search results" aria-live="polite" data-search-results></ul>
+      <p class="doc-search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move · <kbd>Enter</kbd> to open · <kbd>Esc</kbd> to close</p>
+    </div>
+  </div>
+
+  <script src="/docs/docs.js" defer></script>
+</body>
+</html>

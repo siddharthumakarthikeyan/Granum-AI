@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>11. Back up, restore and share safely · Granum documentation</title>
+  <meta name="description" content="Stop writers, verify media, create a portable project snapshot and inspect a separate restored workspace before trusting the backup.">
+  <meta name="theme-color" content="#ffffff">
+  <meta property="og:title" content="11. Back up, restore and share safely · Granum documentation">
+  <meta property="og:description" content="Stop writers, verify media, create a portable project snapshot and inspect a separate restored workspace before trusting the backup.">
+  <meta property="og:type" content="article">
+  <meta property="og:image" content="/assets/og.jpg">
+  <link rel="canonical" href="https://granum.app/docs/course/backup">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/docs/docs.css">
+  <script>document.documentElement.classList.remove("no-js");</script>
+</head>
+<body class="doc-body">
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header doc-header">
+    <div class="wrap">
+      <a class="brand" href="/" aria-label="Granum home"><img src="/assets/lockup-ink.svg" alt="Granum" width="128" height="32"></a>
+      <span class="doc-badge"><a href="/docs">Docs</a></span>
+      <nav class="nav" id="nav" aria-label="Main">
+        <a href="/#tour">Product</a>
+        <a href="/#plans">Pilots</a>
+        <a href="/docs/help/faq">FAQ</a>
+      </nav>
+      <div class="header-actions">
+        <button class="doc-search-button" type="button" data-search aria-label="Search documentation">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3 3"/></svg>
+          <span>Search</span><kbd>/</kbd>
+        </button>
+        <a class="btn primary small" href="/download">Download</a>
+        <button class="menu-button" type="button" aria-controls="doc-sidebar" aria-expanded="false" aria-label="Menu" data-sidebar-toggle>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="doc-shell">
+    <div class="doc-sidebar" id="doc-sidebar">
+      <nav class="doc-nav" aria-label="Documentation">
+<a class="doc-nav-home" href="/docs">Start here</a>
+<div class="doc-nav-group"><p class="doc-nav-title">Guided aerial-data course</p><ul>
+<li><a href="/docs/course/start">Start the guided course</a></li>
+<li><a href="/docs/course/setup">1. Prepare the workspace</a></li>
+<li><a href="/docs/course/data">2. Understand the sample</a></li>
+<li><a href="/docs/course/import">3. Import with preflight</a></li>
+<li><a href="/docs/course/explore">4. Explore before changing labels</a></li>
+<li><a href="/docs/course/baseline">5. Freeze an exploratory baseline</a></li>
+<li><a href="/docs/course/review">6. Review, edit and recover</a></li>
+<li><a href="/docs/course/train">7. Train the first model</a></li>
+<li><a href="/docs/course/results">8. Read the model evidence</a></li>
+<li><a href="/docs/course/compare">9. Make a controlled comparison</a></li>
+<li><a href="/docs/course/handoff">10. Approve and export an excerpt</a></li>
+<li><a href="/docs/course/backup" class="on" aria-current="page">11. Back up, restore and share safely</a></li>
+<li><a href="/docs/course/next">12. Move to your own project</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Getting started</p><ul>
+<li><a href="/docs/start/install">Install Granum</a></li>
+<li><a href="/docs/start/activate">Alpha access and licences</a></li>
+<li><a href="/docs/start/first-project">Your first project</a></li>
+<li><a href="/docs/start/the-loop">Run the loop once</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Concepts</p><ul>
+<li><a href="/docs/concepts/model">How Granum is organised</a></li>
+<li><a href="/docs/concepts/projects">Projects and project types</a></li>
+<li><a href="/docs/concepts/versions">Versions and lineage</a></li>
+<li><a href="/docs/concepts/dataset-versions">Dataset versions</a></li>
+<li><a href="/docs/concepts/verification">Verification and decisions</a></li>
+<li><a href="/docs/concepts/identity">Image identity</a></li>
+<li><a href="/docs/concepts/runs">Runs and metrics</a></li>
+<li><a href="/docs/concepts/evidence">What the evidence is worth</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Guides</p><ul>
+<li><a href="/docs/guides/import">Import data</a></li>
+<li><a href="/docs/guides/pull-from-projects">Build from existing projects</a></li>
+<li><a href="/docs/guides/browse">Browse images</a></li>
+<li><a href="/docs/guides/review">Review and verify</a></li>
+<li><a href="/docs/guides/edit">Edit annotations</a></li>
+<li><a href="/docs/guides/isolate-remove">Isolate, remove and restore</a></li>
+<li><a href="/docs/guides/dataset-versions">Create a dataset version</a></li>
+<li><a href="/docs/guides/augmentation">Augmentation</a></li>
+<li><a href="/docs/guides/train">Train a model</a></li>
+<li><a href="/docs/guides/runs">Read a run</a></li>
+<li><a href="/docs/guides/learning">Per-image learning</a></li>
+<li><a href="/docs/guides/findings">Work the Findings queue</a></li>
+<li><a href="/docs/guides/compare">Compare two runs</a></li>
+<li><a href="/docs/guides/projects">Manage projects</a></li>
+<li><a href="/docs/guides/python">Use Granum from Python</a></li>
+<li><a href="/docs/guides/operations">Operate a pilot workspace</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Reference</p><ul>
+<li><a href="/docs/reference/screens">Map of the app</a></li>
+<li><a href="/docs/reference/shortcuts">Keyboard shortcuts</a></li>
+<li><a href="/docs/reference/preflight">Import checks</a></li>
+<li><a href="/docs/reference/models">Models you can train</a></li>
+<li><a href="/docs/reference/files">Files and settings</a></li>
+<li><a href="/docs/reference/limits">Scale and limits</a></li>
+<li><a href="/docs/reference/glossary">Glossary</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Help</p><ul>
+<li><a href="/docs/help/troubleshooting">Troubleshooting</a></li>
+<li><a href="/docs/help/faq">Frequently asked questions</a></li>
+<li><a href="/docs/help/privacy">Your data and privacy</a></li>
+</ul></div>
+</nav>
+    </div>
+    <main class="doc-main" id="main">
+      <article class="doc-article">
+        <nav class="doc-crumb" aria-label="Breadcrumb"><a href="/docs">Documentation</a><span aria-hidden="true">/</span><a href="/docs#course">Guided aerial-data course</a></nav>
+        <h1>11. Back up, restore and share safely</h1>
+        <p class="doc-summary">Stop writers, verify media, create a portable project snapshot and inspect a separate restored workspace before trusting the backup.</p>
+        <p><strong>Goal:</strong> show that project records and media can be restored independently of their original paths.
+Complete <a href="/docs/course/handoff">the handoff lesson</a> first. This exercise is local filesystem recovery,
+not cloud disaster-recovery or power-loss qualification.</p>
+<h2 id="what-we-are-protecting-and-why-export-is-not-enough">What we are protecting, and why export is not enough</h2>
+<p>An export gives another tool images and labels. A <strong>project backup</strong> also preserves supported Granum
+project records, reviews, version references, releases, runs and recorded weights. It checksums the
+included files and copies referenced local media into the portable snapshot.</p>
+<p>A <strong>media integrity snapshot</strong> records image hashes so verification can report changed or missing
+bytes. It diagnoses differences; it does not restore a missing file or continuously monitor the disk.</p>
+<h2 id="step-1-stop-writers-and-choose-destinations">Step 1: stop writers and choose destinations</h2>
+<ol>
+<li>Finish or intentionally cancel all import, training, annotation and export jobs.</li>
+<li>Save or export any pending browser drafts. Drafts are not in the project archive.</li>
+<li>Stop the service and other programs that write project records or referenced media. On a Linux
+   systemd installation this can be <code>systemctl --user stop granum</code>; a foreground service can be stopped
+   with Ctrl+C. Merely closing the browser does not necessarily stop the service.</li>
+<li>Choose a protected backup directory <strong>outside the source project</strong>. ZIP backups are not encrypted.</li>
+<li>Choose a new, separate rehearsal project root. Never test restoration by overwriting your only copy.</li>
+</ol>
+<p>The commands below assume a Linux course project in <code>~/granum</code> and use <code>~/granum-backups</code> and
+<code>~/granum-rehearsal</code> as examples. Substitute your actual roots. Global options go before the subcommand.
+Run them in an environment where the intended Granum CLI is available.</p>
+<h2 id="step-2-record-and-verify-media-integrity">Step 2: record and verify media integrity</h2>
+<pre><code class="language-bash">mkdir -p &quot;$HOME/granum-backups&quot;
+granum --project-root-url &quot;$HOME/granum&quot; integrity snapshot aerial-walkthrough \
+  --output &quot;$HOME/granum-backups/aerial-media.json&quot;
+granum integrity verify &quot;$HOME/granum-backups/aerial-media.json&quot;
+</code></pre>
+<p>For a fresh, unchanged course workspace, the expected report is <strong>120 checked, no changed files, no
+missing files</strong>. The command refuses to overwrite an existing snapshot; use a new dated name rather
+than destroying the old baseline. Keep the old report if it identifies unexpected changes.</p>
+<p>This manifest checks media referenced by project versions, not merely the currently visible gallery.
+Do not store it in a location accessible to unrelated users: it contains paths and file identities.</p>
+<h2 id="step-3-create-the-project-backup">Step 3: create the project backup</h2>
+<pre><code class="language-bash">granum --project-root-url &quot;$HOME/granum&quot; backup create aerial-walkthrough \
+  --output &quot;$HOME/granum-backups/aerial-walkthrough.zip&quot;
+</code></pre>
+<p>Read the returned archive path, file count, byte count and SHA-256. The recorded exercise produced
+<strong>205 files</strong>, a <strong>37,825,567-byte archive</strong>, and <strong>122 media entries</strong>. The latter includes the two
+recorded weight files; the dataset still has 120 images. Your archive can differ if you repeated edits,
+skipped training or created additional records.</p>
+<p>The <a href="/assets/course/operations-evidence.json">actual backup/restore receipt</a> preserves the observed
+counts and checksum. The project archive itself is not the public sample download.</p>
+<h2 id="step-4-restore-into-a-separate-workspace">Step 4: restore into a separate workspace</h2>
+<pre><code class="language-bash">granum --project-root-url &quot;$HOME/granum-rehearsal&quot; backup restore \
+  &quot;$HOME/granum-backups/aerial-walkthrough.zip&quot; --name aerial-restored
+granum --project-root-url &quot;$HOME/granum-rehearsal&quot; integrity snapshot aerial-restored \
+  --output &quot;$HOME/granum-backups/aerial-restored-media.json&quot;
+granum integrity verify &quot;$HOME/granum-backups/aerial-restored-media.json&quot;
+</code></pre>
+<p>Restore checks entries and checksums in staging, relocates supported references and publishes the
+project only after validation. It refuses existing targets, unsafe paths and unsupported future formats.
+If it refuses an archive, preserve the evidence rather than editing its manifest to force acceptance.</p>
+<p>The original and restored integrity manifests have different path keys. Compare <strong>hashes and sizes</strong>,
+not literal paths. In the recorded rehearsal, all 120 image hashes and sizes matched, and every restored
+image reference was inside the separate rehearsal root.</p>
+<h2 id="step-5-open-and-inspect-the-restored-project">Step 5: open and inspect the restored project</h2>
+<p>Start a separate local service explicitly pointed at the rehearsal root, on an unused port:</p>
+<pre><code class="language-bash">granum --project-root-url &quot;$HOME/granum-rehearsal&quot; service \
+  --host 127.0.0.1 --port 18862
+</code></pre>
+<p>Open <code>http://127.0.0.1:18862</code> and select <strong>aerial-restored</strong>. Do not accidentally inspect the original
+workspace's dashboard tab and call that a restore check.</p>
+<ol>
+<li>Confirm the restored project opens.</li>
+<li>Open Images, confirm 120 and inspect actual loaded media.</li>
+<li>Inspect review comments and the two-image verified selection.</li>
+<li>Open Datasets: the full baseline should remain exploratory; the two-image excerpt should retain
+   its approval state when its portable contents still match.</li>
+<li>If you trained, check the two run records and relocated recorded-weight paths. A successful file
+   restore does not reinstall the Python/CUDA runtime needed to use them.</li>
+<li>Stop the rehearsal service when done. Keep the original project as your rollback copy.</li>
+</ol>
+<figure class="doc-figure">
+<a href="/assets/course/32-restored-project.webp"><img src="/assets/course/32-restored-project.webp" alt="Actual aerial-restored project opens from the separate restored workspace after offline backup and restore." width="1440" height="960" loading="lazy"></a>
+<figcaption>The project name and workspace are different from the source. The commands completed before this UI recording.</figcaption>
+</figure>
+<figure class="doc-figure">
+<a href="/assets/course/33-restored-images.webp"><img src="/assets/course/33-restored-images.webp" alt="Actual restored gallery loads the course images from relocated, content-addressed media paths." width="1440" height="960" loading="lazy"></a>
+<figcaption>Portable media may have content-hash filenames after relocation. Confirm content and identity, not an unchanged path string.</figcaption>
+</figure>
+<figure class="doc-figure">
+<a href="/assets/course/34-restored-approval.webp"><img src="/assets/course/34-restored-approval.webp" alt="Restored Datasets page retains the exploratory baseline and approved two-image excerpt." width="1440" height="960" loading="lazy"></a>
+<figcaption>Check meaningful project state as well as the archive's “verified” result.</figcaption>
+</figure>
+
+<h2 id="watch-the-restored-workspace">Watch the restored workspace</h2>
+<figure class="doc-figure doc-video">
+<video controls preload="none" playsinline poster="/assets/course/32-restored-project.webp" aria-label="Recorded inspection of the actual restored workspace, images and approval state" aria-describedby="restore-video-caption">
+<source src="/assets/course/10-restore.mp4" type="video/mp4"><track kind="captions" src="/assets/course/10-restore.vtt" srclang="en" label="English" default>
+<a href="/assets/course/10-restore.mp4">Download the recording</a>.
+</video><figcaption id="restore-video-caption">17 seconds · silent, with captions · the restored UI, not a recording of the offline CLI commands.</figcaption>
+</figure>
+<details class="doc-transcript"><summary>Read the video transcript</summary>
+<ol><li>The offline backup and restore commands finished before recording; this is the separate restored project.</li><li>Open restored media. All 120 hashes were checked and references now point inside the rehearsal workspace.</li><li>Check the exploratory baseline and approved two-image excerpt. Verifying a restore is stronger evidence than merely creating a ZIP.</li></ol>
+</details>
+
+<h2 id="what-is-not-a-complete-system-backup">What is not a complete system backup?</h2>
+<p>The supported project archive does not recreate the application, Python/CUDA environment, all training
+caches, arbitrary external artifacts, browser drafts, workspace-wide audit log or account registry.
+Cloud media and cross-project/external table dependencies must be materialised first or backup may be
+refused. Protect those other records separately. Keep account registries and TLS private keys <strong>outside
+project/media roots and project backups</strong>.</p>
+<h2 id="sharing-is-an-explicit-security-decision">Sharing is an explicit security decision</h2>
+<p>Do not expose the default local HTTP service to a network. Authenticated shared access requires
+appropriate HTTPS/TLS, accounts and role assignment. <strong>Every shared account can read every project
+visible in that service workspace.</strong> There is no per-project tenancy or SSO.</p>
+<ul>
+<li><strong>Viewer:</strong> read-only access.</li>
+<li><strong>Annotator:</strong> annotation and collaboration writes, not approval/training authority.</li>
+<li><strong>Reviewer:</strong> review decisions, approval and supported model/analysis jobs.</li>
+<li><strong>Administrator:</strong> all service actions, including permanent deletion and management.</li>
+</ul>
+<p>Local author names are self-reported. Shared-mode attribution comes from the authenticated account.
+For the exact setup, revocation, audit-failure procedure and limits, use
+<a href="/docs/guides/operations">Operate a pilot workspace</a>, not a port-forwarding shortcut.</p>
+<h2 id="what-we-learn">What we learn</h2>
+<p>A trustworthy backup process includes a quiescent source, an external archive, a fresh restore and
+meaningful verification. An unchanged integrity result is evidence about those bytes at that time,
+not protection from future mutation or a guarantee against every hardware failure.</p>
+<h2 id="checkpoint">Checkpoint</h2>
+<p>You have retained the original, checked restored image bytes and inspected the restored project.
+Next: <a href="/docs/course/next">apply the workflow to your own data</a>.</p>
+<h2 id="if-something-differs">If something differs</h2>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>What to do</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Snapshot already exists</td>
+<td>Use a new name; do not overwrite the previous evidence</td>
+</tr>
+<tr>
+<td>Changed or missing media</td>
+<td>Identify the writer/location change; restore intended bytes or re-review new contents</td>
+</tr>
+<tr>
+<td>Restore target exists</td>
+<td>Choose a fresh name/root, not an overwrite</td>
+</tr>
+<tr>
+<td>Checksum or format refusal</td>
+<td>Preserve the archive/error; obtain a valid compatible backup or the matching app version</td>
+</tr>
+<tr>
+<td>Restored project opens but media does not</td>
+<td>Verify relocated references and byte hashes; project metadata alone is insufficient</td>
+</tr>
+<tr>
+<td>Shared write reports audit failure</td>
+<td>Inspect actual committed state before retrying; repair storage and restart according to the operations guide</td>
+</tr>
+</tbody>
+</table>
+        <div class="doc-steps"><a class="doc-step prev" href="/docs/course/handoff"><span>Previous</span>10. Approve and export an excerpt</a><a class="doc-step next" href="/docs/course/next"><span>Next</span>12. Move to your own project</a></div>
+      </article>
+      <aside class="doc-toc" aria-label="On this page"><p>On this page</p><ul><li><a href="#what-we-are-protecting-and-why-export-is-not-enough">What we are protecting, and why export is not enough</a></li><li><a href="#step-1-stop-writers-and-choose-destinations">Step 1: stop writers and choose destinations</a></li><li><a href="#step-2-record-and-verify-media-integrity">Step 2: record and verify media integrity</a></li><li><a href="#step-3-create-the-project-backup">Step 3: create the project backup</a></li><li><a href="#step-4-restore-into-a-separate-workspace">Step 4: restore into a separate workspace</a></li><li><a href="#step-5-open-and-inspect-the-restored-project">Step 5: open and inspect the restored project</a></li><li><a href="#watch-the-restored-workspace">Watch the restored workspace</a></li><li><a href="#what-is-not-a-complete-system-backup">What is not a complete system backup?</a></li><li><a href="#sharing-is-an-explicit-security-decision">Sharing is an explicit security decision</a></li><li><a href="#what-we-learn">What we learn</a></li><li><a href="#checkpoint">Checkpoint</a></li><li><a href="#if-something-differs">If something differs</a></li></ul></aside>
+    </main>
+  </div>
+
+  <footer class="doc-footer">
+    <div class="wrap">
+    <p>© Granum. Local-first data workflows.</p>
+      <p><a href="/">Product</a><a href="/download">Download</a><a href="/privacy">Privacy</a><a href="/docs/help/troubleshooting">Support</a></p>
+    </div>
+  </footer>
+
+  <div class="doc-search" data-search-panel hidden>
+    <div class="doc-search-box" role="dialog" aria-modal="true" aria-label="Search documentation">
+    <input type="search" aria-label="Search documentation" aria-controls="doc-search-results" placeholder="Search the documentation" autocomplete="off" spellcheck="false" data-search-input>
+    <ul id="doc-search-results" aria-label="Search results" aria-live="polite" data-search-results></ul>
+      <p class="doc-search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move · <kbd>Enter</kbd> to open · <kbd>Esc</kbd> to close</p>
+    </div>
+  </div>
+
+  <script src="/docs/docs.js" defer></script>
+</body>
+</html>

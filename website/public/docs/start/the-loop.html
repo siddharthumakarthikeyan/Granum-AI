@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Run the loop once · Granum documentation</title>
+  <meta name="description" content="A concise map of the workflow, with links to the complete real-data course and the evidence each stage should preserve.">
+  <meta name="theme-color" content="#ffffff">
+  <meta property="og:title" content="Run the loop once · Granum documentation">
+  <meta property="og:description" content="A concise map of the workflow, with links to the complete real-data course and the evidence each stage should preserve.">
+  <meta property="og:type" content="article">
+  <meta property="og:image" content="/assets/og.jpg">
+  <link rel="canonical" href="https://granum.app/docs/start/the-loop">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/docs/docs.css">
+  <script>document.documentElement.classList.remove("no-js");</script>
+</head>
+<body class="doc-body">
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header doc-header">
+    <div class="wrap">
+      <a class="brand" href="/" aria-label="Granum home"><img src="/assets/lockup-ink.svg" alt="Granum" width="128" height="32"></a>
+      <span class="doc-badge"><a href="/docs">Docs</a></span>
+      <nav class="nav" id="nav" aria-label="Main">
+        <a href="/#tour">Product</a>
+        <a href="/#plans">Pilots</a>
+        <a href="/docs/help/faq">FAQ</a>
+      </nav>
+      <div class="header-actions">
+        <button class="doc-search-button" type="button" data-search aria-label="Search documentation">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3 3"/></svg>
+          <span>Search</span><kbd>/</kbd>
+        </button>
+        <a class="btn primary small" href="/download">Download</a>
+        <button class="menu-button" type="button" aria-controls="doc-sidebar" aria-expanded="false" aria-label="Menu" data-sidebar-toggle>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="doc-shell">
+    <div class="doc-sidebar" id="doc-sidebar">
+      <nav class="doc-nav" aria-label="Documentation">
+<a class="doc-nav-home" href="/docs">Start here</a>
+<div class="doc-nav-group"><p class="doc-nav-title">Guided aerial-data course</p><ul>
+<li><a href="/docs/course/start">Start the guided course</a></li>
+<li><a href="/docs/course/setup">1. Prepare the workspace</a></li>
+<li><a href="/docs/course/data">2. Understand the sample</a></li>
+<li><a href="/docs/course/import">3. Import with preflight</a></li>
+<li><a href="/docs/course/explore">4. Explore before changing labels</a></li>
+<li><a href="/docs/course/baseline">5. Freeze an exploratory baseline</a></li>
+<li><a href="/docs/course/review">6. Review, edit and recover</a></li>
+<li><a href="/docs/course/train">7. Train the first model</a></li>
+<li><a href="/docs/course/results">8. Read the model evidence</a></li>
+<li><a href="/docs/course/compare">9. Make a controlled comparison</a></li>
+<li><a href="/docs/course/handoff">10. Approve and export an excerpt</a></li>
+<li><a href="/docs/course/backup">11. Back up, restore and share safely</a></li>
+<li><a href="/docs/course/next">12. Move to your own project</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Getting started</p><ul>
+<li><a href="/docs/start/install">Install Granum</a></li>
+<li><a href="/docs/start/activate">Alpha access and licences</a></li>
+<li><a href="/docs/start/first-project">Your first project</a></li>
+<li><a href="/docs/start/the-loop" class="on" aria-current="page">Run the loop once</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Concepts</p><ul>
+<li><a href="/docs/concepts/model">How Granum is organised</a></li>
+<li><a href="/docs/concepts/projects">Projects and project types</a></li>
+<li><a href="/docs/concepts/versions">Versions and lineage</a></li>
+<li><a href="/docs/concepts/dataset-versions">Dataset versions</a></li>
+<li><a href="/docs/concepts/verification">Verification and decisions</a></li>
+<li><a href="/docs/concepts/identity">Image identity</a></li>
+<li><a href="/docs/concepts/runs">Runs and metrics</a></li>
+<li><a href="/docs/concepts/evidence">What the evidence is worth</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Guides</p><ul>
+<li><a href="/docs/guides/import">Import data</a></li>
+<li><a href="/docs/guides/pull-from-projects">Build from existing projects</a></li>
+<li><a href="/docs/guides/browse">Browse images</a></li>
+<li><a href="/docs/guides/review">Review and verify</a></li>
+<li><a href="/docs/guides/edit">Edit annotations</a></li>
+<li><a href="/docs/guides/isolate-remove">Isolate, remove and restore</a></li>
+<li><a href="/docs/guides/dataset-versions">Create a dataset version</a></li>
+<li><a href="/docs/guides/augmentation">Augmentation</a></li>
+<li><a href="/docs/guides/train">Train a model</a></li>
+<li><a href="/docs/guides/runs">Read a run</a></li>
+<li><a href="/docs/guides/learning">Per-image learning</a></li>
+<li><a href="/docs/guides/findings">Work the Findings queue</a></li>
+<li><a href="/docs/guides/compare">Compare two runs</a></li>
+<li><a href="/docs/guides/projects">Manage projects</a></li>
+<li><a href="/docs/guides/python">Use Granum from Python</a></li>
+<li><a href="/docs/guides/operations">Operate a pilot workspace</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Reference</p><ul>
+<li><a href="/docs/reference/screens">Map of the app</a></li>
+<li><a href="/docs/reference/shortcuts">Keyboard shortcuts</a></li>
+<li><a href="/docs/reference/preflight">Import checks</a></li>
+<li><a href="/docs/reference/models">Models you can train</a></li>
+<li><a href="/docs/reference/files">Files and settings</a></li>
+<li><a href="/docs/reference/limits">Scale and limits</a></li>
+<li><a href="/docs/reference/glossary">Glossary</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Help</p><ul>
+<li><a href="/docs/help/troubleshooting">Troubleshooting</a></li>
+<li><a href="/docs/help/faq">Frequently asked questions</a></li>
+<li><a href="/docs/help/privacy">Your data and privacy</a></li>
+</ul></div>
+</nav>
+    </div>
+    <main class="doc-main" id="main">
+      <article class="doc-article">
+        <nav class="doc-crumb" aria-label="Breadcrumb"><a href="/docs">Documentation</a><span aria-hidden="true">/</span><a href="/docs#start">Getting started</a></nav>
+        <h1>Run the loop once</h1>
+        <p class="doc-summary">A concise map of the workflow, with links to the complete real-data course and the evidence each stage should preserve.</p>
+        <p>This is a workflow map, not a timed performance promise. For exact actions, a real downloadable sample,
+screenshots and captioned recordings, follow <a href="/docs/course/start">the guided course</a>. Human review,
+downloads and training take different amounts of time on different projects.</p>
+<figure class="doc-figure">
+<svg viewBox="0 0 880 210" role="img" aria-label="The seven steps of the loop and what each one writes">
+  <g font-family="Instrument Sans, sans-serif" font-size="12.5">
+    <g fill="#ffffff" stroke="#c9d1db">
+      <rect x="10" y="30" width="118" height="44" rx="8"/>
+      <rect x="148" y="30" width="118" height="44" rx="8"/>
+      <rect x="286" y="30" width="118" height="44" rx="8"/>
+      <rect x="424" y="30" width="118" height="44" rx="8"/>
+      <rect x="562" y="30" width="118" height="44" rx="8"/>
+      <rect x="700" y="30" width="170" height="44" rx="8"/>
+    </g>
+    <g fill="#0e1420" font-weight="600" text-anchor="middle">
+      <text x="69" y="57">1 Import</text>
+      <text x="207" y="57">2 Look</text>
+      <text x="345" y="57">3 Verify</text>
+      <text x="483" y="57">4 Freeze</text>
+      <text x="621" y="57">5 Train</text>
+      <text x="785" y="57">6 Read the evidence</text>
+    </g>
+    <g fill="#6b7585" font-size="11.5" text-anchor="middle">
+      <text x="69" y="96">preflight report</text>
+      <text x="207" y="96">no writes</text>
+      <text x="345" y="96">decisions, versions</text>
+      <text x="483" y="96">dataset version</text>
+      <text x="621" y="96">run + metrics</text>
+      <text x="785" y="96">findings, comparison</text>
+    </g>
+    <g stroke="#9aa6b5" stroke-width="1.5" fill="none">
+      <path d="M128 52h18M266 52h18M404 52h18M542 52h18M680 52h18"/>
+      <path d="M785 120v34H345v-34" stroke-dasharray="4 4"/>
+    </g>
+    <text x="565" y="172" fill="#6b7585" font-size="12" text-anchor="middle">7 fix what the evidence points at, and go round again</text>
+  </g>
+</svg>
+</figure>
+
+<h2 id="1-import-and-read-the-preflight">1. Import, and read the preflight</h2>
+<p>Create the project and point Granum at your folder. The preflight opens every annotation file, and as
+many images as you allow, and reports what it finds before anything is written: boxes on images that do
+not exist, categories that disagree between sets, zero-area boxes, images byte-identical across train and
+valid, and about twenty more.</p>
+<p>Read the coverage, counts, recommended choices and limitations. Record why you accept or change each
+decision, then import. → <a href="/docs/course/import">Recorded sample import</a> · <a href="/docs/guides/import">Import reference</a></p>
+<h2 id="2-look-at-what-arrived">2. Look at what arrived</h2>
+<p>Open <strong>Images</strong>. Turn <strong>Annotations</strong> on and scroll. Filter by class, by split, by status. Click an image
+to open it full screen; click a class chip to darken everything except that class.</p>
+<p>You are looking for the shape of the data: which classes are rare, how big the objects are, whether the
+labelling convention held. Nothing you do here writes anything. → <a href="/docs/guides/browse">Browse images</a></p>
+<h2 id="3-verify-and-fix-what-is-clearly-wrong">3. Verify, and fix what is clearly wrong</h2>
+<p>Turn on <strong>Review</strong> in the ribbon. In local mode the reviewer name is self-reported; shared mode uses the
+authenticated account. Inspect the full image before verifying it. Use bulk verification only for a
+selection you actually inspected, not to bypass approval warnings.</p>
+<p>When labels are wrong, fix them. In review the inspector lets you draw, select and delete boxes; the
+<strong>Edit</strong> mode gives the full editor with moving, resizing, masks and keypoints. Every save writes a new
+version of that set — nothing is overwritten.
+→ <a href="/docs/guides/review">Review</a> · <a href="/docs/guides/edit">Edit annotations</a></p>
+<h2 id="4-freeze-a-dataset-version">4. Freeze a dataset version</h2>
+<p>Click <strong>Create dataset</strong> in Images. Choose whole-dataset or verified-only selection and inspect the
+included counts. Both create an <strong>exploratory</strong> version. Explicit approval is a separate gate requiring
+matching review evidence for every included row, schema and media item.</p>
+<p>This separates working data from recorded experiment inputs. Protect externally referenced image bytes
+too; a frozen table does not stop another program overwriting media. When measuring an intervention,
+freeze the baseline before changing labels. → <a href="/docs/course/baseline">Course baseline</a></p>
+<h2 id="5-train">5. Train</h2>
+<p>Choose <strong>Train</strong> on the intended dataset version. Confirm train, validation and genuine test roles,
+model, image size and schedule. Exploratory training requires acknowledgement; approved-only training
+rechecks approval and release membership. The course uses a small YOLO recipe as an exercise, not a
+universal best model. → <a href="/docs/course/train">Recorded training</a></p>
+<p>Leave <strong>Record per-sample metrics and predictions every epoch</strong> on. It costs some disk and makes the
+next two steps possible. → <a href="/docs/guides/train">Train a model</a></p>
+<h2 id="6-read-the-evidence">6. Read the evidence</h2>
+<p>When the run finishes you have three things:</p>
+<ul>
+<li><strong>Runs</strong> — framework history and separately recorded final scores. Comparability still requires
+  matching inputs and evaluator policy. → <a href="/docs/guides/runs">Read a run</a></li>
+<li><strong>Samples</strong> — per-image behaviour across recorded observations. Not learned is not proof of a wrong
+  label or permission to delete a hard example. → <a href="/docs/guides/learning">Per-image learning</a></li>
+<li><strong>Findings</strong> — a ranked queue of individual labels the model disagreed with, round after round, once it
+  was competent on the set: missing labels, wrong classes, loose boxes. → <a href="/docs/guides/findings">Findings</a></li>
+</ul>
+<p>Start with evidence coverage and model competence. Findings may be empty because the model is too weak
+to support useful accusations. Inspect objects and images before changing labels. The course's
+<a href="/docs/course/results">actual weak baseline</a> demonstrates this case rather than inventing a populated queue.</p>
+<h2 id="7-fix-freeze-train-again-then-compare">7. Fix, freeze, train again — then compare</h2>
+<p>Make a justified, recorded change. If labels change, create a new version; if the experiment changes
+only the recipe, retain the same frozen input. The course compares three vs twelve epochs without
+claiming a label improvement.</p>
+<p>Now open <strong>Compare runs</strong> and put the two side by side. Granum checks first that the comparison means
+anything — same evaluation set, same scoring rules — and then shows which images improved, which
+regressed, and which the two runs do not share. It will not tell you the gain was caused by your edits,
+because with the data changed underneath that is not something anyone can honestly claim; it shows you
+what moved and says plainly what the comparison is worth. → <a href="/docs/guides/compare">Compare two runs</a></p>
+<div class="admonition tip">
+<p class="admonition-title">What a good first loop looks like</p>
+</div>
+<p>You can explain the inputs, planned change, measured result and limits—even when the model is bad.
+  Approve only genuinely reviewed contents, export in the recipient's required format, and verify
+  a separate restore. The course ends with an approved two-image excerpt, not a false claim that the
+  whole sample or either model is production ready.</p>
+<h2 id="8-approve-deliver-and-verify-recovery">8. Approve, deliver and verify recovery</h2>
+<p>Use <a href="/docs/course/handoff">the scoped handoff</a> to separate selection, approval and export. Use
+<a href="/docs/course/backup">the backup rehearsal</a> to preserve project history and prove media can be restored.
+A copied COCO export and a project backup serve different purposes.</p>
+        <div class="doc-steps"><a class="doc-step prev" href="/docs/start/first-project"><span>Previous</span>Your first project</a><a class="doc-step next" href="/docs/concepts/model"><span>Next</span>How Granum is organised</a></div>
+      </article>
+      <aside class="doc-toc" aria-label="On this page"><p>On this page</p><ul><li><a href="#1-import-and-read-the-preflight">1. Import, and read the preflight</a></li><li><a href="#2-look-at-what-arrived">2. Look at what arrived</a></li><li><a href="#3-verify-and-fix-what-is-clearly-wrong">3. Verify, and fix what is clearly wrong</a></li><li><a href="#4-freeze-a-dataset-version">4. Freeze a dataset version</a></li><li><a href="#5-train">5. Train</a></li><li><a href="#6-read-the-evidence">6. Read the evidence</a></li><li><a href="#7-fix-freeze-train-again-then-compare">7. Fix, freeze, train again — then compare</a></li><li><a href="#8-approve-deliver-and-verify-recovery">8. Approve, deliver and verify recovery</a></li></ul></aside>
+    </main>
+  </div>
+
+  <footer class="doc-footer">
+    <div class="wrap">
+    <p>© Granum. Local-first data workflows.</p>
+      <p><a href="/">Product</a><a href="/download">Download</a><a href="/privacy">Privacy</a><a href="/docs/help/troubleshooting">Support</a></p>
+    </div>
+  </footer>
+
+  <div class="doc-search" data-search-panel hidden>
+    <div class="doc-search-box" role="dialog" aria-modal="true" aria-label="Search documentation">
+    <input type="search" aria-label="Search documentation" aria-controls="doc-search-results" placeholder="Search the documentation" autocomplete="off" spellcheck="false" data-search-input>
+    <ul id="doc-search-results" aria-label="Search results" aria-live="polite" data-search-results></ul>
+      <p class="doc-search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move · <kbd>Enter</kbd> to open · <kbd>Esc</kbd> to close</p>
+    </div>
+  </div>
+
+  <script src="/docs/docs.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+{
+  "chapter": "08-compare",
+  "recorded": "2026-10-02T11:40:17.211Z",
+  "source": "Actual Granum dashboard with aerial-mini; no mocked metrics or API responses.",
+  "viewport": {
+    "width": 1440,
+    "height": 960
+  },
+  "duration": 19.64,
+  "shots": [
+    "26-comparison-checks",
+    "27-comparison-outcomes"
+  ],
+  "cues": [
+    {
+      "at": 1.230380704041721,
+      "text": "Check compatibility before reading the delta: same validation images, labels, class mapping and scoring policy."
+    },
+    {
+      "at": 5.789574967405477,
+      "text": "Read improved, regressed and unchanged images, not just the average. More epochs is the planned change; no label-improvement claim follows."
+    },
+    {
+      "at": 12.107919165580185,
+      "text": "The downloadable evidence records the actual numbers, including poor results. Approval of data is separate from accepting a model."
+    }
+  ],
+  "capture_duration": 15.34,
+  "captured_cues": [
+    {
+      "at": 0.961,
+      "text": "Check compatibility before reading the delta: same validation images, labels, class mapping and scoring policy."
+    },
+    {
+      "at": 4.522,
+      "text": "Read improved, regressed and unchanged images, not just the average. More epochs is the planned change; no label-improvement claim follows."
+    },
+    {
+      "at": 9.457,
+      "text": "The downloadable evidence records the actual numbers, including poor results. Approval of data is separate from accepting a model."
+    }
+  ],
+  "caption_timing": "Original wall-clock cues scaled to encoded video duration; retained separately for provenance."
+}

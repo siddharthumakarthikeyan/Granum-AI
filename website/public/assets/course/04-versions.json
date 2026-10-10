@@ -1,0 +1,45 @@
+{
+  "chapter": "04-versions",
+  "recorded": "2026-10-02T11:23:41.675Z",
+  "source": "Actual Granum dashboard with aerial-mini; no mocked metrics or API responses.",
+  "viewport": {
+    "width": 1440,
+    "height": 960
+  },
+  "duration": 15.08,
+  "shots": [
+    "14-create-baseline",
+    "15-exploratory-version",
+    "16-approval-refused"
+  ],
+  "cues": [
+    {
+      "at": 0.6369027716673998,
+      "text": "Freeze aerial-baseline with the entire dataset and no added augmentation. Frozen does not mean approved."
+    },
+    {
+      "at": 4.730329960404751,
+      "text": "The version appears as Exploratory. Training records the exact versions used, not whatever is edited later."
+    },
+    {
+      "at": 9.086921836046342,
+      "text": "Approval correctly refuses unreviewed contents. Do not mark images verified just to make this warning disappear."
+    }
+  ],
+  "capture_duration": 13.638,
+  "captured_cues": [
+    {
+      "at": 0.576,
+      "text": "Freeze aerial-baseline with the entire dataset and no added augmentation. Frozen does not mean approved."
+    },
+    {
+      "at": 4.278,
+      "text": "The version appears as Exploratory. Training records the exact versions used, not whatever is edited later."
+    },
+    {
+      "at": 8.218,
+      "text": "Approval correctly refuses unreviewed contents. Do not mark images verified just to make this warning disappear."
+    }
+  ],
+  "caption_timing": "Original wall-clock cues scaled to encoded video duration; retained separately for provenance."
+}

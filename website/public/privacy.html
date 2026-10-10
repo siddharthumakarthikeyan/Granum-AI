@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Privacy notice: Granum</title>
+  <meta name="theme-color" content="#ffffff">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="/" aria-label="Granum home"><img src="/assets/lockup-ink.svg" alt="Granum" width="128" height="32"></a>
+      <nav class="nav" id="nav" aria-label="Main">
+        <a href="/#tour">Product</a>
+        <a href="/#trial">Alpha access</a>
+        <a href="/#plans">Pricing</a>
+        <a href="/docs">Docs</a>
+        <a href="/#faq">FAQ</a>
+      </nav>
+      <div class="header-actions">
+        <a class="btn primary small" href="/download">Download</a>
+        <button class="menu-button" type="button" aria-controls="nav" aria-expanded="false" aria-label="Menu">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+  <main id="main" class="wrap">
+    <article class="prose">
+      <h1>Privacy notice</h1>
+      <p class="lead">What Granum collects, why, and what you can ask us to do with it.</p>
+      <p class="updated">Applies to the Granum website, the download page and the Granum app.</p>
+
+      <h2>Your datasets</h2>
+      <p>Local-only workflows keep your images, labels, models and projects where you configure them. Optional cloud storage, shared-service access and material you explicitly send for support cross that boundary. The current alpha adds no dataset telemetry.</p>
+
+      <h2>What we collect</h2>
+      <ul>
+        <li><strong>On the download page:</strong> your email address, and your name and company if you give them, with the operating system you chose and the time.</li>
+        <li><strong>When you request a pilot:</strong> your email address, name and company, the requested pilot category, the number of computers and your message.</li>
+        <li><strong>Only for explicit activation in older or separately licensed builds:</strong> email, one-time sign-in code, a hashed machine identifier and app version. The current unrestricted alpha does not require this activation.</li>
+        <li><strong>Only when those licensed builds renew:</strong> the licence key and renewal time. No renewal is required by the current alpha.</li>
+        <li><strong>In your own shared workspace:</strong> authenticated account names, roles and operation audit records are stored on your service, not automatically sent to Granum.</li>
+      </ul>
+
+      <h2>Why</h2>
+      <p>To verify downloads, answer pilot and support requests, and operate any separately agreed licensed access. Download verification does not start a subscription. We do not sell this data or send marketing email unless you ask; hosting and email providers process the requests as described below.</p>
+
+      <h2>Where it is kept</h2>
+      <p>Website records use our hosting provider (Vercel), database provider (Neon), and email provider. Contact us about retained download, pilot or legacy licensing records and deletion requests. Your configured shared-workspace records and browser drafts are managed on your systems.</p>
+
+      <h2>Your choices</h2>
+      <p>You can ask for a copy of what we hold about you, for it to be corrected, or for it to be deleted<span data-contact-sentence></span>. Deleting a record can end separately licensed access tied to it; the current alpha has no enforced subscription countdown.</p>
+    </article>
+  </main>
+  <footer class="site-footer">
+    <div class="wrap">
+      <div class="footer-grid">
+        <div>
+          <img src="/assets/lockup-ink.svg" alt="Granum" width="112" height="28">
+          <p>The data workbench for computer-vision teams. Runs on your computer.</p>
+        </div>
+        <div>
+          <h4>Product</h4>
+          <ul><li><a href="/#tour">Product tour</a></li><li><a href="/#plans">Pilots</a></li><li><a href="/docs">Documentation</a></li><li><a href="/#faq">FAQ</a></li></ul>
+        </div>
+        <div>
+          <h4>Get started</h4>
+          <ul><li><a href="/download">Download</a></li><li><a href="/#trial">Alpha access</a></li><li><a href="/docs/start/install">Install guide</a></li></ul>
+        </div>
+        <div>
+          <h4>Company</h4>
+          <ul><li><a href="/privacy">Privacy</a></li><li><a data-contact="Granum privacy request" href="/download" hidden>Contact</a></li></ul>
+        </div>
+      </div>
+      <div class="footer-base"><span>© <span data-year></span> Granum. All rights reserved.</span></div>
+    </div>
+  </footer>
+  <script src="/site.js" defer></script>
+</body>
+</html>

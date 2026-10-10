@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Start the guided course · Granum documentation</title>
+  <meta name="description" content="Learn Granum on a real aerial dataset: import, inspect, review, train, compare, approve, export and restore, with recorded examples.">
+  <meta name="theme-color" content="#ffffff">
+  <meta property="og:title" content="Start the guided course · Granum documentation">
+  <meta property="og:description" content="Learn Granum on a real aerial dataset: import, inspect, review, train, compare, approve, export and restore, with recorded examples.">
+  <meta property="og:type" content="article">
+  <meta property="og:image" content="/assets/og.jpg">
+  <link rel="canonical" href="https://granum.app/docs/course/start">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/docs/docs.css">
+  <script>document.documentElement.classList.remove("no-js");</script>
+</head>
+<body class="doc-body">
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header doc-header">
+    <div class="wrap">
+      <a class="brand" href="/" aria-label="Granum home"><img src="/assets/lockup-ink.svg" alt="Granum" width="128" height="32"></a>
+      <span class="doc-badge"><a href="/docs">Docs</a></span>
+      <nav class="nav" id="nav" aria-label="Main">
+        <a href="/#tour">Product</a>
+        <a href="/#plans">Pilots</a>
+        <a href="/docs/help/faq">FAQ</a>
+      </nav>
+      <div class="header-actions">
+        <button class="doc-search-button" type="button" data-search aria-label="Search documentation">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3 3"/></svg>
+          <span>Search</span><kbd>/</kbd>
+        </button>
+        <a class="btn primary small" href="/download">Download</a>
+        <button class="menu-button" type="button" aria-controls="doc-sidebar" aria-expanded="false" aria-label="Menu" data-sidebar-toggle>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="doc-shell">
+    <div class="doc-sidebar" id="doc-sidebar">
+      <nav class="doc-nav" aria-label="Documentation">
+<a class="doc-nav-home" href="/docs">Start here</a>
+<div class="doc-nav-group"><p class="doc-nav-title">Guided aerial-data course</p><ul>
+<li><a href="/docs/course/start" class="on" aria-current="page">Start the guided course</a></li>
+<li><a href="/docs/course/setup">1. Prepare the workspace</a></li>
+<li><a href="/docs/course/data">2. Understand the sample</a></li>
+<li><a href="/docs/course/import">3. Import with preflight</a></li>
+<li><a href="/docs/course/explore">4. Explore before changing labels</a></li>
+<li><a href="/docs/course/baseline">5. Freeze an exploratory baseline</a></li>
+<li><a href="/docs/course/review">6. Review, edit and recover</a></li>
+<li><a href="/docs/course/train">7. Train the first model</a></li>
+<li><a href="/docs/course/results">8. Read the model evidence</a></li>
+<li><a href="/docs/course/compare">9. Make a controlled comparison</a></li>
+<li><a href="/docs/course/handoff">10. Approve and export an excerpt</a></li>
+<li><a href="/docs/course/backup">11. Back up, restore and share safely</a></li>
+<li><a href="/docs/course/next">12. Move to your own project</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Getting started</p><ul>
+<li><a href="/docs/start/install">Install Granum</a></li>
+<li><a href="/docs/start/activate">Alpha access and licences</a></li>
+<li><a href="/docs/start/first-project">Your first project</a></li>
+<li><a href="/docs/start/the-loop">Run the loop once</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Concepts</p><ul>
+<li><a href="/docs/concepts/model">How Granum is organised</a></li>
+<li><a href="/docs/concepts/projects">Projects and project types</a></li>
+<li><a href="/docs/concepts/versions">Versions and lineage</a></li>
+<li><a href="/docs/concepts/dataset-versions">Dataset versions</a></li>
+<li><a href="/docs/concepts/verification">Verification and decisions</a></li>
+<li><a href="/docs/concepts/identity">Image identity</a></li>
+<li><a href="/docs/concepts/runs">Runs and metrics</a></li>
+<li><a href="/docs/concepts/evidence">What the evidence is worth</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Guides</p><ul>
+<li><a href="/docs/guides/import">Import data</a></li>
+<li><a href="/docs/guides/pull-from-projects">Build from existing projects</a></li>
+<li><a href="/docs/guides/browse">Browse images</a></li>
+<li><a href="/docs/guides/review">Review and verify</a></li>
+<li><a href="/docs/guides/edit">Edit annotations</a></li>
+<li><a href="/docs/guides/isolate-remove">Isolate, remove and restore</a></li>
+<li><a href="/docs/guides/dataset-versions">Create a dataset version</a></li>
+<li><a href="/docs/guides/augmentation">Augmentation</a></li>
+<li><a href="/docs/guides/train">Train a model</a></li>
+<li><a href="/docs/guides/runs">Read a run</a></li>
+<li><a href="/docs/guides/learning">Per-image learning</a></li>
+<li><a href="/docs/guides/findings">Work the Findings queue</a></li>
+<li><a href="/docs/guides/compare">Compare two runs</a></li>
+<li><a href="/docs/guides/projects">Manage projects</a></li>
+<li><a href="/docs/guides/python">Use Granum from Python</a></li>
+<li><a href="/docs/guides/operations">Operate a pilot workspace</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Reference</p><ul>
+<li><a href="/docs/reference/screens">Map of the app</a></li>
+<li><a href="/docs/reference/shortcuts">Keyboard shortcuts</a></li>
+<li><a href="/docs/reference/preflight">Import checks</a></li>
+<li><a href="/docs/reference/models">Models you can train</a></li>
+<li><a href="/docs/reference/files">Files and settings</a></li>
+<li><a href="/docs/reference/limits">Scale and limits</a></li>
+<li><a href="/docs/reference/glossary">Glossary</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Help</p><ul>
+<li><a href="/docs/help/troubleshooting">Troubleshooting</a></li>
+<li><a href="/docs/help/faq">Frequently asked questions</a></li>
+<li><a href="/docs/help/privacy">Your data and privacy</a></li>
+</ul></div>
+</nav>
+    </div>
+    <main class="doc-main" id="main">
+      <article class="doc-article">
+        <nav class="doc-crumb" aria-label="Breadcrumb"><a href="/docs">Documentation</a><span aria-hidden="true">/</span><a href="/docs#course">Guided aerial-data course</a></nav>
+        <h1>Start the guided course</h1>
+        <p class="doc-summary">Learn Granum on a real aerial dataset: import, inspect, review, train, compare, approve, export and restore, with recorded examples.</p>
+        <p>You have a folder of images and labels. Which labels should you trust? What did a model actually
+learn? Can someone else reproduce the version you handed over? This course answers those questions
+one operation at a time, using the same small dataset throughout.</p>
+<p><strong>No previous Granum experience is needed.</strong> The course introduces boxes, splits, precision, recall
+and dataset versions before asking you to use them. It does not require you to write Python.</p>
+<div class="course-intro">
+<p class="course-eyebrow">First-rollout learning path · Granum 0.1.0</p>
+<p><strong>120 real images. One complete, inspectable workflow.</strong></p>
+<p>96 training images · 24 validation images · 7,500 source annotation objects · no independent test set</p>
+<div class="course-actions"><a class="btn primary" href="/docs/course/setup">Begin: prepare your workspace</a><a class="btn" href="/assets/course/aerial-mini.zip" download>Download sample · 26.4 MiB</a></div>
+</div>
+
+<h2 id="what-you-will-have-at-the-end">What you will have at the end</h2>
+<ul>
+<li>A project called <strong>aerial-walkthrough</strong>, with the source's import problems explained and recorded.</li>
+<li>An <strong>exploratory baseline</strong> containing all 120 images, frozen before any review practice.</li>
+<li>A browser-draft recovery exercise, followed by genuine inspection of <strong>two</strong> images.</li>
+<li>If you choose the training route: two runs on the same frozen input, and a comparison you can explain.</li>
+<li>An <strong>approved two-image excerpt</strong>, a portable COCO export, and an independently checked project restore.</li>
+<li>A written decision about what the evidence supports—and what is still unknown.</li>
+</ul>
+<div class="admonition warning">
+<p class="admonition-title">This is a workflow course, not a model benchmark</p>
+<p>The recorded models are poor. The sample is small, only one seed was used, and the source's test
+folder duplicates validation. Do not describe the sample as fully reviewed, the models as production
+ready, or the excerpt's approval as approval of the other 118 images.</p>
+</div>
+<h2 id="choose-a-route">Choose a route</h2>
+<table>
+<thead>
+<tr>
+<th>Route</th>
+<th>What to do</th>
+<th>Hardware</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Complete workflow</td>
+<td>Follow all lessons; run both model experiments</td>
+<td>Training dependencies and preferably a supported NVIDIA GPU</td>
+</tr>
+<tr>
+<td>Review and delivery</td>
+<td>Follow setup through review, read the recorded results, then approve/export and restore</td>
+<td>No GPU required</td>
+</tr>
+<tr>
+<td>Experienced user</td>
+<td>Use the course checkpoints, then open the linked task guides</td>
+<td>Depends on your task</td>
+</tr>
+</tbody>
+</table>
+<p>Downloads, training and human review time vary. The clips are short demonstrations, not a promise
+that a careful review takes only as long as the recording. Pause at each checkpoint; do not race the video.</p>
+<h2 id="the-learning-path">The learning path</h2>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Lesson</th>
+<th>The question it answers</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><a href="/docs/course/setup">Prepare the workspace</a></td>
+<td>Which build, which folders, and what must be installed?</td>
+</tr>
+<tr>
+<td>2</td>
+<td><a href="/docs/course/data">Understand the sample</a></td>
+<td>What is an image, an annotation, a class and a split?</td>
+</tr>
+<tr>
+<td>3</td>
+<td><a href="/docs/course/import">Import with preflight</a></td>
+<td>What should be fixed or explained before the project is written?</td>
+</tr>
+<tr>
+<td>4</td>
+<td><a href="/docs/course/explore">Explore the data</a></td>
+<td>What can images, statistics, patches and Health tell us?</td>
+</tr>
+<tr>
+<td>5</td>
+<td><a href="/docs/course/baseline">Freeze a baseline</a></td>
+<td>How do we preserve exactly what an experiment uses?</td>
+</tr>
+<tr>
+<td>6</td>
+<td><a href="/docs/course/review">Review, edit and recover</a></td>
+<td>What did a person inspect, and did their change really save?</td>
+</tr>
+<tr>
+<td>7</td>
+<td><a href="/docs/course/train">Train the first model</a></td>
+<td>What does each recipe setting mean?</td>
+</tr>
+<tr>
+<td>8</td>
+<td><a href="/docs/course/results">Read the evidence</a></td>
+<td>What do scores, predictions and an empty findings queue mean?</td>
+</tr>
+<tr>
+<td>9</td>
+<td><a href="/docs/course/compare">Run a controlled comparison</a></td>
+<td>Did a planned change produce a credible difference?</td>
+</tr>
+<tr>
+<td>10</td>
+<td><a href="/docs/course/handoff">Approve and export</a></td>
+<td>Exactly what are we approving and handing over?</td>
+</tr>
+<tr>
+<td>11</td>
+<td><a href="/docs/course/backup">Back up, restore and share</a></td>
+<td>Can the work survive relocation and controlled collaboration?</td>
+</tr>
+<tr>
+<td>12</td>
+<td><a href="/docs/course/next">Move to your own project</a></td>
+<td>What must change before this becomes a real production workflow?</td>
+</tr>
+</tbody>
+</table>
+<h2 id="how-to-use-the-screenshots-and-videos">How to use the screenshots and videos</h2>
+<p>Screenshots and <strong>10 captioned clips</strong> were captured from the actual dashboard, against a real local
+service—not a mock interface. Select a screenshot to open the full-resolution image. Each video has
+native playback controls, English captions and a text transcript. The videos are silent and never autoplay.</p>
+<figure class="doc-figure">
+<a href="/assets/course/06-overview.webp"><img src="/assets/course/06-overview.webp" alt="Actual aerial-walkthrough project overview, connecting imported images, dataset versions and runs." width="1440" height="960" loading="lazy"></a>
+<figcaption>The real course workspace after import. Later lessons add revisions, runs and a separate approved excerpt; your timestamps and version suffixes will differ.</figcaption>
+</figure>
+
+<p>The clips were recorded on Linux on <strong>2 October 2026</strong>, using a Granum 0.1.0 source checkout and
+Chromium at 1440 × 960. They document those source workflows; they do <strong>not</strong> certify a downloadable
+Windows installer, AppImage, a different GPU or every supported model family. Check your build identity
+in the next lesson. Some recording order differs from lesson order; the baseline was frozen before review.</p>
+<p>Download the <a href="/assets/course/evidence.json">measured run evidence</a>,
+<a href="/assets/course/operations-evidence.json">backup/restore receipt</a> and
+<a href="/assets/course/aerial-mini.sha256">sample checksum</a>. They preserve the observed results, including zeros.</p>
+<h2 id="what-we-learnand-what-we-do-not">What we learn—and what we do not</h2>
+<p>Granum connects data, human decisions and model measurements. It cannot infer a correct labelling
+policy from a dataset name, turn a duplicate holdout into independent evidence, or replace domain review.
+Throughout the course, <strong>“saved,” “verified,” “frozen,” “approved” and “good model” mean different things</strong>.</p>
+<h2 id="checkpoint">Checkpoint</h2>
+<p>You know which route you will follow, and you understand that this course approves only a tiny inspected
+excerpt. Next: <a href="/docs/course/setup">prepare the workspace and download the sample</a>.</p>
+<h2 id="if-you-get-stuck">If you get stuck</h2>
+<p>Start with the lesson's troubleshooting table. Keep the exact error, build identity, operation and image
+or run identifier. Do not send private images or credentials to support without permission. General
+help is in <a href="/docs/help/troubleshooting">Troubleshooting</a>.</p>
+        <div class="doc-steps"><a class="doc-step prev" href="/docs"><span>Previous</span>Granum documentation</a><a class="doc-step next" href="/docs/course/setup"><span>Next</span>1. Prepare the workspace</a></div>
+      </article>
+      <aside class="doc-toc" aria-label="On this page"><p>On this page</p><ul><li><a href="#what-you-will-have-at-the-end">What you will have at the end</a></li><li><a href="#choose-a-route">Choose a route</a></li><li><a href="#the-learning-path">The learning path</a></li><li><a href="#how-to-use-the-screenshots-and-videos">How to use the screenshots and videos</a></li><li><a href="#what-we-learnand-what-we-do-not">What we learn—and what we do not</a></li><li><a href="#checkpoint">Checkpoint</a></li><li><a href="#if-you-get-stuck">If you get stuck</a></li></ul></aside>
+    </main>
+  </div>
+
+  <footer class="doc-footer">
+    <div class="wrap">
+    <p>© Granum. Local-first data workflows.</p>
+      <p><a href="/">Product</a><a href="/download">Download</a><a href="/privacy">Privacy</a><a href="/docs/help/troubleshooting">Support</a></p>
+    </div>
+  </footer>
+
+  <div class="doc-search" data-search-panel hidden>
+    <div class="doc-search-box" role="dialog" aria-modal="true" aria-label="Search documentation">
+    <input type="search" aria-label="Search documentation" aria-controls="doc-search-results" placeholder="Search the documentation" autocomplete="off" spellcheck="false" data-search-input>
+    <ul id="doc-search-results" aria-label="Search results" aria-live="polite" data-search-results></ul>
+      <p class="doc-search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move · <kbd>Enter</kbd> to open · <kbd>Esc</kbd> to close</p>
+    </div>
+  </div>
+
+  <script src="/docs/docs.js" defer></script>
+</body>
+</html>

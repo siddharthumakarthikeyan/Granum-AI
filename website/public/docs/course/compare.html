@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>9. Make a controlled comparison · Granum documentation</title>
+  <meta name="description" content="Change the training schedule from three to twelve epochs on the same frozen data, then inspect compatibility, actual deltas and uncertainty.">
+  <meta name="theme-color" content="#ffffff">
+  <meta property="og:title" content="9. Make a controlled comparison · Granum documentation">
+  <meta property="og:description" content="Change the training schedule from three to twelve epochs on the same frozen data, then inspect compatibility, actual deltas and uncertainty.">
+  <meta property="og:type" content="article">
+  <meta property="og:image" content="/assets/og.jpg">
+  <link rel="canonical" href="https://granum.app/docs/course/compare">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/docs/docs.css">
+  <script>document.documentElement.classList.remove("no-js");</script>
+</head>
+<body class="doc-body">
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header doc-header">
+    <div class="wrap">
+      <a class="brand" href="/" aria-label="Granum home"><img src="/assets/lockup-ink.svg" alt="Granum" width="128" height="32"></a>
+      <span class="doc-badge"><a href="/docs">Docs</a></span>
+      <nav class="nav" id="nav" aria-label="Main">
+        <a href="/#tour">Product</a>
+        <a href="/#plans">Pilots</a>
+        <a href="/docs/help/faq">FAQ</a>
+      </nav>
+      <div class="header-actions">
+        <button class="doc-search-button" type="button" data-search aria-label="Search documentation">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3 3"/></svg>
+          <span>Search</span><kbd>/</kbd>
+        </button>
+        <a class="btn primary small" href="/download">Download</a>
+        <button class="menu-button" type="button" aria-controls="doc-sidebar" aria-expanded="false" aria-label="Menu" data-sidebar-toggle>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="doc-shell">
+    <div class="doc-sidebar" id="doc-sidebar">
+      <nav class="doc-nav" aria-label="Documentation">
+<a class="doc-nav-home" href="/docs">Start here</a>
+<div class="doc-nav-group"><p class="doc-nav-title">Guided aerial-data course</p><ul>
+<li><a href="/docs/course/start">Start the guided course</a></li>
+<li><a href="/docs/course/setup">1. Prepare the workspace</a></li>
+<li><a href="/docs/course/data">2. Understand the sample</a></li>
+<li><a href="/docs/course/import">3. Import with preflight</a></li>
+<li><a href="/docs/course/explore">4. Explore before changing labels</a></li>
+<li><a href="/docs/course/baseline">5. Freeze an exploratory baseline</a></li>
+<li><a href="/docs/course/review">6. Review, edit and recover</a></li>
+<li><a href="/docs/course/train">7. Train the first model</a></li>
+<li><a href="/docs/course/results">8. Read the model evidence</a></li>
+<li><a href="/docs/course/compare" class="on" aria-current="page">9. Make a controlled comparison</a></li>
+<li><a href="/docs/course/handoff">10. Approve and export an excerpt</a></li>
+<li><a href="/docs/course/backup">11. Back up, restore and share safely</a></li>
+<li><a href="/docs/course/next">12. Move to your own project</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Getting started</p><ul>
+<li><a href="/docs/start/install">Install Granum</a></li>
+<li><a href="/docs/start/activate">Alpha access and licences</a></li>
+<li><a href="/docs/start/first-project">Your first project</a></li>
+<li><a href="/docs/start/the-loop">Run the loop once</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Concepts</p><ul>
+<li><a href="/docs/concepts/model">How Granum is organised</a></li>
+<li><a href="/docs/concepts/projects">Projects and project types</a></li>
+<li><a href="/docs/concepts/versions">Versions and lineage</a></li>
+<li><a href="/docs/concepts/dataset-versions">Dataset versions</a></li>
+<li><a href="/docs/concepts/verification">Verification and decisions</a></li>
+<li><a href="/docs/concepts/identity">Image identity</a></li>
+<li><a href="/docs/concepts/runs">Runs and metrics</a></li>
+<li><a href="/docs/concepts/evidence">What the evidence is worth</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Guides</p><ul>
+<li><a href="/docs/guides/import">Import data</a></li>
+<li><a href="/docs/guides/pull-from-projects">Build from existing projects</a></li>
+<li><a href="/docs/guides/browse">Browse images</a></li>
+<li><a href="/docs/guides/review">Review and verify</a></li>
+<li><a href="/docs/guides/edit">Edit annotations</a></li>
+<li><a href="/docs/guides/isolate-remove">Isolate, remove and restore</a></li>
+<li><a href="/docs/guides/dataset-versions">Create a dataset version</a></li>
+<li><a href="/docs/guides/augmentation">Augmentation</a></li>
+<li><a href="/docs/guides/train">Train a model</a></li>
+<li><a href="/docs/guides/runs">Read a run</a></li>
+<li><a href="/docs/guides/learning">Per-image learning</a></li>
+<li><a href="/docs/guides/findings">Work the Findings queue</a></li>
+<li><a href="/docs/guides/compare">Compare two runs</a></li>
+<li><a href="/docs/guides/projects">Manage projects</a></li>
+<li><a href="/docs/guides/python">Use Granum from Python</a></li>
+<li><a href="/docs/guides/operations">Operate a pilot workspace</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Reference</p><ul>
+<li><a href="/docs/reference/screens">Map of the app</a></li>
+<li><a href="/docs/reference/shortcuts">Keyboard shortcuts</a></li>
+<li><a href="/docs/reference/preflight">Import checks</a></li>
+<li><a href="/docs/reference/models">Models you can train</a></li>
+<li><a href="/docs/reference/files">Files and settings</a></li>
+<li><a href="/docs/reference/limits">Scale and limits</a></li>
+<li><a href="/docs/reference/glossary">Glossary</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Help</p><ul>
+<li><a href="/docs/help/troubleshooting">Troubleshooting</a></li>
+<li><a href="/docs/help/faq">Frequently asked questions</a></li>
+<li><a href="/docs/help/privacy">Your data and privacy</a></li>
+</ul></div>
+</nav>
+    </div>
+    <main class="doc-main" id="main">
+      <article class="doc-article">
+        <nav class="doc-crumb" aria-label="Breadcrumb"><a href="/docs">Documentation</a><span aria-hidden="true">/</span><a href="/docs#course">Guided aerial-data course</a></nav>
+        <h1>9. Make a controlled comparison</h1>
+        <p class="doc-summary">Change the training schedule from three to twelve epochs on the same frozen data, then inspect compatibility, actual deltas and uncertainty.</p>
+        <p><strong>Goal:</strong> compare a planned experiment without attributing its result to the wrong cause.
+Complete <a href="/docs/course/results">Read the model evidence</a> first. If you are not training locally, follow
+the real recordings and <a href="/assets/course/evidence.json">downloadable evidence</a>.</p>
+<h2 id="what-changes-and-why">What changes, and why</h2>
+<p>Our first model is weak. A reasonable workflow experiment is to give the same nominal recipe a longer
+training schedule. We change <strong>epochs from 3 to 12</strong>, keeping the same frozen baseline and split roles.</p>
+<p>This is <strong>not a label-edit experiment</strong>. The review lesson restored its practice label before saving,
+and both runs use the original aerial-baseline revisions anyway. It is also not an exact continuation
+of the first run: each starts a fresh run from the selected pretrained weights. Framework schedules
+and automatic settings may depend on the total epoch budget.</p>
+<p>Before a real experiment, write a sentence naming the planned change and how it will be evaluated.
+Here: “Compare a 12-epoch schedule with 3 epochs on the same 24 validation images and scoring labels.”</p>
+<h2 id="step-1-launch-the-candidate">Step 1: launch the candidate</h2>
+<ol>
+<li>Return to <strong>Datasets → aerial-baseline → Train</strong>.</li>
+<li>Check <strong>train 96</strong>, <strong>valid 24</strong> and <strong>Test on None</strong> again.</li>
+<li>Keep YOLO26 nano, 640 px and per-sample recording enabled.</li>
+<li>Change <strong>Epochs</strong> to <strong>12</strong>.</li>
+<li>In <strong>Compare with</strong>, choose the completed three-epoch baseline run.</li>
+<li>Read and accept the exploratory acknowledgement, then <strong>Start training</strong>.</li>
+<li>Wait for completion and inspect the log. Record the new run's name and recipe.</li>
+</ol>
+<figure class="doc-figure">
+<a href="/assets/course/25-candidate-recipe.webp"><img src="/assets/course/25-candidate-recipe.webp" alt="Actual candidate training dialog keeps aerial-baseline and the same model settings while selecting twelve epochs and the earlier run for comparison." width="1440" height="960" loading="lazy"></a>
+<figcaption>The planned change is schedule length. The earlier model is rescored on the candidate's evaluation labels for the training comparison.</figcaption>
+</figure>
+
+<figure class="doc-figure doc-video">
+<video controls preload="none" playsinline poster="/assets/course/25-candidate-recipe.webp" aria-label="Recorded twelve-epoch candidate setup and submission" aria-describedby="candidate-video-caption">
+<source src="/assets/course/07-experiment.mp4" type="video/mp4"><track kind="captions" src="/assets/course/07-experiment.vtt" srclang="en" label="English" default>
+<a href="/assets/course/07-experiment.mp4">Download the recording</a>.
+</video><figcaption id="candidate-video-caption">15 seconds · silent, with captions · submission, not the full training duration.</figcaption>
+</figure>
+<details class="doc-transcript"><summary>Read the experiment video transcript</summary>
+<ol><li>Change the planned variable: 12 epochs rather than 3, on the same frozen dataset.</li><li>This is a schedule experiment, not evidence that label edits helped.</li><li>The earlier model is rescored on the same validation labels; different labels would confound the result.</li></ol>
+</details>
+
+<h2 id="step-2-check-comparability-before-the-delta">Step 2: check comparability before the delta</h2>
+<p>Open <strong>Runs → Compare runs</strong>. Select the three-epoch run as <strong>Baseline</strong> and the twelve-epoch run as
+<strong>Candidate</strong>. Select <strong>valid</strong> when the Set selector offers multiple splits.</p>
+<p>Read the verdict and expand the passed checks. The recorded report has:</p>
+<ul>
+<li>Matching evaluation set and exact evaluation version.</li>
+<li>Matching evaluator and class mapping.</li>
+<li>A <strong>training recipe warning</strong>: epochs intentionally changed.</li>
+<li>A <strong>seeds warning</strong>: one run per setting, one seed, no estimate of run-to-run variation.</li>
+</ul>
+<figure class="doc-figure">
+<a href="/assets/course/26-comparison-checks.webp"><img src="/assets/course/26-comparison-checks.webp" alt="Actual comparison shows shared evaluation compatibility and warns that the recipe changed and only one seed was used." width="1440" height="960" loading="lazy"></a>
+<figcaption>“Controlled comparison” describes compatible measured inputs. It is not a statistical significance certificate.</figcaption>
+</figure>
+
+<p>If a report says <strong>Not comparable</strong>, resolve its input/version/policy mismatch. Do not copy the two
+headline numbers into a spreadsheet and bypass the refusal.</p>
+<h2 id="step-3-read-the-actual-result">Step 3: read the actual result</h2>
+<p>The recorded candidate is <strong>run-1002-170617</strong>. The result was modest numerically and poor operationally:</p>
+<table>
+<thead>
+<tr>
+<th>Measurement</th>
+<th style="text-align: right;">3 epochs</th>
+<th style="text-align: right;">12 epochs</th>
+<th>Interpretation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Last framework-history mAP50</td>
+<td style="text-align: right;">0.00345</td>
+<td style="text-align: right;">0.01308</td>
+<td>Same framework metric, but not the final Granum score</td>
+</tr>
+<tr>
+<td>Final Granum mAP50</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.001</td>
+<td>Delta 0.001; report says <strong>too close to call</strong></td>
+</tr>
+<tr>
+<td>Validation F1 from stored predictions at confidence 0.25</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.000</td>
+<td>No useful operating-point gain demonstrated</td>
+</tr>
+<tr>
+<td>Counted validation labels</td>
+<td style="text-align: right;">1,710</td>
+<td style="text-align: right;">1,710</td>
+<td>Same support</td>
+</tr>
+<tr>
+<td>Found / false / missed at that operating point</td>
+<td style="text-align: right;">0 / 0 / 1,710</td>
+<td style="text-align: right;">0 / 0 / 1,710</td>
+<td>Every counted label still missed</td>
+</tr>
+</tbody>
+</table>
+<p>The comparison's tolerance was <strong>0.02</strong>. That is a reporting policy, <strong>not a confidence interval or
+hypothesis test</strong>. A delta inside it does not prove equivalence; a delta outside it would not by itself
+prove a statistically reliable or practically useful gain.</p>
+<h2 id="step-4-inspect-image-level-outcomes">Step 4: inspect image-level outcomes</h2>
+<p>Read <strong>Improved</strong>, <strong>Regressed</strong>, <strong>Unchanged</strong>, <strong>Only in baseline</strong> and <strong>Only in candidate</strong>. In this
+recording: <strong>0 improved, 0 regressed, 24 unchanged, 0 baseline-only, 0 candidate-only</strong> at the reported
+operating point. Inspect the pooled support and underlying images, not only the top-line delta.</p>
+<figure class="doc-figure">
+<a href="/assets/course/27-comparison-outcomes.webp"><img src="/assets/course/27-comparison-outcomes.webp" alt="Actual comparison pools the same 24 validation images, showing no operating-point improvement and unchanged image outcomes." width="1440" height="960" loading="lazy"></a>
+<figcaption>Different final AP and unchanged operating-point counts can coexist: they summarise different aspects of the predictions.</figcaption>
+</figure>
+
+<p>Use <strong>Download report</strong> to preserve your actual comparison. The course's
+<a href="/assets/course/evidence.json">evidence record</a> keeps both histories, evaluator settings, compatibility
+checks and observed counts. It is not a downloadable trained model or a production recommendation.</p>
+<h2 id="watch-the-comparison">Watch the comparison</h2>
+<figure class="doc-figure doc-video">
+<video controls preload="none" playsinline poster="/assets/course/26-comparison-checks.webp" aria-label="Recorded compatibility checks and actual image-level comparison" aria-describedby="compare-video-caption">
+<source src="/assets/course/08-compare.mp4" type="video/mp4"><track kind="captions" src="/assets/course/08-compare.vtt" srclang="en" label="English" default>
+<a href="/assets/course/08-compare.mp4">Download the recording</a>.
+</video><figcaption id="compare-video-caption">20 seconds · silent, with captions · genuine weak-model comparison.</figcaption>
+</figure>
+<details class="doc-transcript"><summary>Read the comparison video transcript</summary>
+<ol><li>Check the same validation images, labels, class mapping and scoring policy first.</li><li>Read improved, regressed and unchanged images, not just an average.</li><li>More epochs is the planned change; no label-improvement claim follows.</li><li>The evidence download preserves actual poor numbers. Data approval is separate from model acceptance.</li></ol>
+</details>
+
+<h2 id="what-we-learn">What we learn</h2>
+<p>The longer schedule did not demonstrate a useful detector at the chosen operating point. A sensible
+next investigation could inspect resize effects, training adequacy, class policy or a better-suited
+recipe—but change and record those deliberately. Collect independent, representative evaluation data
+and repeated runs before making deployment claims.</p>
+<h2 id="checkpoint">Checkpoint</h2>
+<p>Write a decision such as: “Do not deploy either model. The 12-epoch experiment changed the schedule,
+not the labels; final mAP50 rose by 0.001, within the reporting tolerance, while validation F1 stayed
+zero. Evidence is one small split and one seed.” Next: <a href="/docs/course/handoff">approve and export only inspected data</a>.</p>
+<h2 id="if-something-differs">If something differs</h2>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>What to do</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Candidate not listed</td>
+<td>Check it finished and belongs to the same project; inspect failures first</td>
+</tr>
+<tr>
+<td>Evaluation version mismatch</td>
+<td>Use the intended frozen labels or explicitly rescore; do not relabel the comparison as controlled</td>
+</tr>
+<tr>
+<td>Unexpected recipe differences</td>
+<td>Read recorded parameters, framework versions and defaults, not just the two dialog screenshots</td>
+</tr>
+<tr>
+<td>Large gain on a tiny slice</td>
+<td>Inspect support and repeated-run variation before claiming improvement</td>
+</tr>
+</tbody>
+</table>
+        <div class="doc-steps"><a class="doc-step prev" href="/docs/course/results"><span>Previous</span>8. Read the model evidence</a><a class="doc-step next" href="/docs/course/handoff"><span>Next</span>10. Approve and export an excerpt</a></div>
+      </article>
+      <aside class="doc-toc" aria-label="On this page"><p>On this page</p><ul><li><a href="#what-changes-and-why">What changes, and why</a></li><li><a href="#step-1-launch-the-candidate">Step 1: launch the candidate</a></li><li><a href="#step-2-check-comparability-before-the-delta">Step 2: check comparability before the delta</a></li><li><a href="#step-3-read-the-actual-result">Step 3: read the actual result</a></li><li><a href="#step-4-inspect-image-level-outcomes">Step 4: inspect image-level outcomes</a></li><li><a href="#watch-the-comparison">Watch the comparison</a></li><li><a href="#what-we-learn">What we learn</a></li><li><a href="#checkpoint">Checkpoint</a></li><li><a href="#if-something-differs">If something differs</a></li></ul></aside>
+    </main>
+  </div>
+
+  <footer class="doc-footer">
+    <div class="wrap">
+    <p>© Granum. Local-first data workflows.</p>
+      <p><a href="/">Product</a><a href="/download">Download</a><a href="/privacy">Privacy</a><a href="/docs/help/troubleshooting">Support</a></p>
+    </div>
+  </footer>
+
+  <div class="doc-search" data-search-panel hidden>
+    <div class="doc-search-box" role="dialog" aria-modal="true" aria-label="Search documentation">
+    <input type="search" aria-label="Search documentation" aria-controls="doc-search-results" placeholder="Search the documentation" autocomplete="off" spellcheck="false" data-search-input>
+    <ul id="doc-search-results" aria-label="Search results" aria-live="polite" data-search-results></ul>
+      <p class="doc-search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move · <kbd>Enter</kbd> to open · <kbd>Esc</kbd> to close</p>
+    </div>
+  </div>
+
+  <script src="/docs/docs.js" defer></script>
+</body>
+</html>

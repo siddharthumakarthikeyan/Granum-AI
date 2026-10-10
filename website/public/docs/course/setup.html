@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>1. Prepare the workspace · Granum documentation</title>
+  <meta name="description" content="Check the installed build, download and verify the real sample, and separate source data, project records and backups.">
+  <meta name="theme-color" content="#ffffff">
+  <meta property="og:title" content="1. Prepare the workspace · Granum documentation">
+  <meta property="og:description" content="Check the installed build, download and verify the real sample, and separate source data, project records and backups.">
+  <meta property="og:type" content="article">
+  <meta property="og:image" content="/assets/og.jpg">
+  <link rel="canonical" href="https://granum.app/docs/course/setup">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/docs/docs.css">
+  <script>document.documentElement.classList.remove("no-js");</script>
+</head>
+<body class="doc-body">
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header doc-header">
+    <div class="wrap">
+      <a class="brand" href="/" aria-label="Granum home"><img src="/assets/lockup-ink.svg" alt="Granum" width="128" height="32"></a>
+      <span class="doc-badge"><a href="/docs">Docs</a></span>
+      <nav class="nav" id="nav" aria-label="Main">
+        <a href="/#tour">Product</a>
+        <a href="/#plans">Pilots</a>
+        <a href="/docs/help/faq">FAQ</a>
+      </nav>
+      <div class="header-actions">
+        <button class="doc-search-button" type="button" data-search aria-label="Search documentation">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3 3"/></svg>
+          <span>Search</span><kbd>/</kbd>
+        </button>
+        <a class="btn primary small" href="/download">Download</a>
+        <button class="menu-button" type="button" aria-controls="doc-sidebar" aria-expanded="false" aria-label="Menu" data-sidebar-toggle>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="doc-shell">
+    <div class="doc-sidebar" id="doc-sidebar">
+      <nav class="doc-nav" aria-label="Documentation">
+<a class="doc-nav-home" href="/docs">Start here</a>
+<div class="doc-nav-group"><p class="doc-nav-title">Guided aerial-data course</p><ul>
+<li><a href="/docs/course/start">Start the guided course</a></li>
+<li><a href="/docs/course/setup" class="on" aria-current="page">1. Prepare the workspace</a></li>
+<li><a href="/docs/course/data">2. Understand the sample</a></li>
+<li><a href="/docs/course/import">3. Import with preflight</a></li>
+<li><a href="/docs/course/explore">4. Explore before changing labels</a></li>
+<li><a href="/docs/course/baseline">5. Freeze an exploratory baseline</a></li>
+<li><a href="/docs/course/review">6. Review, edit and recover</a></li>
+<li><a href="/docs/course/train">7. Train the first model</a></li>
+<li><a href="/docs/course/results">8. Read the model evidence</a></li>
+<li><a href="/docs/course/compare">9. Make a controlled comparison</a></li>
+<li><a href="/docs/course/handoff">10. Approve and export an excerpt</a></li>
+<li><a href="/docs/course/backup">11. Back up, restore and share safely</a></li>
+<li><a href="/docs/course/next">12. Move to your own project</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Getting started</p><ul>
+<li><a href="/docs/start/install">Install Granum</a></li>
+<li><a href="/docs/start/activate">Alpha access and licences</a></li>
+<li><a href="/docs/start/first-project">Your first project</a></li>
+<li><a href="/docs/start/the-loop">Run the loop once</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Concepts</p><ul>
+<li><a href="/docs/concepts/model">How Granum is organised</a></li>
+<li><a href="/docs/concepts/projects">Projects and project types</a></li>
+<li><a href="/docs/concepts/versions">Versions and lineage</a></li>
+<li><a href="/docs/concepts/dataset-versions">Dataset versions</a></li>
+<li><a href="/docs/concepts/verification">Verification and decisions</a></li>
+<li><a href="/docs/concepts/identity">Image identity</a></li>
+<li><a href="/docs/concepts/runs">Runs and metrics</a></li>
+<li><a href="/docs/concepts/evidence">What the evidence is worth</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Guides</p><ul>
+<li><a href="/docs/guides/import">Import data</a></li>
+<li><a href="/docs/guides/pull-from-projects">Build from existing projects</a></li>
+<li><a href="/docs/guides/browse">Browse images</a></li>
+<li><a href="/docs/guides/review">Review and verify</a></li>
+<li><a href="/docs/guides/edit">Edit annotations</a></li>
+<li><a href="/docs/guides/isolate-remove">Isolate, remove and restore</a></li>
+<li><a href="/docs/guides/dataset-versions">Create a dataset version</a></li>
+<li><a href="/docs/guides/augmentation">Augmentation</a></li>
+<li><a href="/docs/guides/train">Train a model</a></li>
+<li><a href="/docs/guides/runs">Read a run</a></li>
+<li><a href="/docs/guides/learning">Per-image learning</a></li>
+<li><a href="/docs/guides/findings">Work the Findings queue</a></li>
+<li><a href="/docs/guides/compare">Compare two runs</a></li>
+<li><a href="/docs/guides/projects">Manage projects</a></li>
+<li><a href="/docs/guides/python">Use Granum from Python</a></li>
+<li><a href="/docs/guides/operations">Operate a pilot workspace</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Reference</p><ul>
+<li><a href="/docs/reference/screens">Map of the app</a></li>
+<li><a href="/docs/reference/shortcuts">Keyboard shortcuts</a></li>
+<li><a href="/docs/reference/preflight">Import checks</a></li>
+<li><a href="/docs/reference/models">Models you can train</a></li>
+<li><a href="/docs/reference/files">Files and settings</a></li>
+<li><a href="/docs/reference/limits">Scale and limits</a></li>
+<li><a href="/docs/reference/glossary">Glossary</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Help</p><ul>
+<li><a href="/docs/help/troubleshooting">Troubleshooting</a></li>
+<li><a href="/docs/help/faq">Frequently asked questions</a></li>
+<li><a href="/docs/help/privacy">Your data and privacy</a></li>
+</ul></div>
+</nav>
+    </div>
+    <main class="doc-main" id="main">
+      <article class="doc-article">
+        <nav class="doc-crumb" aria-label="Breadcrumb"><a href="/docs">Documentation</a><span aria-hidden="true">/</span><a href="/docs#course">Guided aerial-data course</a></nav>
+        <h1>1. Prepare the workspace</h1>
+        <p class="doc-summary">Check the installed build, download and verify the real sample, and separate source data, project records and backups.</p>
+        <p><strong>Goal:</strong> open Granum and place the sample somewhere it can safely remain throughout the course.
+You need permission to use the application and enough local disk space for the sample and project copies.
+You do not need training dependencies yet.</p>
+<h2 id="what-you-are-setting-up-and-why">What you are setting up, and why</h2>
+<p>Granum's <strong>dashboard</strong> is the interface. Its <strong>service</strong> reads images and writes project records. In the
+default local mode both run on your machine. Closing an editor, closing a desktop window and stopping
+the service are different actions.</p>
+<p>An imported image may remain a <strong>reference to the source file</strong>. Moving or deleting that folder can
+therefore break a project even though its annotation table still exists. Keep source data separate
+from generated project records and from backups.</p>
+<h2 id="step-1-check-the-build-before-starting">Step 1: check the build before starting</h2>
+<ol>
+<li>Open the <a href="/download">download page</a>. Use an artifact explicitly qualified for your platform, or an
+   authorized development checkout supplied by the project maintainer.</li>
+<li>Compare the artifact's published SHA-256 and build manifest with the file you received. A matching
+   version string alone is not enough: two files can both say 0.1.0 and contain different source changes.</li>
+<li>Follow <a href="/docs/start/install">Install Granum</a>. Do not bypass a security warning merely because this
+   documentation mentions the installer. Confirm its origin and checksum first.</li>
+<li>Launch <strong>Granum</strong>. The local dashboard normally uses <code>http://127.0.0.1:8000</code>; an explicitly configured
+   port can differ. The recordings use an isolated service on port 18861.</li>
+<li>If the CLI is available, record the output of <code>granum version</code>, <code>granum app status</code> and
+   <code>granum build-info</code>. Check that the running service points at the intended project root.</li>
+</ol>
+<div class="admonition note">
+<p class="admonition-title">If no qualified download is available</p>
+<p>Ask the rollout maintainer for the approved pilot build. Do not substitute an older installer and
+assume it includes current approval and recovery safeguards. You can still read the entire course
+and its real recordings. Source-build instructions are for authorized developers, not a claim of
+clean-machine installer qualification.</p>
+</div>
+<h2 id="step-2-download-and-check-the-sample">Step 2: download and check the sample</h2>
+<ol>
+<li>Download the <a href="/assets/course/aerial-mini.zip">aerial-mini archive</a> and its
+   <a href="/assets/course/aerial-mini.sha256">SHA-256 checksum</a>.</li>
+<li>Verify the archive before extracting it. On Linux, place both downloads in one folder and run the
+   command below there. On Windows, compare the output of <code>Get-FileHash</code> with the published checksum.</li>
+<li>Extract the <strong>whole</strong> archive. Do not pick out only the JPEGs or only the annotation JSON.</li>
+<li>Move the extracted aerial-mini directory to a permanent data folder you own, not a temporary or
+   automatically cleaned Downloads location.</li>
+<li>Keep its attribution and manifest with it. The <a href="/docs/course/data">next lesson</a> explains their scope.</li>
+</ol>
+<pre><code class="language-bash">sha256sum --check aerial-mini.sha256
+</code></pre>
+<pre><code class="language-powershell">Get-FileHash .\aerial-mini.zip -Algorithm SHA256
+</code></pre>
+<p>The archive is <strong>27,693,885 bytes (26.4 MiB)</strong>. Its expected SHA-256 is:</p>
+<pre><code class="language-text">2641dcdfbd88fea0bea27b59689f68b3b9a1d1fbd4b3d8c4da1a2c62789efa5d
+</code></pre>
+<p>The checksum detects an unexpected or incomplete file; it does not independently establish ownership
+of the images or make the annotation content correct.</p>
+<h2 id="step-3-check-the-extracted-layout">Step 3: check the extracted layout</h2>
+<pre><code class="language-text">aerial-mini/
+  ATTRIBUTION.txt
+  START-HERE.txt
+  manifest.json
+  train/
+    _annotations.coco.json
+    ...96 image files...
+  valid/
+    _annotations.coco.json
+    ...24 image files...
+</code></pre>
+<p>There is deliberately <strong>no test directory</strong>. Do not manufacture one by copying validation.
+Annotation files contain both image records and box records; their counts are not the same.</p>
+<h2 id="step-4-choose-safe-locations">Step 4: choose safe locations</h2>
+<table>
+<thead>
+<tr>
+<th>Purpose</th>
+<th>Example on Linux</th>
+<th>Keep in mind</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Source images and COCO files</td>
+<td><code>~/datasets/aerial-mini</code></td>
+<td>Leave in place; Granum may reference these bytes</td>
+</tr>
+<tr>
+<td>Granum project root</td>
+<td><code>~/granum</code></td>
+<td>Project directories are created under its projects subdirectory</td>
+</tr>
+<tr>
+<td>Training output</td>
+<td><code>~/granum-training</code></td>
+<td>Weights and framework caches can be much larger than the sample</td>
+</tr>
+<tr>
+<td>Backups</td>
+<td>A separate protected backup folder or volume</td>
+<td>Never create the backup inside the project being backed up</td>
+</tr>
+</tbody>
+</table>
+<p>Windows uses corresponding user-profile folders. Read <a href="/docs/reference/files">Files and settings</a>
+for platform-specific paths. Avoid a network share or cloud-synced writable folder for this first
+exercise; those storage systems are not qualified by the local writer-lock tests.</p>
+<h2 id="optional-prepare-to-train">Optional: prepare to train</h2>
+<p>The training dialog can offer <strong>Install training support</strong>. Its packages, CUDA runtime and model
+weights require additional space and may need network downloads. Granum's core browsing/review route
+does not require a GPU. A supported NVIDIA driver is needed for CUDA; package installation does not
+install that driver for you.</p>
+<p>The recorded run used PyTorch 2.12.0+cu130, Ultralytics 8.4.65 and an NVIDIA RTX PRO 4000 Blackwell
+Generation Laptop GPU. These are <strong>capture facts</strong>, not the only supported combination or a recommended
+upgrade for every computer. Do not replace a working environment merely to match a screenshot.</p>
+<h2 id="what-we-learn">What we learn</h2>
+<p>The application, source data, versioned project records and training environment have different
+lifetimes. A backup of only the project folder may miss externally referenced media. Unsaved editor
+drafts live in the browser profile, not in the project backup.</p>
+<h2 id="checkpoint">Checkpoint</h2>
+<ul>
+<li>Granum opens, and you have recorded its version/build identity.</li>
+<li>The archive checksum matches.</li>
+<li>The extracted folder contains train and valid with their COCO files.</li>
+<li>Source data is outside the project and backup destinations.</li>
+</ul>
+<p>Next: <a href="/docs/course/data">understand the sample before importing it</a>.</p>
+<h2 id="if-something-differs">If something differs</h2>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>What to do</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Checksum differs</td>
+<td>Stop. Re-download from the same trusted source; do not suppress the check</td>
+</tr>
+<tr>
+<td>Dashboard does not open</td>
+<td>Check service status, logs and port; do not expose it to the network as a workaround</td>
+</tr>
+<tr>
+<td>Folder picker cannot see the data</td>
+<td>Check configured data roots and file permissions; do not widen access to the entire filesystem</td>
+</tr>
+<tr>
+<td>Training support is unavailable</td>
+<td>Follow the review-only route and use the recorded evidence in the results lessons</td>
+</tr>
+<tr>
+<td>Recovery/approval controls are missing</td>
+<td>Compare build identities; an older artifact may not include the documented source changes</td>
+</tr>
+</tbody>
+</table>
+        <div class="doc-steps"><a class="doc-step prev" href="/docs/course/start"><span>Previous</span>Start the guided course</a><a class="doc-step next" href="/docs/course/data"><span>Next</span>2. Understand the sample</a></div>
+      </article>
+      <aside class="doc-toc" aria-label="On this page"><p>On this page</p><ul><li><a href="#what-you-are-setting-up-and-why">What you are setting up, and why</a></li><li><a href="#step-1-check-the-build-before-starting">Step 1: check the build before starting</a></li><li><a href="#step-2-download-and-check-the-sample">Step 2: download and check the sample</a></li><li><a href="#step-3-check-the-extracted-layout">Step 3: check the extracted layout</a></li><li><a href="#step-4-choose-safe-locations">Step 4: choose safe locations</a></li><li><a href="#optional-prepare-to-train">Optional: prepare to train</a></li><li><a href="#what-we-learn">What we learn</a></li><li><a href="#checkpoint">Checkpoint</a></li><li><a href="#if-something-differs">If something differs</a></li></ul></aside>
+    </main>
+  </div>
+
+  <footer class="doc-footer">
+    <div class="wrap">
+    <p>© Granum. Local-first data workflows.</p>
+      <p><a href="/">Product</a><a href="/download">Download</a><a href="/privacy">Privacy</a><a href="/docs/help/troubleshooting">Support</a></p>
+    </div>
+  </footer>
+
+  <div class="doc-search" data-search-panel hidden>
+    <div class="doc-search-box" role="dialog" aria-modal="true" aria-label="Search documentation">
+    <input type="search" aria-label="Search documentation" aria-controls="doc-search-results" placeholder="Search the documentation" autocomplete="off" spellcheck="false" data-search-input>
+    <ul id="doc-search-results" aria-label="Search results" aria-live="polite" data-search-results></ul>
+      <p class="doc-search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move · <kbd>Enter</kbd> to open · <kbd>Esc</kbd> to close</p>
+    </div>
+  </div>
+
+  <script src="/docs/docs.js" defer></script>
+</body>
+</html>

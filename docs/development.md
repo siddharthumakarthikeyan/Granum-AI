@@ -94,8 +94,25 @@ all work with no network.
 - **test**: `ruff check src tests` and `pytest` on Python 3.10, 3.11 and 3.12
 - **web**: `npm ci`, `npm run test` and `npm run build` on Node 20
 
-`.github/workflows/release-linux.yml` builds the AppImage on every `v*` tag (and on demand) and attaches it
-to the GitHub release.
+- **website**: the site's documentation is up to date and the licence server's tests pass (`website/`)
+
+### Builds and the website's download
+
+`.github/workflows/release-linux.yml` builds the AppImage and `.github/workflows/release-windows.yml` the
+Setup.exe, each after the same checks have passed:
+
+- on every push or merge to `main`, kept as the **build of main**, replacing the one before:
+  <https://github.com/siddharthumakarthikeyan/Granum-AI/releases/tag/main-build>
+- on every `v*` tag, attached to that version's GitHub release
+- on demand (*Actions → release-linux / release-windows → Run workflow*), kept as an artifact of the run
+
+Pushes to other branches run the checks only and build no app.
+
+A build of main is **not** what the website offers until it is approved: *Actions → publish-download →
+Run workflow*. That checks both installers against their checksums and manifests (`tools/approve_release.py`),
+then publishes them as a full release with `release.json`. The website reads the newest full release and
+offers it within five minutes; nothing on Vercel needs changing. To take a download back, delete that
+release on GitHub and the site returns to the one before.
 
 ## Project conventions
 

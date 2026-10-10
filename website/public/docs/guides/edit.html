@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Edit annotations · Granum documentation</title>
+  <meta name="description" content="Draw, move, relabel and delete boxes, masks and keypoints — and what each save writes.">
+  <meta name="theme-color" content="#ffffff">
+  <meta property="og:title" content="Edit annotations · Granum documentation">
+  <meta property="og:description" content="Draw, move, relabel and delete boxes, masks and keypoints — and what each save writes.">
+  <meta property="og:type" content="article">
+  <meta property="og:image" content="/assets/og.jpg">
+  <link rel="canonical" href="https://granum.app/docs/guides/edit">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/docs/docs.css">
+  <script>document.documentElement.classList.remove("no-js");</script>
+</head>
+<body class="doc-body">
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header doc-header">
+    <div class="wrap">
+      <a class="brand" href="/" aria-label="Granum home"><img src="/assets/lockup-ink.svg" alt="Granum" width="128" height="32"></a>
+      <span class="doc-badge"><a href="/docs">Docs</a></span>
+      <nav class="nav" id="nav" aria-label="Main">
+        <a href="/#tour">Product</a>
+        <a href="/#plans">Pilots</a>
+        <a href="/docs/help/faq">FAQ</a>
+      </nav>
+      <div class="header-actions">
+        <button class="doc-search-button" type="button" data-search aria-label="Search documentation">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3 3"/></svg>
+          <span>Search</span><kbd>/</kbd>
+        </button>
+        <a class="btn primary small" href="/download">Download</a>
+        <button class="menu-button" type="button" aria-controls="doc-sidebar" aria-expanded="false" aria-label="Menu" data-sidebar-toggle>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="doc-shell">
+    <div class="doc-sidebar" id="doc-sidebar">
+      <nav class="doc-nav" aria-label="Documentation">
+<a class="doc-nav-home" href="/docs">Start here</a>
+<div class="doc-nav-group"><p class="doc-nav-title">Guided aerial-data course</p><ul>
+<li><a href="/docs/course/start">Start the guided course</a></li>
+<li><a href="/docs/course/setup">1. Prepare the workspace</a></li>
+<li><a href="/docs/course/data">2. Understand the sample</a></li>
+<li><a href="/docs/course/import">3. Import with preflight</a></li>
+<li><a href="/docs/course/explore">4. Explore before changing labels</a></li>
+<li><a href="/docs/course/baseline">5. Freeze an exploratory baseline</a></li>
+<li><a href="/docs/course/review">6. Review, edit and recover</a></li>
+<li><a href="/docs/course/train">7. Train the first model</a></li>
+<li><a href="/docs/course/results">8. Read the model evidence</a></li>
+<li><a href="/docs/course/compare">9. Make a controlled comparison</a></li>
+<li><a href="/docs/course/handoff">10. Approve and export an excerpt</a></li>
+<li><a href="/docs/course/backup">11. Back up, restore and share safely</a></li>
+<li><a href="/docs/course/next">12. Move to your own project</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Getting started</p><ul>
+<li><a href="/docs/start/install">Install Granum</a></li>
+<li><a href="/docs/start/activate">Alpha access and licences</a></li>
+<li><a href="/docs/start/first-project">Your first project</a></li>
+<li><a href="/docs/start/the-loop">Run the loop once</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Concepts</p><ul>
+<li><a href="/docs/concepts/model">How Granum is organised</a></li>
+<li><a href="/docs/concepts/projects">Projects and project types</a></li>
+<li><a href="/docs/concepts/versions">Versions and lineage</a></li>
+<li><a href="/docs/concepts/dataset-versions">Dataset versions</a></li>
+<li><a href="/docs/concepts/verification">Verification and decisions</a></li>
+<li><a href="/docs/concepts/identity">Image identity</a></li>
+<li><a href="/docs/concepts/runs">Runs and metrics</a></li>
+<li><a href="/docs/concepts/evidence">What the evidence is worth</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Guides</p><ul>
+<li><a href="/docs/guides/import">Import data</a></li>
+<li><a href="/docs/guides/pull-from-projects">Build from existing projects</a></li>
+<li><a href="/docs/guides/browse">Browse images</a></li>
+<li><a href="/docs/guides/review">Review and verify</a></li>
+<li><a href="/docs/guides/edit" class="on" aria-current="page">Edit annotations</a></li>
+<li><a href="/docs/guides/isolate-remove">Isolate, remove and restore</a></li>
+<li><a href="/docs/guides/dataset-versions">Create a dataset version</a></li>
+<li><a href="/docs/guides/augmentation">Augmentation</a></li>
+<li><a href="/docs/guides/train">Train a model</a></li>
+<li><a href="/docs/guides/runs">Read a run</a></li>
+<li><a href="/docs/guides/learning">Per-image learning</a></li>
+<li><a href="/docs/guides/findings">Work the Findings queue</a></li>
+<li><a href="/docs/guides/compare">Compare two runs</a></li>
+<li><a href="/docs/guides/projects">Manage projects</a></li>
+<li><a href="/docs/guides/python">Use Granum from Python</a></li>
+<li><a href="/docs/guides/operations">Operate a pilot workspace</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Reference</p><ul>
+<li><a href="/docs/reference/screens">Map of the app</a></li>
+<li><a href="/docs/reference/shortcuts">Keyboard shortcuts</a></li>
+<li><a href="/docs/reference/preflight">Import checks</a></li>
+<li><a href="/docs/reference/models">Models you can train</a></li>
+<li><a href="/docs/reference/files">Files and settings</a></li>
+<li><a href="/docs/reference/limits">Scale and limits</a></li>
+<li><a href="/docs/reference/glossary">Glossary</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Help</p><ul>
+<li><a href="/docs/help/troubleshooting">Troubleshooting</a></li>
+<li><a href="/docs/help/faq">Frequently asked questions</a></li>
+<li><a href="/docs/help/privacy">Your data and privacy</a></li>
+</ul></div>
+</nav>
+    </div>
+    <main class="doc-main" id="main">
+      <article class="doc-article">
+        <nav class="doc-crumb" aria-label="Breadcrumb"><a href="/docs">Documentation</a><span aria-hidden="true">/</span><a href="/docs#guides">Guides</a></nav>
+        <h1>Edit annotations</h1>
+        <p class="doc-summary">Draw, move, relabel and delete boxes, masks and keypoints — and what each save writes.</p>
+        <p>Turn on <strong>Edit</strong> in the Images ribbon and open an image. The editor fills the screen: the image with its
+objects, a toolbar, and a panel with the selected object's class and properties.</p>
+<h2 id="tools">Tools</h2>
+<p>Which tools appear follows the project's <a href="/docs/concepts/projects">type</a>.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Key</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Select</strong></td>
+<td><kbd>V</kbd></td>
+<td>Click an object to select it. Drag it to move, drag a handle to resize, drag a vertex or keypoint to move that point</td>
+</tr>
+<tr>
+<td><strong>Box</strong></td>
+<td><kbd>B</kbd></td>
+<td>Drag on the image to draw a box</td>
+</tr>
+<tr>
+<td><strong>Polygon</strong></td>
+<td><kbd>P</kbd></td>
+<td>Click points to trace a mask; <kbd>Enter</kbd> closes it. Double-click an edge to add a vertex</td>
+</tr>
+<tr>
+<td><strong>Keypoint</strong></td>
+<td><kbd>K</kbd></td>
+<td>Click to add points to the selected object; with nothing selected, starts a new one</td>
+</tr>
+<tr>
+<td><strong>Image label</strong></td>
+<td>—</td>
+<td>For classification projects: one label for the whole image</td>
+</tr>
+</tbody>
+</table>
+<p>Detection projects get Box. Segmentation projects get Polygon. Keypoint projects get Keypoint, and a box
+is fitted around the points automatically when the project has no box tool. Classification projects get
+no drawing tools at all, only the image label.</p>
+<h2 id="moving-around">Moving around</h2>
+<table>
+<thead>
+<tr>
+<th>Action</th>
+<th>How</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Zoom</td>
+<td>Wheel</td>
+</tr>
+<tr>
+<td>Pan</td>
+<td>Drag empty space</td>
+</tr>
+<tr>
+<td>Fit the image</td>
+<td><kbd>0</kbd></td>
+</tr>
+<tr>
+<td>Previous / next image</td>
+<td><kbd>←</kbd> <kbd>→</kbd> — saves first</td>
+</tr>
+<tr>
+<td>Undo / redo</td>
+<td><kbd>Ctrl</kbd>+<kbd>Z</kbd> / <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd> (or <kbd>Ctrl</kbd>+<kbd>Y</kbd>)</td>
+</tr>
+<tr>
+<td>Save</td>
+<td><kbd>Ctrl</kbd>+<kbd>S</kbd>, and automatically when you leave the image</td>
+</tr>
+<tr>
+<td>Delete</td>
+<td><kbd>Delete</kbd> removes the picked vertex or keypoint, otherwise the whole object</td>
+</tr>
+</tbody>
+</table>
+<h2 id="classes">Classes</h2>
+<p>The selected object's class is in the side panel; pick another to relabel it. <strong>+ Class</strong> adds a new
+class to the dataset — available immediately on every set in it, because the class list belongs to the
+dataset rather than to one image.</p>
+<p>A class that is still in use cannot be removed, which is deliberate: silently dropping a class would
+change the meaning of every box that referred to it.</p>
+<h2 id="crowd-and-ignore-regions">Crowd and ignore regions</h2>
+<p>Each object has a <strong>crowd</strong> toggle. A crowd object — COCO's <code>iscrowd</code>, or an "ignored region" in
+aerial datasets — is neither rewarded nor penalised: it is never matched, never counted as missed, and
+predictions lying mostly inside it are ignored rather than counted as false positives.</p>
+<p>Use it for regions you have deliberately not labelled individually. Getting this wrong is a common source
+of mysteriously bad precision: a dense crowd exported as one ordinary box means every correct person the
+model finds inside it counts against it.</p>
+<h2 id="what-a-save-writes">What a save writes</h2>
+<p>One save writes <strong>one new version of that set</strong>, however many objects you changed, and sets the image
+back to <strong>unverified</strong> with a note saying what changed. The previous version is untouched.</p>
+<p>That is why the editor saves per image rather than per box: a session correcting forty images writes
+forty versions, not four hundred. If you are making a large sweep of edits, expect the version list to
+grow; it is the record of who changed what.</p>
+<div class="admonition note">
+<p class="admonition-title">Unsaved work is recoverable</p>
+<p>Both primary image editors keep acknowledged recovery copies in IndexedDB, in the same browser
+profile and origin. Clearing site data, quota failures or a crash before acknowledgement can lose
+drafts. A stale base disables automatic replay; export and reconcile against the latest revision.
+Failed server saves retain the draft. Browser recovery is not a server backup or cross-device sync.</p>
+</div>
+<p>Follow the <a href="/docs/course/review">recorded recovery exercise</a> for exact actions, the real dialog,
+screenshots and a captioned video. That exercise restores its practice relabel before saving; it does
+not manufacture a source-label correction.</p>
+        <div class="doc-steps"><a class="doc-step prev" href="/docs/guides/review"><span>Previous</span>Review and verify</a><a class="doc-step next" href="/docs/guides/isolate-remove"><span>Next</span>Isolate, remove and restore</a></div>
+      </article>
+      <aside class="doc-toc" aria-label="On this page"><p>On this page</p><ul><li><a href="#tools">Tools</a></li><li><a href="#moving-around">Moving around</a></li><li><a href="#classes">Classes</a></li><li><a href="#crowd-and-ignore-regions">Crowd and ignore regions</a></li><li><a href="#what-a-save-writes">What a save writes</a></li></ul></aside>
+    </main>
+  </div>
+
+  <footer class="doc-footer">
+    <div class="wrap">
+    <p>© Granum. Local-first data workflows.</p>
+      <p><a href="/">Product</a><a href="/download">Download</a><a href="/privacy">Privacy</a><a href="/docs/help/troubleshooting">Support</a></p>
+    </div>
+  </footer>
+
+  <div class="doc-search" data-search-panel hidden>
+    <div class="doc-search-box" role="dialog" aria-modal="true" aria-label="Search documentation">
+    <input type="search" aria-label="Search documentation" aria-controls="doc-search-results" placeholder="Search the documentation" autocomplete="off" spellcheck="false" data-search-input>
+    <ul id="doc-search-results" aria-label="Search results" aria-live="polite" data-search-results></ul>
+      <p class="doc-search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move · <kbd>Enter</kbd> to open · <kbd>Esc</kbd> to close</p>
+    </div>
+  </div>
+
+  <script src="/docs/docs.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Import data · Granum documentation</title>
+  <meta name="description" content="Preflight checks, what each finding means, re-cutting splits, and adding data to a project.">
+  <meta name="theme-color" content="#ffffff">
+  <meta property="og:title" content="Import data · Granum documentation">
+  <meta property="og:description" content="Preflight checks, what each finding means, re-cutting splits, and adding data to a project.">
+  <meta property="og:type" content="article">
+  <meta property="og:image" content="/assets/og.jpg">
+  <link rel="canonical" href="https://granum.app/docs/guides/import">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/docs/docs.css">
+  <script>document.documentElement.classList.remove("no-js");</script>
+</head>
+<body class="doc-body">
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header doc-header">
+    <div class="wrap">
+      <a class="brand" href="/" aria-label="Granum home"><img src="/assets/lockup-ink.svg" alt="Granum" width="128" height="32"></a>
+      <span class="doc-badge"><a href="/docs">Docs</a></span>
+      <nav class="nav" id="nav" aria-label="Main">
+        <a href="/#tour">Product</a>
+        <a href="/#plans">Pilots</a>
+        <a href="/docs/help/faq">FAQ</a>
+      </nav>
+      <div class="header-actions">
+        <button class="doc-search-button" type="button" data-search aria-label="Search documentation">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3 3"/></svg>
+          <span>Search</span><kbd>/</kbd>
+        </button>
+        <a class="btn primary small" href="/download">Download</a>
+        <button class="menu-button" type="button" aria-controls="doc-sidebar" aria-expanded="false" aria-label="Menu" data-sidebar-toggle>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="doc-shell">
+    <div class="doc-sidebar" id="doc-sidebar">
+      <nav class="doc-nav" aria-label="Documentation">
+<a class="doc-nav-home" href="/docs">Start here</a>
+<div class="doc-nav-group"><p class="doc-nav-title">Guided aerial-data course</p><ul>
+<li><a href="/docs/course/start">Start the guided course</a></li>
+<li><a href="/docs/course/setup">1. Prepare the workspace</a></li>
+<li><a href="/docs/course/data">2. Understand the sample</a></li>
+<li><a href="/docs/course/import">3. Import with preflight</a></li>
+<li><a href="/docs/course/explore">4. Explore before changing labels</a></li>
+<li><a href="/docs/course/baseline">5. Freeze an exploratory baseline</a></li>
+<li><a href="/docs/course/review">6. Review, edit and recover</a></li>
+<li><a href="/docs/course/train">7. Train the first model</a></li>
+<li><a href="/docs/course/results">8. Read the model evidence</a></li>
+<li><a href="/docs/course/compare">9. Make a controlled comparison</a></li>
+<li><a href="/docs/course/handoff">10. Approve and export an excerpt</a></li>
+<li><a href="/docs/course/backup">11. Back up, restore and share safely</a></li>
+<li><a href="/docs/course/next">12. Move to your own project</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Getting started</p><ul>
+<li><a href="/docs/start/install">Install Granum</a></li>
+<li><a href="/docs/start/activate">Alpha access and licences</a></li>
+<li><a href="/docs/start/first-project">Your first project</a></li>
+<li><a href="/docs/start/the-loop">Run the loop once</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Concepts</p><ul>
+<li><a href="/docs/concepts/model">How Granum is organised</a></li>
+<li><a href="/docs/concepts/projects">Projects and project types</a></li>
+<li><a href="/docs/concepts/versions">Versions and lineage</a></li>
+<li><a href="/docs/concepts/dataset-versions">Dataset versions</a></li>
+<li><a href="/docs/concepts/verification">Verification and decisions</a></li>
+<li><a href="/docs/concepts/identity">Image identity</a></li>
+<li><a href="/docs/concepts/runs">Runs and metrics</a></li>
+<li><a href="/docs/concepts/evidence">What the evidence is worth</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Guides</p><ul>
+<li><a href="/docs/guides/import" class="on" aria-current="page">Import data</a></li>
+<li><a href="/docs/guides/pull-from-projects">Build from existing projects</a></li>
+<li><a href="/docs/guides/browse">Browse images</a></li>
+<li><a href="/docs/guides/review">Review and verify</a></li>
+<li><a href="/docs/guides/edit">Edit annotations</a></li>
+<li><a href="/docs/guides/isolate-remove">Isolate, remove and restore</a></li>
+<li><a href="/docs/guides/dataset-versions">Create a dataset version</a></li>
+<li><a href="/docs/guides/augmentation">Augmentation</a></li>
+<li><a href="/docs/guides/train">Train a model</a></li>
+<li><a href="/docs/guides/runs">Read a run</a></li>
+<li><a href="/docs/guides/learning">Per-image learning</a></li>
+<li><a href="/docs/guides/findings">Work the Findings queue</a></li>
+<li><a href="/docs/guides/compare">Compare two runs</a></li>
+<li><a href="/docs/guides/projects">Manage projects</a></li>
+<li><a href="/docs/guides/python">Use Granum from Python</a></li>
+<li><a href="/docs/guides/operations">Operate a pilot workspace</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Reference</p><ul>
+<li><a href="/docs/reference/screens">Map of the app</a></li>
+<li><a href="/docs/reference/shortcuts">Keyboard shortcuts</a></li>
+<li><a href="/docs/reference/preflight">Import checks</a></li>
+<li><a href="/docs/reference/models">Models you can train</a></li>
+<li><a href="/docs/reference/files">Files and settings</a></li>
+<li><a href="/docs/reference/limits">Scale and limits</a></li>
+<li><a href="/docs/reference/glossary">Glossary</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Help</p><ul>
+<li><a href="/docs/help/troubleshooting">Troubleshooting</a></li>
+<li><a href="/docs/help/faq">Frequently asked questions</a></li>
+<li><a href="/docs/help/privacy">Your data and privacy</a></li>
+</ul></div>
+</nav>
+    </div>
+    <main class="doc-main" id="main">
+      <article class="doc-article">
+        <nav class="doc-crumb" aria-label="Breadcrumb"><a href="/docs">Documentation</a><span aria-hidden="true">/</span><a href="/docs#guides">Guides</a></nav>
+        <h1>Import data</h1>
+        <p class="doc-summary">Preflight checks, what each finding means, re-cutting splits, and adding data to a project.</p>
+        <p>Import is deliberately not a single click. Granum opens your annotation files, reads them, checks them
+against the images, and shows you what it found <strong>before writing anything</strong>. You decide what to do about
+each finding; only then is a project created.</p>
+<h2 id="what-granum-reads">What Granum reads</h2>
+<table>
+<thead>
+<tr>
+<th>Source</th>
+<th>Dashboard</th>
+<th>Command line</th>
+<th>Python</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>COCO JSON, one file per set</td>
+<td>Yes</td>
+<td><code>granum import coco</code></td>
+<td><code>Table.from_coco</code></td>
+</tr>
+<tr>
+<td>YOLO (<code>data.yaml</code>)</td>
+<td>No</td>
+<td>No</td>
+<td><code>Table.from_yolo_url</code></td>
+</tr>
+<tr>
+<td>Image folder, one folder per class</td>
+<td>No</td>
+<td>No</td>
+<td><code>Table.from_image_folder</code></td>
+</tr>
+</tbody>
+</table>
+<p>The dashboard path is COCO, which is what Roboflow, CVAT, Label Studio and most other tools export. The
+layout it expects:</p>
+<pre><code>human_aerial/
+├── train/  _annotations.coco.json  + images
+├── valid/  _annotations.coco.json  + images
+└── test/   _annotations.coco.json  + images
+</code></pre>
+<h2 id="step-by-step">Step by step</h2>
+<p><strong>1. Create project.</strong> Name it, choose its <a href="/docs/concepts/projects">type</a> — one or several — and pick
+the data: a folder, another project's classes, or the example dataset.</p>
+<p><strong>2. Select folder.</strong> Choose the dataset folder or any one of its set folders; the sets beside it are
+found together. Set names can be edited and must be unique. A single <code>.json</code> file can be added on its own.</p>
+<p><strong>3. Choose how hard to look at the images.</strong></p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>What it does</th>
+<th>When</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>All images</strong></td>
+<td>Decodes every image: finds missing, corrupt, resized and byte-identical files</td>
+<td>The default. Do this once per dataset</td>
+</tr>
+<tr>
+<td><strong>Sample, 200 per set</strong></td>
+<td>Decodes a sample</td>
+<td>Very large datasets you have imported before</td>
+</tr>
+<tr>
+<td><strong>Annotations only</strong></td>
+<td>Never opens an image</td>
+<td>Annotation-only checks, or images on slow storage</td>
+</tr>
+</tbody>
+</table>
+<p><strong>4. Run preflight</strong> and read the report. Each finding has a severity, the counts per set behind it,
+example images with the boxes in question, and a recommended option. Change any you disagree with.</p>
+<p><strong>5. Review.</strong> The last step shows the project type against what was actually found, the images per split,
+and a segmented bar for re-cutting them. If the type does not fit — you chose instance segmentation and
+there are no masks — Granum says so and offers to go back rather than importing quietly.</p>
+<p><strong>6. Import.</strong> Now it writes.</p>
+<h2 id="findings-and-what-to-do-about-them">Findings and what to do about them</h2>
+<p>Findings come in three severities. <strong>Blocking</strong> ones must be resolved before importing — a broken
+annotation file, boxes referring to images that are not listed, categories whose ids disagree between
+sets. <strong>Warnings</strong> are real problems with a sensible default — an "ignore region" category exported as a
+normal class, zero-area boxes, images byte-identical across train and valid. <strong>Information</strong> is context
+you should see and probably accept — unused categories, images with no boxes, very small boxes.</p>
+<p>Every check, with the options it offers, is listed in <a href="/docs/reference/preflight">Import checks</a>.</p>
+<div class="admonition warning">
+<p class="admonition-title">The leakage checks are the ones to read</p>
+<p><code>media.identical_files</code>, <code>images.export_copies</code>, <code>split.shared_source</code> and <code>split.shared_sequence</code>
+find the same image, the same export copy or the same capture sequence on both sides of a split. That
+inflates validation scores and no amount of later work will tell you it happened. Granum groups them
+and offers to move or drop them; take it seriously.</p>
+</div>
+<h2 id="re-cutting-the-splits">Re-cutting the splits</h2>
+<p>The review step shows how many images are in each split and a bar with draggable handles between them.
+Dragging moves images from one split to its neighbour; the total never changes, because the point is to
+re-cut the dataset you have rather than to sample from it.</p>
+<p>Images stay where they already are wherever the target allows, so a small adjustment moves few images.
+Ones that do move are renumbered so the annotation files stay consistent. If you do not touch the slider,
+the source split is kept exactly.</p>
+<h2 id="adding-data-later">Adding data later</h2>
+<p><strong>Add data</strong> on an existing project (the Images empty state, or Create project with a project chosen)
+runs the same flow and adds to what is there: new sets appear beside the existing ones, and data for an
+existing set name becomes a new version of that set. The project's type is fixed at this point and shown
+read-only.</p>
+<h2 id="what-gets-recorded">What gets recorded</h2>
+<ul>
+<li>The preflight report: <code>&lt;project&gt;/imports/&lt;id&gt;.json</code>, linked from <strong>Overview → Attention</strong> and from each
+  set.</li>
+<li>The option chosen for each finding and how many images or boxes it affected: in the producer record of
+  every version the import wrote.</li>
+<li>COCO fields as they were — category ids, annotation ids, <code>iscrowd</code>, <code>area</code>, segmentation and any extra
+  fields — so an unedited export reproduces the file.</li>
+</ul>
+<h2 id="from-the-command-line">From the command line</h2>
+<pre><code class="language-bash"># Report only; exits non-zero when there are blocking findings
+granum import coco train=data/train/_annotations.coco.json valid=data/valid/_annotations.coco.json \
+    --project aerial --check-only
+
+# Import, overriding one finding's default option
+granum import coco train=… valid=… --project aerial --choose categories.ignore_region=drop
+</code></pre>
+<p><code>--media full|sample|none</code> chooses how hard to look at the images, <code>--fail-on block|warn|never</code> what
+makes the command fail, and <code>--json</code> prints the report for a CI job to read.</p>
+<h2 id="where-granum-may-read-from">Where Granum may read from</h2>
+<p>The service only opens import sources under its configured <strong>data roots</strong> — your home folder by default.
+Narrow that with <code>granum service --data-root /mnt/datasets</code> (repeatable) or the <code>service.data-roots</code>
+setting. This is a deliberate limit on a local web service, not an inconvenience:
+see <a href="/docs/reference/files">Files and settings</a>.</p>
+        <div class="doc-steps"><a class="doc-step prev" href="/docs/concepts/evidence"><span>Previous</span>What the evidence is worth</a><a class="doc-step next" href="/docs/guides/pull-from-projects"><span>Next</span>Build from existing projects</a></div>
+      </article>
+      <aside class="doc-toc" aria-label="On this page"><p>On this page</p><ul><li><a href="#what-granum-reads">What Granum reads</a></li><li><a href="#step-by-step">Step by step</a></li><li><a href="#findings-and-what-to-do-about-them">Findings and what to do about them</a></li><li><a href="#re-cutting-the-splits">Re-cutting the splits</a></li><li><a href="#adding-data-later">Adding data later</a></li><li><a href="#what-gets-recorded">What gets recorded</a></li><li><a href="#from-the-command-line">From the command line</a></li><li><a href="#where-granum-may-read-from">Where Granum may read from</a></li></ul></aside>
+    </main>
+  </div>
+
+  <footer class="doc-footer">
+    <div class="wrap">
+    <p>© Granum. Local-first data workflows.</p>
+      <p><a href="/">Product</a><a href="/download">Download</a><a href="/privacy">Privacy</a><a href="/docs/help/troubleshooting">Support</a></p>
+    </div>
+  </footer>
+
+  <div class="doc-search" data-search-panel hidden>
+    <div class="doc-search-box" role="dialog" aria-modal="true" aria-label="Search documentation">
+    <input type="search" aria-label="Search documentation" aria-controls="doc-search-results" placeholder="Search the documentation" autocomplete="off" spellcheck="false" data-search-input>
+    <ul id="doc-search-results" aria-label="Search results" aria-live="polite" data-search-results></ul>
+      <p class="doc-search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move · <kbd>Enter</kbd> to open · <kbd>Esc</kbd> to close</p>
+    </div>
+  </div>
+
+  <script src="/docs/docs.js" defer></script>
+</body>
+</html>

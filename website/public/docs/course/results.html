@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>8. Read the model evidence · Granum documentation</title>
+  <meta name="description" content="Interpret runs, sample dynamics, evaluation objects and findings using the actual weak baseline, including its zero operating-point scores.">
+  <meta name="theme-color" content="#ffffff">
+  <meta property="og:title" content="8. Read the model evidence · Granum documentation">
+  <meta property="og:description" content="Interpret runs, sample dynamics, evaluation objects and findings using the actual weak baseline, including its zero operating-point scores.">
+  <meta property="og:type" content="article">
+  <meta property="og:image" content="/assets/og.jpg">
+  <link rel="canonical" href="https://granum.app/docs/course/results">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/docs/docs.css">
+  <script>document.documentElement.classList.remove("no-js");</script>
+</head>
+<body class="doc-body">
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header doc-header">
+    <div class="wrap">
+      <a class="brand" href="/" aria-label="Granum home"><img src="/assets/lockup-ink.svg" alt="Granum" width="128" height="32"></a>
+      <span class="doc-badge"><a href="/docs">Docs</a></span>
+      <nav class="nav" id="nav" aria-label="Main">
+        <a href="/#tour">Product</a>
+        <a href="/#plans">Pilots</a>
+        <a href="/docs/help/faq">FAQ</a>
+      </nav>
+      <div class="header-actions">
+        <button class="doc-search-button" type="button" data-search aria-label="Search documentation">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3 3"/></svg>
+          <span>Search</span><kbd>/</kbd>
+        </button>
+        <a class="btn primary small" href="/download">Download</a>
+        <button class="menu-button" type="button" aria-controls="doc-sidebar" aria-expanded="false" aria-label="Menu" data-sidebar-toggle>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="doc-shell">
+    <div class="doc-sidebar" id="doc-sidebar">
+      <nav class="doc-nav" aria-label="Documentation">
+<a class="doc-nav-home" href="/docs">Start here</a>
+<div class="doc-nav-group"><p class="doc-nav-title">Guided aerial-data course</p><ul>
+<li><a href="/docs/course/start">Start the guided course</a></li>
+<li><a href="/docs/course/setup">1. Prepare the workspace</a></li>
+<li><a href="/docs/course/data">2. Understand the sample</a></li>
+<li><a href="/docs/course/import">3. Import with preflight</a></li>
+<li><a href="/docs/course/explore">4. Explore before changing labels</a></li>
+<li><a href="/docs/course/baseline">5. Freeze an exploratory baseline</a></li>
+<li><a href="/docs/course/review">6. Review, edit and recover</a></li>
+<li><a href="/docs/course/train">7. Train the first model</a></li>
+<li><a href="/docs/course/results" class="on" aria-current="page">8. Read the model evidence</a></li>
+<li><a href="/docs/course/compare">9. Make a controlled comparison</a></li>
+<li><a href="/docs/course/handoff">10. Approve and export an excerpt</a></li>
+<li><a href="/docs/course/backup">11. Back up, restore and share safely</a></li>
+<li><a href="/docs/course/next">12. Move to your own project</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Getting started</p><ul>
+<li><a href="/docs/start/install">Install Granum</a></li>
+<li><a href="/docs/start/activate">Alpha access and licences</a></li>
+<li><a href="/docs/start/first-project">Your first project</a></li>
+<li><a href="/docs/start/the-loop">Run the loop once</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Concepts</p><ul>
+<li><a href="/docs/concepts/model">How Granum is organised</a></li>
+<li><a href="/docs/concepts/projects">Projects and project types</a></li>
+<li><a href="/docs/concepts/versions">Versions and lineage</a></li>
+<li><a href="/docs/concepts/dataset-versions">Dataset versions</a></li>
+<li><a href="/docs/concepts/verification">Verification and decisions</a></li>
+<li><a href="/docs/concepts/identity">Image identity</a></li>
+<li><a href="/docs/concepts/runs">Runs and metrics</a></li>
+<li><a href="/docs/concepts/evidence">What the evidence is worth</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Guides</p><ul>
+<li><a href="/docs/guides/import">Import data</a></li>
+<li><a href="/docs/guides/pull-from-projects">Build from existing projects</a></li>
+<li><a href="/docs/guides/browse">Browse images</a></li>
+<li><a href="/docs/guides/review">Review and verify</a></li>
+<li><a href="/docs/guides/edit">Edit annotations</a></li>
+<li><a href="/docs/guides/isolate-remove">Isolate, remove and restore</a></li>
+<li><a href="/docs/guides/dataset-versions">Create a dataset version</a></li>
+<li><a href="/docs/guides/augmentation">Augmentation</a></li>
+<li><a href="/docs/guides/train">Train a model</a></li>
+<li><a href="/docs/guides/runs">Read a run</a></li>
+<li><a href="/docs/guides/learning">Per-image learning</a></li>
+<li><a href="/docs/guides/findings">Work the Findings queue</a></li>
+<li><a href="/docs/guides/compare">Compare two runs</a></li>
+<li><a href="/docs/guides/projects">Manage projects</a></li>
+<li><a href="/docs/guides/python">Use Granum from Python</a></li>
+<li><a href="/docs/guides/operations">Operate a pilot workspace</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Reference</p><ul>
+<li><a href="/docs/reference/screens">Map of the app</a></li>
+<li><a href="/docs/reference/shortcuts">Keyboard shortcuts</a></li>
+<li><a href="/docs/reference/preflight">Import checks</a></li>
+<li><a href="/docs/reference/models">Models you can train</a></li>
+<li><a href="/docs/reference/files">Files and settings</a></li>
+<li><a href="/docs/reference/limits">Scale and limits</a></li>
+<li><a href="/docs/reference/glossary">Glossary</a></li>
+</ul></div>
+<div class="doc-nav-group"><p class="doc-nav-title">Help</p><ul>
+<li><a href="/docs/help/troubleshooting">Troubleshooting</a></li>
+<li><a href="/docs/help/faq">Frequently asked questions</a></li>
+<li><a href="/docs/help/privacy">Your data and privacy</a></li>
+</ul></div>
+</nav>
+    </div>
+    <main class="doc-main" id="main">
+      <article class="doc-article">
+        <nav class="doc-crumb" aria-label="Breadcrumb"><a href="/docs">Documentation</a><span aria-hidden="true">/</span><a href="/docs#course">Guided aerial-data course</a></nav>
+        <h1>8. Read the model evidence</h1>
+        <p class="doc-summary">Interpret runs, sample dynamics, evaluation objects and findings using the actual weak baseline, including its zero operating-point scores.</p>
+        <p><strong>Goal:</strong> move from a number to its underlying images and make a defensible interpretation.
+Use your <a href="/docs/course/train">finished baseline</a>, or the <a href="/assets/course/evidence.json">recorded run evidence</a>.</p>
+<h2 id="what-the-numbers-mean">What the numbers mean</h2>
+<p>Metrics compare <strong>predictions</strong> with <strong>annotations under a specified policy</strong>. They are not direct
+measurements of unknowable perfect labels.</p>
+<table>
+<thead>
+<tr>
+<th>Term</th>
+<th>Read it as</th>
+<th>Important limit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>True positive / Found</td>
+<td>An accepted prediction matched a labelled object under the policy</td>
+<td>Depends on class, overlap, confidence and ignore handling</td>
+</tr>
+<tr>
+<td>False positive / Invented</td>
+<td>An accepted prediction was not matched to a counted annotation</td>
+<td>It may be a real but unlabelled object; inspect before judging</td>
+</tr>
+<tr>
+<td>False negative / Missed</td>
+<td>A counted labelled object had no accepted matching prediction</td>
+<td>The model may be weak; the label is not automatically wrong</td>
+</tr>
+<tr>
+<td>Precision</td>
+<td>Of accepted predictions, how many matched counted labels?</td>
+<td>High precision with very few predictions can hide poor coverage</td>
+</tr>
+<tr>
+<td>Recall</td>
+<td>Of counted labels, how many were found?</td>
+<td>Depends on annotation completeness and the chosen threshold</td>
+</tr>
+<tr>
+<td>F1</td>
+<td>A combined precision/recall measure</td>
+<td>One scalar hides which kinds of errors occurred</td>
+</tr>
+<tr>
+<td>AP / mAP</td>
+<td>Precision–recall performance over ranked predictions, averaged as defined by the evaluator</td>
+<td>Not the same as accuracy or F1 at one confidence threshold</td>
+</tr>
+<tr>
+<td>mAP50 vs mAP50–95</td>
+<td>Matching at IoU 0.50 vs an average over stricter IoU thresholds</td>
+<td>Do not compare them as if they were the same metric</td>
+</tr>
+</tbody>
+</table>
+<p>Ignore regions are excluded from ordinary labelled-object support. This explains why the course's
+validation scoring counts <strong>1,710 labels</strong>, not all <strong>1,780 raw annotation objects</strong>.</p>
+<h2 id="step-1-read-the-run-before-the-score">Step 1: read the run before the score</h2>
+<p>Open <strong>Runs</strong> and the baseline. Check its finished state, input versions and recipe. Then inspect the
+history. The recording's last framework epoch scalars were:</p>
+<table>
+<thead>
+<tr>
+<th>Framework history, last epoch of the three-epoch baseline</th>
+<th style="text-align: right;">Recorded value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Precision</td>
+<td style="text-align: right;">0.00354</td>
+</tr>
+<tr>
+<td>Recall</td>
+<td style="text-align: right;">0.04204</td>
+</tr>
+<tr>
+<td>mAP50</td>
+<td style="text-align: right;">0.00345</td>
+</tr>
+<tr>
+<td>mAP50–95</td>
+<td style="text-align: right;">0.00303</td>
+</tr>
+</tbody>
+</table>
+<p>These values are fractions, not percentages. The stored epoch index is zero-based: <code>epoch: 2</code> is the
+third observation. Do not infer missing epochs from that index.</p>
+<figure class="doc-figure">
+<a href="/assets/course/19-finished-baseline.webp"><img src="/assets/course/19-finished-baseline.webp" alt="Actual finished baseline run lists its parameters and poor recorded training metrics." width="1440" height="960" loading="lazy"></a>
+<figcaption>A completed run can be a failed modelling hypothesis. Completion and model usefulness are separate.</figcaption>
+</figure>
+
+<p>The run workspace joins per-image measurements back to the exact versioned inputs. Select an image
+or metric slice and inspect the row behind it. A historical run describes its historical inputs, not
+whatever annotation you edited most recently in the working collection.</p>
+<figure class="doc-figure">
+<a href="/assets/course/20-run-workspace.webp"><img src="/assets/course/20-run-workspace.webp" alt="Run workspace joins recorded per-image metrics with the corresponding input images and versioned rows." width="1440" height="960" loading="lazy"></a>
+<figcaption>Identity joins make a score investigable. They do not transfer review approval from one version to another.</figcaption>
+</figure>
+
+<h2 id="step-2-inspect-sample-dynamics">Step 2: inspect sample dynamics</h2>
+<p>Open the run's <strong>Samples</strong> view (the sample-dynamics page). Read the selected split and the number of
+observations. Dynamics uses per-image F1 across epochs to describe patterns such as early learning,
+late learning, forgetting or not learned under its policy.</p>
+<figure class="doc-figure">
+<a href="/assets/course/21-sample-dynamics.webp"><img src="/assets/course/21-sample-dynamics.webp" alt="Actual baseline sample-dynamics screen groups images by the recorded per-epoch learning behaviour." width="1440" height="960" loading="lazy"></a>
+<figcaption>Three observations are only the minimum for these categories. Not learned is not a removal recommendation.</figcaption>
+</figure>
+
+<p>Open an image and step through the available epochs. Ask whether an apparent failure could be due to
+small objects, insufficient training, class confusion, thresholding or a genuinely incorrect label.
+Do not choose Remove simply because an image is hard. A “never/not learned” summary is a retrospective
+policy result, not proof that the image was impossible or always wrong at every moment.</p>
+<h2 id="step-3-read-evaluation-at-a-known-operating-point">Step 3: read Evaluation at a known operating point</h2>
+<p>Open <strong>Evaluation</strong>, select the baseline and <strong>valid</strong>, and read the confidence setting before
+interpreting the display. At operating confidence <strong>0.25</strong> and matching IoU <strong>0.5</strong>, the recorded
+baseline's stored validation predictions gave:</p>
+<table>
+<thead>
+<tr>
+<th>Count or metric</th>
+<th style="text-align: right;">Observed result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Validation images</td>
+<td style="text-align: right;">24</td>
+</tr>
+<tr>
+<td>Counted labels</td>
+<td style="text-align: right;">1,710</td>
+</tr>
+<tr>
+<td>Found (TP)</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td>Invented/unmatched accepted predictions (FP)</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td>Missed (FN)</td>
+<td style="text-align: right;">1,710</td>
+</tr>
+<tr>
+<td>Precision, recall and F1 reported by Granum</td>
+<td style="text-align: right;">0, 0, 0</td>
+</tr>
+</tbody>
+</table>
+<p>There were no accepted predictions to reward at this operating point. <strong>Zero false positives is not
+good performance when every counted label was missed.</strong> Granum reports zero for these empty-prediction
+metric cases; do not reinterpret that as perfect precision.</p>
+<figure class="doc-figure">
+<a href="/assets/course/22-evaluation-matrix.webp"><img src="/assets/course/22-evaluation-matrix.webp" alt="Actual Evaluation matrix for the weak baseline shows missed labelled objects rather than useful detections." width="1440" height="960" loading="lazy"></a>
+<figcaption>Read the selected run, split, confidence and support before interpreting any matrix cell.</figcaption>
+</figure>
+
+<p>Scroll to <strong>Every object, one tile each</strong>. Inspect a missed object in its image. Solid boxes are
+annotations; dashed boxes are predictions. The crop is an entry point into inspection, not sufficient
+context for changing the source class.</p>
+<figure class="doc-figure">
+<a href="/assets/course/23-evaluation-objects.webp"><img src="/assets/course/23-evaluation-objects.webp" alt="Evaluation object tiles expose the actual labelled objects behind the baseline's missed detections." width="1440" height="960" loading="lazy"></a>
+<figcaption>A missed object can be correctly labelled. Inspect the evidence before proposing a correction.</figcaption>
+</figure>
+
+<h3 id="why-can-two-map-values-differ">Why can two mAP values differ?</h3>
+<p>The framework's epoch history, Granum's <strong>final checkpoint scoring</strong>, and Evaluation of <strong>stored
+per-epoch predictions</strong> are separate measurements. They can differ in selected checkpoint, prediction
+floor, matching/ignore semantics and evaluator implementation. The baseline's final Granum <code>score_map50</code>
+was <strong>0.0</strong>, while the last framework-history mAP50 was <strong>0.00345</strong>.</p>
+<p>Compare like with like. Moving a slider cannot recreate low-confidence predictions that were never
+recorded. Do not subtract a framework-history number from a final Granum score and call it improvement.
+For a fixed-policy comparison, use the dedicated comparison report and its compatibility checks.</p>
+<h2 id="step-4-interpret-findingseven-when-empty">Step 4: interpret Findings—even when empty</h2>
+<p>Open <strong>Findings</strong> for the run. Read the evidence and competence notes before acting on ranked items.
+Findings can require repeated, useful model evidence; this weak three-epoch model is not a reliable
+label-quality judge.</p>
+<figure class="doc-figure">
+<a href="/assets/course/24-findings-evidence.webp"><img src="/assets/course/24-findings-evidence.webp" alt="Actual Findings screen exposes evidence limitations for the weak baseline instead of claiming the labels are clean." width="1440" height="960" loading="lazy"></a>
+<figcaption>An empty queue can mean insufficient evidence. It does not mean every annotation is correct.</figcaption>
+</figure>
+
+<p>When findings exist, inspect the full image, supporting predictions, repeated observations and the
+class policy. Record Keep, Rework or another justified decision with a reason. <strong>Check labels</strong> can
+also perform a separate screening pass; check class mapping and coverage first. Single-pass screening
+is weaker than consistent repeated evidence and is not part of the recorded baseline's proof.</p>
+<h2 id="watch-the-evidence-tour">Watch the evidence tour</h2>
+<figure class="doc-figure doc-video">
+<video controls preload="none" playsinline poster="/assets/course/22-evaluation-matrix.webp" aria-label="Recorded baseline run, sample dynamics, evaluation and findings tour" aria-describedby="results-video-caption">
+<source src="/assets/course/06-results.mp4" type="video/mp4"><track kind="captions" src="/assets/course/06-results.vtt" srclang="en" label="English" default>
+<a href="/assets/course/06-results.mp4">Download the recording</a>.
+</video><figcaption id="results-video-caption">31 seconds · silent, with captions · actual poor results, not simulated metrics.</figcaption>
+</figure>
+<details class="doc-transcript"><summary>Read the video transcript</summary>
+<ol><li>Read the finished run, recipe and exact inputs; the three-epoch exercise produced poor scores.</li><li>The run workspace joins historical metrics to historical inputs.</li><li>Not learned after three epochs does not mean an image should be deleted.</li><li>Evaluation separates misses, unmatched predictions and class confusion; read split and confidence first.</li><li>Inspect objects: solid boxes are labels, dashed boxes predictions.</li><li>Findings needs useful evidence; a weak run or empty queue does not prove correct labels.</li></ol>
+</details>
+
+<h2 id="what-we-learn">What we learn</h2>
+<p>The pipeline ran and produced inspectable evidence, but this model did not find the counted validation
+objects at the chosen operating point. That supports investigating training adequacy and recipe design.
+It does <strong>not</strong> support deleting those objects, approving the full sample, or deploying the model.</p>
+<h2 id="checkpoint">Checkpoint</h2>
+<p>You can explain the 1,780-to-1,710 support difference, why zero false positives is not success here,
+and why an empty findings queue is not a clean bill of health. Next: <a href="/docs/course/compare">change one planned variable</a>.</p>
+<h2 id="if-something-differs">If something differs</h2>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>What to check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Different counts</td>
+<td>Run, split, epoch, confidence, ignore handling and whether predictions were actually stored</td>
+</tr>
+<tr>
+<td>Dynamics absent</td>
+<td>Per-sample logging and number of completed observations; scalar epoch history alone is insufficient</td>
+</tr>
+<tr>
+<td>Empty Findings</td>
+<td>Model competence, class support and required evidence; do not relax thresholds just to populate a demo</td>
+</tr>
+<tr>
+<td>Historic labels differ from working labels</td>
+<td>Open the run's exact input version; later edits do not rewrite historical evidence</td>
+</tr>
+</tbody>
+</table>
+        <div class="doc-steps"><a class="doc-step prev" href="/docs/course/train"><span>Previous</span>7. Train the first model</a><a class="doc-step next" href="/docs/course/compare"><span>Next</span>9. Make a controlled comparison</a></div>
+      </article>
+      <aside class="doc-toc" aria-label="On this page"><p>On this page</p><ul><li><a href="#what-the-numbers-mean">What the numbers mean</a></li><li><a href="#step-1-read-the-run-before-the-score">Step 1: read the run before the score</a></li><li><a href="#step-2-inspect-sample-dynamics">Step 2: inspect sample dynamics</a></li><li><a href="#step-3-read-evaluation-at-a-known-operating-point">Step 3: read Evaluation at a known operating point</a></li><li><a href="#step-4-interpret-findingseven-when-empty">Step 4: interpret Findings—even when empty</a></li><li><a href="#watch-the-evidence-tour">Watch the evidence tour</a></li><li><a href="#what-we-learn">What we learn</a></li><li><a href="#checkpoint">Checkpoint</a></li><li><a href="#if-something-differs">If something differs</a></li></ul></aside>
+    </main>
+  </div>
+
+  <footer class="doc-footer">
+    <div class="wrap">
+    <p>© Granum. Local-first data workflows.</p>
+      <p><a href="/">Product</a><a href="/download">Download</a><a href="/privacy">Privacy</a><a href="/docs/help/troubleshooting">Support</a></p>
+    </div>
+  </footer>
+
+  <div class="doc-search" data-search-panel hidden>
+    <div class="doc-search-box" role="dialog" aria-modal="true" aria-label="Search documentation">
+    <input type="search" aria-label="Search documentation" aria-controls="doc-search-results" placeholder="Search the documentation" autocomplete="off" spellcheck="false" data-search-input>
+    <ul id="doc-search-results" aria-label="Search results" aria-live="polite" data-search-results></ul>
+      <p class="doc-search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move · <kbd>Enter</kbd> to open · <kbd>Esc</kbd> to close</p>
+    </div>
+  </div>
+
+  <script src="/docs/docs.js" defer></script>
+</body>
+</html>

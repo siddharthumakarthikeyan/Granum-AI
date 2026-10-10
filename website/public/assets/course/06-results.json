@@ -1,0 +1,72 @@
+{
+  "chapter": "06-results",
+  "recorded": "2026-10-02T11:34:41.824Z",
+  "source": "Actual Granum dashboard with aerial-mini; no mocked metrics or API responses.",
+  "viewport": {
+    "width": 1440,
+    "height": 960
+  },
+  "duration": 30.28,
+  "shots": [
+    "19-finished-baseline",
+    "20-run-workspace",
+    "21-sample-dynamics",
+    "22-evaluation-matrix",
+    "23-evaluation-objects",
+    "24-findings-evidence"
+  ],
+  "cues": [
+    {
+      "at": 0.17694744121715075,
+      "text": "Read the finished run, its recipe and exact input versions. Our three-epoch exercise produced poor scores; that is the observed result."
+    },
+    {
+      "at": 5.197438450899032,
+      "text": "The run workspace joins per-image measurements back to the input images. Historical rows describe the recorded input version."
+    },
+    {
+      "at": 9.940467496542185,
+      "text": "Sample dynamics reads F1 across epochs. Not learned after three epochs does not mean this image should be deleted."
+    },
+    {
+      "at": 14.81542185338866,
+      "text": "Evaluation separates missed labels, invented predictions and class confusion. Read the chosen split and confidence threshold first."
+    },
+    {
+      "at": 18.9982918395574,
+      "text": "Open the underlying objects, not just a score. Solid boxes are labels; dashed boxes are model predictions."
+    },
+    {
+      "at": 23.44710650069156,
+      "text": "Findings requires useful model evidence. A weak run or an empty queue is not proof that the labels are correct."
+    }
+  ],
+  "capture_duration": 28.92,
+  "captured_cues": [
+    {
+      "at": 0.169,
+      "text": "Read the finished run, its recipe and exact input versions. Our three-epoch exercise produced poor scores; that is the observed result."
+    },
+    {
+      "at": 4.964,
+      "text": "The run workspace joins per-image measurements back to the input images. Historical rows describe the recorded input version."
+    },
+    {
+      "at": 9.494,
+      "text": "Sample dynamics reads F1 across epochs. Not learned after three epochs does not mean this image should be deleted."
+    },
+    {
+      "at": 14.15,
+      "text": "Evaluation separates missed labels, invented predictions and class confusion. Read the chosen split and confidence threshold first."
+    },
+    {
+      "at": 18.145,
+      "text": "Open the underlying objects, not just a score. Solid boxes are labels; dashed boxes are model predictions."
+    },
+    {
+      "at": 22.394,
+      "text": "Findings requires useful model evidence. A weak run or an empty queue is not proof that the labels are correct."
+    }
+  ],
+  "caption_timing": "Original wall-clock cues scaled to encoded video duration; retained separately for provenance."
+}
