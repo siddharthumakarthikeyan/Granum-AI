@@ -240,7 +240,7 @@ def image_learning(
         epochs = sorted(by_epoch)
         values = [float(by_epoch[e][score]) for e in epochs]
         good_flags = [v >= good for v in values]
-        empty = all(
+        empty = score == "f1" and all(
             int(by_epoch[e].get("tp") or 0) + int(by_epoch[e].get("fp") or 0) + int(by_epoch[e].get("fn") or 0) == 0
             for e in epochs
         )

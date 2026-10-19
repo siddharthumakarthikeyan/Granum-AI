@@ -52,13 +52,14 @@ def box_column(table: Table) -> str:
     raise PrelabelError(f"{table.name} has no box column to write labels into")
 
 
-def with_source(schema: Geometry2DSchema) -> Geometry2DSchema:
+def with_source(schema: Geometry2DSchema, annotation_properties: dict[str, str] | None = None) -> Geometry2DSchema:
     """The same box schema, able to say where each box came from.
 
     Existing properties are kept: a COCO import carries its annotation ids and crowd flags
     through pre-labelling like everything else.
     """
     properties = {**schema.instance_properties}
+    properties.update(annotation_properties or {})
     properties.setdefault(SOURCE, "string")
     properties.setdefault(CONFIDENCE, "float32")
     return type(schema)(
@@ -117,7 +118,9 @@ def write_prelabelled(
         raise PrelabelError(f"{name!r} cannot be written to")
 
     values = source.to_arrow().column(name).to_pylist()
-    updated = with_source(schema)
+    needed = {key: "string" for key in ("segmentation", "coco_extra")
+              if any(key in instance for value in predictions.values() for instance in value.get("instances", []))}
+    updated = with_source(schema, needed)
     new_schema = source.schema.with_column(name, updated)
 
     written = 0

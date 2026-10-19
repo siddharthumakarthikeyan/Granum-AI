@@ -22,22 +22,28 @@ import numpy as np
 
 from granum.core.objects.table import Table
 from granum.core.schemas.geometry import BoundingBoxes2DSchema
-from granum.metrics.detection import DetectionMetricsCollector
+from granum.formats.vision import extra_of
+from granum.integration.ultralytics import collector_for
 
 EVAL_CONFIDENCE = 0.01
 #: Bumped when a change here would make new scores incomparable with recorded ones.
 SCORER_VERSION = "granum-detection-1"
 
 
-def evaluator_policy(*, operating_confidence: float = 0.25, iou_threshold: float = 0.5) -> dict[str, Any]:
+def evaluator_policy(*, operating_confidence: float = 0.25, iou_threshold: float = 0.5, task: str = "detect") -> dict[str, Any]:
     """The scoring rules, as a run records them.
 
     Two runs' scores are the same kind of number only if this matches on both sides, so it
     is recorded with the run rather than assumed later (see
     :func:`granum.metrics.comparison.compatibility_checks`).
     """
+    if task == "classify":
+        return {"scorer": "granum-classification-1", "aggregation": "all_images", "macro_f1": "present_truth_or_prediction"}
+    if task == "semantic":
+        return {"scorer": "granum-semantic-1", "aggregation": "dataset_pixel_counts", "resolution": "original",
+                "ignore": "dataset_ignore_index", "absent_classes": "excluded"}
     return {
-        "scorer": SCORER_VERSION,
+        "scorer": SCORER_VERSION if task == "detect" else f"granum-{task}-1",
         "operating_confidence": operating_confidence,
         "match_iou": iou_threshold,
         "min_confidence": EVAL_CONFIDENCE,
@@ -73,7 +79,7 @@ def score_detector(
 ) -> dict[str, float]:
     """Framework-neutral detection scores for ``predictor`` on ``table``'s current labels."""
     column = next(n for n in table.columns if isinstance(table.schema[n], BoundingBoxes2DSchema))
-    collector = DetectionMetricsCollector(column, iou_threshold=iou_threshold)
+    collector = collector_for(predictor, table, column, iou_threshold=iou_threshold)
     arrow = table.to_arrow()
     images = arrow.column("image").to_pylist()
     truths = arrow.column(column).to_pylist()
@@ -87,7 +93,7 @@ def score_detector(
         out = collector.collect(batch, predictor(batch))
         for truth, predicted in zip(batch[column], out[collector.predicted_column]):
             for instance in (truth or {}).get("instances", []):
-                if not instance.get("iscrowd"):
+                if not instance.get("iscrowd") and (collector.task != "pose" or any(v > 0 for v in extra_of(instance).get("keypoints", [])[2::3])):
                     positives[int(instance["label"])] += 1
             for instance in predicted["instances"]:
                 if instance["ignored"]:

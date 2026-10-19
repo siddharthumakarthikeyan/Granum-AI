@@ -22,6 +22,7 @@ const MEDIA_CHOICES: { id: MediaMode; label: string; detail: string }[] = [
 
 const TASK_DETAIL: Record<TaskId, string> = {
   object_detection: "Boxes around objects",
+  oriented_object_detection: "Rotated boxes around objects",
   instance_segmentation: "A mask per object",
   semantic_segmentation: "A class per pixel",
   panoptic_segmentation: "Things and stuff, per pixel",
@@ -108,7 +109,7 @@ export function SourcePicker({ project }: { project?: string }) {
       <section className="panel-card create-section">
         <div className="create-section-head">
           <h2 className="card-title">Data source</h2>
-          <span className="muted small">COCO annotations; one file per split</span>
+          <span className="muted small">COCO, YOLO and common annotation formats</span>
         </div>
         {sources.length === 0 ? (
           <div className="source-options">
@@ -155,6 +156,10 @@ export function SourcePicker({ project }: { project?: string }) {
                     onChange={(e) => setSources(sources.map((s, j) => (j === i ? { ...s, split: e.target.value } : s)))}
                   />
                   <span className="mono small split-path" title={source.annotations}>{tail(source.annotations, 2)}</span>
+                  {source.format === "yolo" && <select aria-label={`YOLO task for ${source.split}`} value={source.yolo_task ?? ""}
+                    onChange={(e) => setSources(sources.map((s, j) => j === i ? { ...s, yolo_task: (e.target.value || null) as ImportSource["yolo_task"] } : s))}>
+                    <option value="">From YAML (boxes by default)</option><option value="detect">Boxes</option><option value="segment">Segmentation</option><option value="pose">Keypoints</option><option value="obb">Oriented boxes</option>
+                  </select>}
                   <button className="icon-button" aria-label={`Remove ${source.split}`} onClick={() => setSources(sources.filter((_, j) => j !== i))}>
                     <Icon name="close" size={14} />
                   </button>
@@ -219,6 +224,7 @@ export function SourcePicker({ project }: { project?: string }) {
 /** What a detected layout is called on screen. COCO is the default and says nothing. */
 const FORMAT_NAMES: Record<string, string> = {
   yolo: "YOLO", voc: "Pascal VOC", kitti: "KITTI", csv: "CSV", folders: "Folder per class",
+  semantic: "Semantic masks (PNG)",
 };
 
 /** Split names made unique: two files both called train become train and train-2. */
@@ -330,7 +336,7 @@ function FolderPicker({ start, onClose, onPick }: {
               ) : (
                 <button
                   className="browser-entry"
-                  onClick={() => onPick([{ split: tail(entry.path, 2).split("/")[0] ?? "train", annotations: entry.path }])}
+                  onClick={() => onPick([detected.find(d => d.annotations === entry.path) ?? { split: tail(entry.path, 2).split("/")[0] ?? "train", annotations: entry.path }])}
                   title="Use this annotation file"
                 >
                   <Icon name="file" />

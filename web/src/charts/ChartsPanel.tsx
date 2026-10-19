@@ -12,6 +12,7 @@ import { useStore } from "../store/store";
 import { ROW_INDEX } from "../store/types";
 import { ImageChart } from "./ImageChart";
 import { ScatterChart } from "./ScatterChart";
+import { Scatter3D } from "./Scatter3D";
 import {
   chartFromColumns, chartSignature, COLUMN_DRAG_TYPE, type ChartSpec, type ScatterSpec, type Tool,
 } from "./spec";
@@ -58,6 +59,7 @@ function ScatterControls({ spec }: { spec: ScatterSpec }) {
     <select
       value={value ?? ""}
       title={title}
+      aria-label={title}
       onChange={(e) => onChange(e.target.value === "" ? null : e.target.value)}
     >
       {none !== undefined && <option value="">{none}</option>}
@@ -72,8 +74,15 @@ function ScatterControls({ spec }: { spec: ScatterSpec }) {
       {select(spec.x, [{ name: ROW_INDEX }, ...numeric], (x) => updateChart(spec.id, { x: x ?? ROW_INDEX }), "x axis")}
       <span className="vs">×</span>
       {select(spec.y, numeric, (y) => y && updateChart(spec.id, { y }), "y axis")}
+      {select(spec.z ?? null, numeric, (z) => updateChart(spec.id, { z }), "z axis", "2D")}
       {select(spec.color, colorable, (color) => updateChart(spec.id, { color, slots: null }), "Colour by", "no colour")}
       {select(spec.size, numeric, (size) => updateChart(spec.id, { size }), "Radius by", "fixed size")}
+      {select(spec.trajectory?.groupBy ?? null, columns.filter(c => c.source !== "session" && !["embedding", "bounding_boxes_2d"].includes(c.kind)), groupBy => updateChart(spec.id, {
+        trajectory: groupBy ? { groupBy, orderBy: spec.trajectory?.orderBy ?? (numeric.some(c => c.name === "epoch") ? "epoch" : ROW_INDEX) } : null,
+      }), "Trajectory sample", "no trajectories")}
+      {spec.trajectory && select(spec.trajectory.orderBy, [{ name: ROW_INDEX }, ...numeric], orderBy => updateChart(spec.id, {
+        trajectory: { ...spec.trajectory!, orderBy: orderBy ?? ROW_INDEX },
+      }), "Trajectory order")}
       <input
         type="range"
         min={1}
@@ -122,6 +131,7 @@ function ChartTile({ spec, width, height }: { spec: ChartSpec; width: number; he
                   className={tool === t.tool ? "on" : ""}
                   onClick={() => setTool(t.tool)}
                   disabled={spec.locked && t.tool !== "pan"}
+                  aria-label={t.tool === "pan" && spec.z ? "Rotate 3D chart" : t.tool === "pan" ? "Pan chart" : `${t.tool} selection`}
                   title={t.tool === "pan" ? t.label : `${t.label} · drag replaces the selection, ctrl adds, shift subtracts`}
                 >
                   {t.icon}
@@ -213,7 +223,8 @@ function ChartTile({ spec, width, height }: { spec: ChartSpec; width: number; he
         }}
       >
         {width > 0 && spec.kind === "scatter" && (
-          <ScatterChart spec={spec} width={plotWidth} height={bodyHeight} tool={spec.locked ? "pan" : tool} />
+          spec.z ? <Scatter3D spec={spec} width={plotWidth} height={bodyHeight} tool={spec.locked ? "pan" : tool} />
+            : <ScatterChart spec={spec} width={plotWidth} height={bodyHeight} tool={spec.locked ? "pan" : tool} />
         )}
         {width > 0 && spec.kind === "image" && (
           <ImageChart spec={spec} width={plotWidth} height={bodyHeight} />

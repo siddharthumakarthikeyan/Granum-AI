@@ -15,6 +15,7 @@ import numpy as np
 from granum.core.schemas import (
     CategoricalLabelSchema,
     ConfidenceSchema,
+    EmbeddingSchema,
     Float32Schema,
     FractionSchema,
     ProbabilitySchema,
@@ -66,6 +67,44 @@ class FunctionalMetricsCollector(MetricsCollector):
         return self.fn(batch, prediction)
 
 
+class EmbeddingsMetricsCollector(MetricsCollector):
+    """Capture a Predictor layer as a fixed-width vector for each sample.
+
+    ``mean`` averages spatial dimensions after batch/channel; ``flatten`` retains all
+    activations. A callable can implement transformer pooling or another layout.
+    """
+
+    def __init__(self, layer: int, *, column: str = "embedding", reshape: str | Callable = "mean") -> None:
+        if not callable(reshape) and reshape not in {"mean", "flatten"}:
+            raise CollectorError("reshape must be mean, flatten, or a callable")
+        self.layer, self.column, self.reshape = layer, column, reshape
+        self._width: int | None = None
+
+    def column_schemas(self) -> dict[str, Schema]:
+        return {self.column: EmbeddingSchema(shape=(self._width,) if self._width else ())}
+
+    def collect(self, batch: dict[str, list[Any]], prediction: Prediction | None) -> dict[str, list[Any]]:
+        if prediction is None or self.layer not in prediction.activations:
+            raise CollectorError(f"layer {self.layer} was not captured; pass it in Predictor(layers=[...])")
+        values = np.asarray(prediction.activations[self.layer])
+        if values.ndim < 2:
+            raise CollectorError("activations must have a batch and feature dimension")
+        if callable(self.reshape):
+            values = np.asarray(self.reshape(values))
+        elif self.reshape == "mean" and values.ndim > 2:
+            values = values.mean(axis=tuple(range(2, values.ndim)))
+        else:
+            values = values.reshape(len(values), -1)
+        if values.ndim != 2 or not values.shape[1] or not np.isfinite(values).all():
+            raise CollectorError("pooled activations must be finite, equal-length vectors")
+        if batch and len(values) != len(next(iter(batch.values()))):
+            raise CollectorError("activation batch size does not match the input samples")
+        if self._width is not None and values.shape[1] != self._width:
+            raise CollectorError("embedding width changed between batches")
+        self._width = values.shape[1]
+        return {self.column: values.astype(np.float32).tolist()}
+
+
 def _softmax(logits: np.ndarray) -> np.ndarray:
     shifted = logits - logits.max(axis=-1, keepdims=True)
     exponentiated = np.exp(shifted)
@@ -97,6 +136,8 @@ class ClassificationMetricsCollector(MetricsCollector):
         self.classes = list(classes) if classes else []
         self.label_column = label_column
         self.already_softmax = already_softmax
+        if not np.isfinite(epsilon) or not 0 < epsilon < 1:
+            raise CollectorError("epsilon must be finite and between 0 and 1")
         self.epsilon = epsilon
 
     def column_schemas(self) -> dict[str, Schema]:
@@ -129,17 +170,29 @@ class ClassificationMetricsCollector(MetricsCollector):
             )
 
         logits = prediction.as_numpy()
-        if logits.ndim != 2:
+        if logits.ndim != 2 or logits.shape[1] == 0:
             raise CollectorError(
                 f"expected model output shaped (batch, num_classes), got {logits.shape}"
             )
 
-        labels = np.asarray(batch[self.label_column], dtype=np.int64)
+        labels = np.asarray(batch[self.label_column])
+        if labels.ndim != 1 or labels.dtype.kind not in "iu":
+            raise CollectorError("classification labels must be integer class indices")
         if labels.shape[0] != logits.shape[0]:
             raise CollectorError(
                 f"model returned {logits.shape[0]} rows for a batch of {labels.shape[0]} "
                 f"samples -- the metric-to-sample join would be wrong"
             )
+        if np.any(labels < 0) or np.any(labels >= logits.shape[1]):
+            raise CollectorError("classification label is outside the model's class range")
+        if self.classes and len(self.classes) != logits.shape[1]:
+            raise CollectorError("class names do not match the model's output width")
+        if not np.isfinite(logits).all():
+            raise CollectorError("classification predictions contain nonfinite values")
+        logits = logits.astype(np.float64)
+        if self.already_softmax and (np.any(logits < 0) or np.any(logits > 1)
+                                     or not np.allclose(logits.sum(axis=1), 1, atol=1e-4)):
+            raise CollectorError("classification probabilities must be nonnegative and sum to one per sample")
 
         probabilities = logits if self.already_softmax else _softmax(logits)
         rows = np.arange(labels.shape[0])

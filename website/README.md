@@ -40,6 +40,23 @@ Pages carry a two-line front matter (`title`, `summary`) and are Markdown with t
 order, sidebar, previous/next, the front page and the search index — is the `NAV` list at the top of
 `tools/docs.py`; adding a page means adding its slug there and writing the file.
 
+The expanded handbook follows Granum's own data-improvement workflow. Optional `status` front matter
+accepts `available`, `partial` or `planned`; planned pages must say **Not yet included** and explain the
+reserved scope without inventing APIs. Status badges also appear in search. The sidebar groups can be
+expanded with native keyboard-accessible controls.
+
+`docs_features.json` is the source for the public **Feature availability** index. Each capability has
+its own status, scope and guide/anchor; the status describes development source, not certification of
+every installer. When implementing a reserved capability, update its guide, status, dependencies and
+limitations together, then rebuild the site. Keep a partially included label when only part of the
+workflow is implemented.
+
+`docs_reference_coverage.json` records the 307 documentation topics reviewed from the public 3LC index
+on 19 October 2026, including API groups, examples and historical releases. It maps topics to Granum
+guides or reserved sections for coverage maintenance, not API equivalence. Product copy, structure,
+examples, branding and assets remain Granum's own. Do not publish another product's release history as
+Granum's. The documentation tests check inventory links, status visibility, search and orphan sources.
+
 The primary first-use path is the [guided aerial-data course](docs_src/course/start.md): 12 numbered
 lessons plus an introduction, a real 120-image sample, 35 screenshots, 10 captioned recordings and actual
 model/restore evidence. It does not use the homepage's illustrative metrics or claim production accuracy.

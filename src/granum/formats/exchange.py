@@ -37,9 +37,11 @@ from granum.formats._common import (
     kept_rows,
     place_image,
 )
+from granum.formats.semantic import export_semantic_masks, semantic_to_coco
 
 #: Formats a dataset can be written in, with what each is for.
 EXPORTS: list[dict[str, str]] = [
+    {"id": "semantic", "name": "Semantic masks (PNG)", "detail": "Exact class-ID PNG masks and a semantic.json manifest, including ignore regions."},
     {"id": "coco", "name": "COCO", "detail": "One JSON file of images and annotations. The most widely read."},
     {"id": "yolo", "name": "YOLO", "detail": "images/ and labels/ folders with a data.yaml. What Ultralytics trains from."},
     {"id": "voc", "name": "Pascal VOC", "detail": "One XML file per image. Old, simple, still everywhere."},
@@ -52,6 +54,7 @@ EXPORTS: list[dict[str, str]] = [
 
 #: Formats a dataset can be read from, converted to COCO for the importer to check.
 IMPORTS: list[dict[str, str]] = [
+    {"id": "semantic", "name": "Semantic masks (PNG)", "detail": "A semantic.json manifest linking images and class-ID or RGB masks."},
     {"id": "yolo", "name": "YOLO", "detail": "A data.yaml naming splits and classes."},
     {"id": "voc", "name": "Pascal VOC", "detail": "A folder of XML annotations beside the images."},
     {"id": "kitti", "name": "KITTI", "detail": "A folder of label .txt files beside the images."},
@@ -307,6 +310,7 @@ def export_folders(table: Table, output: str | Path, *, column: str | None = Non
 
 
 EXPORTERS = {
+    "semantic": export_semantic_masks,
     "voc": export_voc,
     "kitti": export_kitti,
     "csv": export_csv,
@@ -519,44 +523,15 @@ def folders_to_coco(folder: str | Path) -> dict[str, Any]:
     return _coco(images, boxes, classes, "folders of classes")
 
 
-def yolo_to_coco(data_yaml: str | Path, split: str = "train") -> dict[str, Any]:
-    """Read one split of a YOLO dataset into a COCO dict."""
-    import yaml as yaml_module
+def yolo_to_coco(data_yaml: str | Path, split: str = "train", *, task: str | None = None) -> dict[str, Any]:
+    """Use the same strict, task-aware parser as the public SDK."""
+    from granum.formats.yolo import read_yolo
 
-    from granum.formats.yolo import _image_size as yolo_image_size
-    from granum.formats.yolo import _label_path, _names, _resolve_root, _split_images
-
-    path = Path(data_yaml)
-    document = yaml_module.safe_load(path.read_text()) or {}
-    if not document.get(split):
-        raise TableError(f"{path.name} has no {split!r} split")
-    root = _resolve_root(document, path, None)
-    names = _names(document)
-    classes = [names[key] for key in sorted(names)]
-    order = {key: at for at, key in enumerate(sorted(names))}
-    images: list[dict[str, Any]] = []
-    boxes: list[dict[str, Any]] = []
-    for picture in _split_images(root, document[split]):
-        width, height = yolo_image_size(picture)
-        images.append({"id": len(images) + 1, "file_name": picture, "width": width, "height": height})
-        label_file = Path(_label_path(picture))
-        if not label_file.exists():
-            continue
-        for line in label_file.read_text().splitlines():
-            parts = line.split()
-            if len(parts) != 5:
-                continue
-            key = int(parts[0])
-            cx, cy, bw, bh = (float(v) for v in parts[1:])
-            x0, y0 = (cx - bw / 2) * width, (cy - bh / 2) * height
-            boxes.append({"id": len(boxes) + 1, "image_id": len(images),
-                          "category_id": order.get(key, 0) + 1,
-                          "bbox": [x0, y0, bw * width, bh * height],
-                          "area": bw * width * bh * height, "iscrowd": 0})
-    return _coco(images, boxes, classes, "YOLO")
+    return read_yolo(str(data_yaml), split, task=task)[0]
 
 
 CONVERTERS = {
+    "semantic": semantic_to_coco,
     "voc": voc_to_coco,
     "kitti": kitti_to_coco,
     "csv": csv_to_coco,

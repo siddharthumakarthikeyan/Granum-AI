@@ -1,7 +1,7 @@
 /** Sample dynamics: when each image was learned during training, and which never were.
  *
- * Built on per-image F1 recorded after every epoch (granum.metrics.dynamics.image_learning).
- * An image is learned from the epoch its F1 reached the threshold and stayed there.
+ * Uses per-image F1, classification accuracy or semantic IoU recorded after each epoch.
+ * An image is learned from the epoch its score reached the threshold and stayed there.
  */
 
 import { useEffect, useMemo, useState } from "react";
@@ -13,6 +13,7 @@ import { routeHref } from "../router";
 import { useStore } from "../store/store";
 import { useDecisions, type Decision } from "../viewer/decisions";
 import { ImageViewer } from "../viewer/ImageViewer";
+import { TaskSampleViewer } from "../viewer/TaskSampleViewer";
 import { groupDatasets, splitOfTable } from "./datasets";
 
 interface CategoryInfo {
@@ -138,19 +139,20 @@ export function LearningPage({ project, url }: { project: string; url: string })
   };
 
   const params = run?.parameters ?? {};
+  const metric = report?.metric === "accuracy" ? "Accuracy" : report?.metric === "mean_iou" ? "Image mean IoU" : "F1";
   const header = (
     <PageHeader
       back={{ href: routeHref({ name: "runs", project }), label: "Runs" }}
       title={`${name}: sample dynamics`}
-      subtitle={report ? `Per-image F1 by epoch, ${String(params.model ?? params.framework ?? "")}. Learned means F1 ≥ ${report.good} through the last epoch.` : "Loading"}
+      subtitle={report ? `${metric} by epoch, ${String(params.model ?? params.framework ?? "")}. Learned means ${metric} ≥ ${report.good} through the last epoch.` : "Loading"}
       actions={
         <>
           <label className="inline-field small">
             <span className="muted">Threshold</span>
-            <select value={good} onChange={(e) => setGood(Number(e.target.value))} aria-label="F1 threshold">
-              <option value={0.3}>F1 0.3</option>
-              <option value={0.5}>F1 0.5</option>
-              <option value={0.7}>F1 0.7</option>
+            <select value={good} onChange={(e) => setGood(Number(e.target.value))} aria-label={`${metric} threshold`} disabled={report?.metric === "accuracy"}>
+              <option value={0.3}>{metric} 0.3</option>
+              <option value={0.5}>{metric} 0.5</option>
+              <option value={0.7}>{metric} 0.7</option>
             </select>
           </label>
           <a className="button" href={routeHref({ name: "run", project, url })}>Open run</a>
@@ -232,7 +234,7 @@ export function LearningPage({ project, url }: { project: string; url: string })
               <span className="muted">Sort</span>
               <select value={sort} onChange={(e) => setSort(e.target.value as Sort)}>
                 <option value="learned">Learned epoch</option>
-                <option value="final">Final F1, lowest first</option>
+                <option value="final">Final {metric}, lowest first</option>
                 <option value="objects">Objects, most first</option>
               </select>
             </label>
@@ -245,6 +247,7 @@ export function LearningPage({ project, url }: { project: string; url: string })
                 split={split}
                 project={project}
                 good={report!.good}
+                metric={metric}
                 decision={image.image ? decisions.byImage.get(image.image) : undefined}
                 onOpen={() => setViewing({ index: i, items: images })}
               />
@@ -290,7 +293,9 @@ export function LearningPage({ project, url }: { project: string; url: string })
         </Modal>
       )}
 
-      {viewing !== null && split && report && (
+      {viewing !== null && split && report && report.metric && report.metric !== "f1" && <TaskSampleViewer
+        project={project} dataset={split.dataset ?? ""} run={url} table={split.table} example={viewing.items[viewing.index]!.example_id} onClose={() => setViewing(null)} />}
+      {viewing !== null && split && report && (!report.metric || report.metric === "f1") && (
         <ImageViewer
           project={project}
           runUrl={url}
@@ -421,11 +426,12 @@ function Sparkline({ scores, good }: { scores: (number | null)[]; good: number }
   );
 }
 
-function SampleCard({ image, split, project, good, decision, onOpen }: {
+function SampleCard({ image, split, project, good, metric, decision, onOpen }: {
   image: LearnedImage;
   split: LearningSplit;
   project: string;
   good: number;
+  metric: string;
   decision: Decision | undefined;
   onOpen: () => void;
 }) {
@@ -440,12 +446,12 @@ function SampleCard({ image, split, project, good, decision, onOpen }: {
         {decision && <span className={`decision-tag tag-${decision}`}>{DECISION_LABEL[decision]}</span>}
       </span>
       <span className="sample-meta">
-        <span className="sample-f1"><span className="faint">F1</span> {image.final_score.toFixed(2)}</span>
+        <span className="sample-f1"><span className="faint">{metric}</span> {image.final_score.toFixed(2)}</span>
         <Sparkline scores={image.scores} good={good} />
       </span>
       <span className="sample-foot">
         <span>{when}</span>
-        <span>{plural(image.objects, "object")}</span>
+        {metric !== "Accuracy" && <span>{plural(image.objects, metric === "F1" ? "object" : "region")}</span>}
       </span>
     </button>
   );

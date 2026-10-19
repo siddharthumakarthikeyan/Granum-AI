@@ -33,11 +33,12 @@ from granum.processes import no_window, popen_detached, windows_process_alive
 TRAINER_MODULE = "granum.training.train"
 SCREEN_MODULE = "granum.training.screen"
 PRELABEL_MODULE = "granum.training.prelabel"
+SEGMENT_MODULE = "granum.training.segment"
 #: Everything launched this way. A check and a pre-labelling pass are trainers in every way
 #: that matters here: long GPU jobs that outlive the service and are followed through a log.
-TRAINER_MODULES = (TRAINER_MODULE, SCREEN_MODULE, PRELABEL_MODULE)
+TRAINER_MODULES = (TRAINER_MODULE, SCREEN_MODULE, PRELABEL_MODULE, SEGMENT_MODULE)
 #: Frameworks the dashboard trains; runs with one of these were started by a trainer here.
-DASHBOARD_FRAMEWORKS = {"yolo", "rtdetr", "rfdetr"}
+DASHBOARD_FRAMEWORKS = {"yolo", "rtdetr", "rfdetr", "classifier", "semantic"}
 _ANSI = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
 
 

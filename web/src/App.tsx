@@ -17,6 +17,9 @@ import { ProjectOverview } from "./pages/ProjectOverview";
 import { RunsPage } from "./pages/RunsPage";
 import { routeHref, routeProject, useRoute } from "./router";
 import { Sidebar } from "./shell/Sidebar";
+import { DashboardHeader } from "./shell/DashboardHeader";
+import { CommandPalette } from "./shell/CommandPalette";
+import { rememberProject } from "./shell/preferences";
 import { Workspace } from "./shell/Workspace";
 import { useStore } from "./store/store";
 
@@ -47,6 +50,7 @@ export default function App() {
 
   const routedProject = routeProject(route);
   const inWorkspace = route.name === "table" || route.name === "run";
+  useEffect(() => { if (routedProject) rememberProject(routedProject); }, [routedProject]);
 
   useEffect(() => {
     void boot();
@@ -126,9 +130,11 @@ export default function App() {
   }
 
   return (
-    <div className={`app${inWorkspace ? " app-workspace" : ""}`}>
+    <div className={`app${inWorkspace ? " app-workspace" : " app-dashboard"}`}>
       <Sidebar route={route} />
+      <CommandPalette route={route} />
       <main className="app-main">
+        {!inWorkspace && <DashboardHeader route={route} />}
         {access?.mode === "shared" && <div className="licence-banner" role="status">
           <Icon name="lock" size={14} /><span>Signed in as <strong>{access.name}</strong> · {access.role} · entire workspace. Author names are enforced by the service.</span>
         </div>}

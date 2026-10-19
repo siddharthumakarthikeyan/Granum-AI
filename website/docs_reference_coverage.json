@@ -1,0 +1,1850 @@
+{
+  "reviewed": "2026-10-19",
+  "reference_index": "https://docs.3lc.ai/3lc/latest/index.html",
+  "scope": "Navigation-topic inventory, including API groups, examples and historical releases. A mapped topic means its Granum guide or reserved scope is identified, not identical APIs, implemented parity or copied tutorials. Detailed capability statuses live in docs_features.json.",
+  "reference_page_count": 307,
+  "pages": [
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/introduction.html",
+      "kind": "topic",
+      "feature_id": "architecture",
+      "doc": "/docs/concepts/model"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/getting-started/index.html",
+      "kind": "topic",
+      "feature_id": "local-install",
+      "doc": "/docs/start/install"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/getting-started/components.html",
+      "kind": "topic",
+      "feature_id": "privacy",
+      "doc": "/docs/help/privacy"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/getting-started/deployment-options/index.html",
+      "kind": "topic",
+      "feature_id": "service",
+      "doc": "/docs/operate/service"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/getting-started/deployment-options/default/index.html",
+      "kind": "topic",
+      "feature_id": "managed-accounts",
+      "doc": "/docs/planned/enterprise#organisation-accounts-and-api-keys"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/getting-started/deployment-options/default/account.html",
+      "kind": "topic",
+      "feature_id": "managed-accounts",
+      "doc": "/docs/planned/enterprise#organisation-accounts-and-api-keys"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/getting-started/deployment-options/default/api-key.html",
+      "kind": "topic",
+      "feature_id": "managed-accounts",
+      "doc": "/docs/planned/enterprise#organisation-accounts-and-api-keys"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/getting-started/deployment-options/default/sso-configuration.html",
+      "kind": "topic",
+      "feature_id": "sso",
+      "doc": "/docs/planned/enterprise#single-sign-on"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/getting-started/deployment-options/default/sso-configuration-azure-entra-id.html",
+      "kind": "topic",
+      "feature_id": "sso",
+      "doc": "/docs/planned/enterprise#single-sign-on"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/getting-started/deployment-options/enterprise-on-prem/index.html",
+      "kind": "topic",
+      "feature_id": "enterprise-control",
+      "doc": "/docs/planned/enterprise#enterprise-deployment-lifecycle"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/getting-started/deployment-options/enterprise-on-prem/licensing.html",
+      "kind": "topic",
+      "feature_id": "licensing",
+      "doc": "/docs/start/activate"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/getting-started/deployment-options/enterprise-on-prem/secure-communication.html",
+      "kind": "topic",
+      "feature_id": "shared-access",
+      "doc": "/docs/operate/shared"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/getting-started/deployment-examples/index.html",
+      "kind": "topic",
+      "feature_id": "remote",
+      "doc": "/docs/operate/remote"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/getting-started/deployment-examples/remote-training-local-service-s3.html",
+      "kind": "topic",
+      "feature_id": "cloud",
+      "doc": "/docs/operate/cloud"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/getting-started/deployment-examples/3lc-with-docker-and-kubernetes.html",
+      "kind": "topic",
+      "feature_id": "containers",
+      "doc": "/docs/operate/remote#docker-and-kubernetes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/getting-started/remote-environments.html",
+      "kind": "topic",
+      "feature_id": "notebooks",
+      "doc": "/docs/operate/remote#hosted-notebooks"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/user-guide/index.html",
+      "kind": "topic",
+      "feature_id": "architecture",
+      "doc": "/docs/concepts/model"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/user-guide/project-layout.html",
+      "kind": "topic",
+      "feature_id": "project-layout",
+      "doc": "/docs/python/storage#object-layout"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/user-guide/tables/index.html",
+      "kind": "topic",
+      "feature_id": "table-create",
+      "doc": "/docs/python/tables#create-and-load"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/user-guide/tables/import.html",
+      "kind": "topic",
+      "feature_id": "table-create",
+      "doc": "/docs/python/tables#create-and-load"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/user-guide/tables/schema.html",
+      "kind": "topic",
+      "feature_id": "schemas",
+      "doc": "/docs/python/schemas"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/user-guide/tables/row-view.html",
+      "kind": "topic",
+      "feature_id": "rows",
+      "doc": "/docs/python/tables#read-samples-and-bulk-data"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/user-guide/tables/sample-view.html",
+      "kind": "topic",
+      "feature_id": "rows",
+      "doc": "/docs/python/tables#read-samples-and-bulk-data"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/user-guide/tables/bulk-data.html",
+      "kind": "topic",
+      "feature_id": "bulk-arrays",
+      "doc": "/docs/planned/extensions#bulk-array-and-geometry-storage"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/user-guide/tables/custom-sample-types.html",
+      "kind": "topic",
+      "feature_id": "custom-samples",
+      "doc": "/docs/planned/extensions#custom-sample-types"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/user-guide/tables/revisions.html",
+      "kind": "topic",
+      "feature_id": "revisions",
+      "doc": "/docs/python/tables#make-revisions"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/user-guide/tables/transforms.html",
+      "kind": "topic",
+      "feature_id": "transforms",
+      "doc": "/docs/python/transforms"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/user-guide/tables/row-cache.html",
+      "kind": "topic",
+      "feature_id": "row-cache",
+      "doc": "/docs/python/storage#row-caches-and-indexing"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/user-guide/tables/export.html",
+      "kind": "topic",
+      "feature_id": "export",
+      "doc": "/docs/improve/export"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/user-guide/runs/index.html",
+      "kind": "topic",
+      "feature_id": "runs",
+      "doc": "/docs/python/runs"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/user-guide/runs/creating-runs.html",
+      "kind": "topic",
+      "feature_id": "runs",
+      "doc": "/docs/python/runs"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/user-guide/runs/collecting-metrics.html",
+      "kind": "topic",
+      "feature_id": "sample-metrics",
+      "doc": "/docs/measure/metrics"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/user-guide/runs/combining-data-and-models.html",
+      "kind": "topic",
+      "feature_id": "sample-metrics",
+      "doc": "/docs/measure/metrics"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/user-guide/runs/hyperparameters.html",
+      "kind": "topic",
+      "feature_id": "runs",
+      "doc": "/docs/python/runs"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/user-guide/sharing.html",
+      "kind": "topic",
+      "feature_id": "shared-access",
+      "doc": "/docs/operate/shared"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/data-types/index.html",
+      "kind": "topic",
+      "feature_id": "schemas",
+      "doc": "/docs/python/schemas"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/data-types/tabular/index.html",
+      "kind": "topic",
+      "feature_id": "schemas",
+      "doc": "/docs/python/schemas"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/data-types/tabular/categorical.html",
+      "kind": "topic",
+      "feature_id": "schemas",
+      "doc": "/docs/python/schemas"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/data-types/computer-vision/index.html",
+      "kind": "topic",
+      "feature_id": "formats",
+      "doc": "/docs/data/formats"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/data-types/computer-vision/image.html",
+      "kind": "topic",
+      "feature_id": "image-thumbnails",
+      "doc": "/docs/data/images"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/data-types/computer-vision/bounding-boxes.html",
+      "kind": "topic",
+      "feature_id": "boxes",
+      "doc": "/docs/data/boxes#ordinary-detection-boxes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/data-types/computer-vision/obbs.html",
+      "kind": "topic",
+      "feature_id": "obb",
+      "doc": "/docs/data/boxes#oriented-boxes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/data-types/computer-vision/keypoints.html",
+      "kind": "topic",
+      "feature_id": "keypoints",
+      "doc": "/docs/data/keypoints"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/data-types/computer-vision/instance-segmentation.html",
+      "kind": "topic",
+      "feature_id": "instance-masks",
+      "doc": "/docs/data/masks"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/data-types/computer-vision/semantic-segmentation.html",
+      "kind": "topic",
+      "feature_id": "semantic-masks",
+      "doc": "/docs/data/masks#import-masks"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/data-types/embeddings.html",
+      "kind": "topic",
+      "feature_id": "embeddings",
+      "doc": "/docs/python/custom-metrics#collect-embeddings"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/data-types/weight.html",
+      "kind": "topic",
+      "feature_id": "weights",
+      "doc": "/docs/improve/weights"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/data-types/dashboard.html",
+      "kind": "topic",
+      "feature_id": "schemas",
+      "doc": "/docs/python/schemas"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/data-types/reference.html",
+      "kind": "topic",
+      "feature_id": "schemas",
+      "doc": "/docs/python/schemas"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/extending/index.html",
+      "kind": "topic",
+      "feature_id": "custom-samples",
+      "doc": "/docs/planned/extensions#custom-sample-types"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/extending/custom_url_adapter.html",
+      "kind": "topic",
+      "feature_id": "url-adapters",
+      "doc": "/docs/planned/extensions#url-adapters-and-discovery"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/index.html",
+      "kind": "topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/index.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.auth.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.configuration.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.constants.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.data_types.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.data_types.bounding_boxes.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.data_types.geometries.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.data_types.keypoints.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.data_types.obb.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.data_types.segmentation.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.data_types.semantic_segmentation.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.discovery.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.export.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.export.exporter.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.export.exporter_registry.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.export.exporters.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.export.exporters.coco.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.export.exporters.csv.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.export.exporters.default_json.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.export.exporters.yolo.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.helpers.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.helpers.annotation_helper.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.helpers.color_helper.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.helpers.datetime_helper.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.helpers.geometry_helper.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.helpers.image_helper.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.helpers.json_helper.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.helpers.keypoint_helper.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.helpers.project_helper.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.helpers.project_layout.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.helpers.schema_helper.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.helpers.segmentation_helper.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.helpers.url_aliases.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.integration.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.integration.detectron2.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.integration.detectron2.bounding_box_metrics_collector.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.integration.detectron2.detectron_metrics_collection_hook.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.integration.detectron2.metrics_collection_hook.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.integration.detectron2.register_coco_instances.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.integration.detectron2.umap_reduce_embeddings_hook.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.integration.hugging_face.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.integration.hugging_face.trainer.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.integration.hugging_face.trainer.trainer.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.integration.super_gradients.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.integration.super_gradients.callbacks.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.integration.super_gradients.callbacks.base_callback.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.integration.super_gradients.callbacks.detection_callback.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.integration.super_gradients.callbacks.embeddings_pipeline.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.integration.super_gradients.callbacks.pipeline_params.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.integration.super_gradients.callbacks.pose_callback.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.integration.super_gradients.datasets.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.integration.super_gradients.datasets.detection_dataset.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.integration.super_gradients.datasets.pose_dataset.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.integration.torch.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.integration.torch.samplers.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.metrics.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.metrics.aggregators.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.metrics.aggregators.aggregator.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.metrics.aggregators.mean_aggregator.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.metrics.collect.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.metrics.collectors.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.metrics.collectors.embeddings_metrics_collector.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.metrics.collectors.functional_metrics_collector.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.metrics.collectors.metrics_collector_base.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.metrics.collectors.segmentation_metrics_collector.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.metrics.predictor.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.metrics.semantic_segmentation.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.objects.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.reduction.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.reduction.pacmap.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.reduction.reduce.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.reduction.reduction_method.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.reduction.umap.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.sample_types.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.schemas.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.schemas.values.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlc/tlc.url.html",
+      "kind": "api-topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlcconfig/tlcconfig.html",
+      "kind": "api-topic",
+      "feature_id": "configuration",
+      "doc": "/docs/operate/configuration"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlcconfig/tlcconfig.config_source.html",
+      "kind": "api-topic",
+      "feature_id": "configuration",
+      "doc": "/docs/operate/configuration"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlcconfig/tlcconfig.constants.html",
+      "kind": "api-topic",
+      "feature_id": "configuration",
+      "doc": "/docs/operate/configuration"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlcconfig/tlcconfig.default_locations.html",
+      "kind": "api-topic",
+      "feature_id": "configuration",
+      "doc": "/docs/operate/configuration"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlcconfig/tlcconfig.group.html",
+      "kind": "api-topic",
+      "feature_id": "configuration",
+      "doc": "/docs/operate/configuration"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlcconfig/tlcconfig.logic.html",
+      "kind": "api-topic",
+      "feature_id": "configuration",
+      "doc": "/docs/operate/configuration"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlcconfig/tlcconfig.options.html",
+      "kind": "api-topic",
+      "feature_id": "configuration",
+      "doc": "/docs/operate/configuration"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlcconfig/tlcconfig.projection.html",
+      "kind": "api-topic",
+      "feature_id": "configuration",
+      "doc": "/docs/operate/configuration"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlcconfig/tlcconfig.property.html",
+      "kind": "api-topic",
+      "feature_id": "configuration",
+      "doc": "/docs/operate/configuration"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/apidocs/tlcconfig/tlcconfig.store.html",
+      "kind": "api-topic",
+      "feature_id": "configuration",
+      "doc": "/docs/operate/configuration"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/cli.html",
+      "kind": "topic",
+      "feature_id": "cli",
+      "doc": "/docs/reference/cli"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/urls.html",
+      "kind": "topic",
+      "feature_id": "urls",
+      "doc": "/docs/python/storage#urls-and-aliases"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/authentication.html",
+      "kind": "topic",
+      "feature_id": "shared-access",
+      "doc": "/docs/operate/shared"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/configuration/index.html",
+      "kind": "topic",
+      "feature_id": "configuration",
+      "doc": "/docs/operate/configuration"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/configuration/options.html",
+      "kind": "topic",
+      "feature_id": "configuration",
+      "doc": "/docs/operate/configuration"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/configuration/environment-variables.html",
+      "kind": "topic",
+      "feature_id": "configuration",
+      "doc": "/docs/operate/configuration"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/configuration/file-locations.html",
+      "kind": "topic",
+      "feature_id": "project-layout",
+      "doc": "/docs/python/storage#object-layout"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/background-indexing.html",
+      "kind": "topic",
+      "feature_id": "indexing",
+      "doc": "/docs/operate/service#discover-projects"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/object-service/index.html",
+      "kind": "topic",
+      "feature_id": "service",
+      "doc": "/docs/operate/service"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/object-service/object-service-deployment-guide.html",
+      "kind": "topic",
+      "feature_id": "service",
+      "doc": "/docs/operate/service"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/object-service/object-service-indexing.html",
+      "kind": "topic",
+      "feature_id": "indexing",
+      "doc": "/docs/operate/service#discover-projects"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/object-service/object-service-self-authenticated-media-urls.html",
+      "kind": "topic",
+      "feature_id": "signed-media",
+      "doc": "/docs/planned/enterprise#signed-media-delivery"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/integrations/index.html",
+      "kind": "topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/integrations/pytorch/pytorch.html",
+      "kind": "topic",
+      "feature_id": "pytorch",
+      "doc": "/docs/integrations/pytorch"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/integrations/huggingface/huggingface.html",
+      "kind": "topic",
+      "feature_id": "huggingface",
+      "doc": "/docs/integrations/hugging-face"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/integrations/detectron2/detectron2.html",
+      "kind": "topic",
+      "feature_id": "detectron",
+      "doc": "/docs/integrations/detectron2"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/integrations/yolov5/yolov5.html",
+      "kind": "topic",
+      "feature_id": "yolov5",
+      "doc": "/docs/integrations/ultralytics#current-boundary"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/integrations/yolo/yolo.html",
+      "kind": "topic",
+      "feature_id": "yolo",
+      "doc": "/docs/integrations/ultralytics"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/integrations/supergradients/supergradients.html",
+      "kind": "topic",
+      "feature_id": "supergradients",
+      "doc": "/docs/integrations/supergradients"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/integrations/lightning/lightning.html",
+      "kind": "topic",
+      "feature_id": "lightning",
+      "doc": "/docs/integrations/lightning"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/system-requirements.html",
+      "kind": "topic",
+      "feature_id": "requirements",
+      "doc": "/docs/reference/requirements"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/dependencies.html",
+      "kind": "topic",
+      "feature_id": "requirements",
+      "doc": "/docs/reference/requirements"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/migration-guide/index.html",
+      "kind": "topic",
+      "feature_id": "upgrade",
+      "doc": "/docs/operate/upgrades"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/migration-guide/migrating-from-2.x-to-3.x.html",
+      "kind": "topic",
+      "feature_id": "upgrade",
+      "doc": "/docs/operate/upgrades"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/release-notes/index.html",
+      "kind": "historical-release",
+      "feature_id": "release-notes",
+      "doc": "/docs/reference/releases"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/release-notes/3lc-python-package-3.4.html",
+      "kind": "historical-release",
+      "feature_id": "release-notes",
+      "doc": "/docs/reference/releases"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/release-notes/3lc-python-package-3.3.html",
+      "kind": "historical-release",
+      "feature_id": "release-notes",
+      "doc": "/docs/reference/releases"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/release-notes/3lc-python-package-3.2.html",
+      "kind": "historical-release",
+      "feature_id": "release-notes",
+      "doc": "/docs/reference/releases"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/release-notes/3lc-python-package-3.1.html",
+      "kind": "historical-release",
+      "feature_id": "release-notes",
+      "doc": "/docs/reference/releases"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/release-notes/3lc-python-package-3.0.html",
+      "kind": "historical-release",
+      "feature_id": "release-notes",
+      "doc": "/docs/reference/releases"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/release-notes/3lc-python-package-2.23.html",
+      "kind": "historical-release",
+      "feature_id": "release-notes",
+      "doc": "/docs/reference/releases"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/release-notes/3lc-python-package-2.22.html",
+      "kind": "historical-release",
+      "feature_id": "release-notes",
+      "doc": "/docs/reference/releases"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/release-notes/3lc-python-package-2.21.html",
+      "kind": "historical-release",
+      "feature_id": "release-notes",
+      "doc": "/docs/reference/releases"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/release-notes/3lc-python-package-2.20.html",
+      "kind": "historical-release",
+      "feature_id": "release-notes",
+      "doc": "/docs/reference/releases"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/release-notes/3lc-python-package-2.19.html",
+      "kind": "historical-release",
+      "feature_id": "release-notes",
+      "doc": "/docs/reference/releases"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/release-notes/3lc-python-package-2.18.html",
+      "kind": "historical-release",
+      "feature_id": "release-notes",
+      "doc": "/docs/reference/releases"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/release-notes/3lc-python-package-2.17.html",
+      "kind": "historical-release",
+      "feature_id": "release-notes",
+      "doc": "/docs/reference/releases"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/release-notes/3lc-python-package-2.16.html",
+      "kind": "historical-release",
+      "feature_id": "release-notes",
+      "doc": "/docs/reference/releases"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/release-notes/3lc-python-package-2.15.html",
+      "kind": "historical-release",
+      "feature_id": "release-notes",
+      "doc": "/docs/reference/releases"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/release-notes/3lc-python-package-2.14.html",
+      "kind": "historical-release",
+      "feature_id": "release-notes",
+      "doc": "/docs/reference/releases"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/release-notes/3lc-python-package-2.13.html",
+      "kind": "historical-release",
+      "feature_id": "release-notes",
+      "doc": "/docs/reference/releases"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/release-notes/3lc-python-package-2.12.html",
+      "kind": "historical-release",
+      "feature_id": "release-notes",
+      "doc": "/docs/reference/releases"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/release-notes/3lc-python-package-2.11.html",
+      "kind": "historical-release",
+      "feature_id": "release-notes",
+      "doc": "/docs/reference/releases"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/release-notes/3lc-python-package-2.10.html",
+      "kind": "historical-release",
+      "feature_id": "release-notes",
+      "doc": "/docs/reference/releases"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/release-notes/3lc-python-package-2.9.html",
+      "kind": "historical-release",
+      "feature_id": "release-notes",
+      "doc": "/docs/reference/releases"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/release-notes/3lc-python-package-2.8.html",
+      "kind": "historical-release",
+      "feature_id": "release-notes",
+      "doc": "/docs/reference/releases"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/release-notes/3lc-python-package-2.7.html",
+      "kind": "historical-release",
+      "feature_id": "release-notes",
+      "doc": "/docs/reference/releases"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/release-notes/3lc-python-package-2.6.html",
+      "kind": "historical-release",
+      "feature_id": "release-notes",
+      "doc": "/docs/reference/releases"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/release-notes/3lc-python-package-2.5.html",
+      "kind": "historical-release",
+      "feature_id": "release-notes",
+      "doc": "/docs/reference/releases"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/release-notes/3lc-2.3.html",
+      "kind": "historical-release",
+      "feature_id": "release-notes",
+      "doc": "/docs/reference/releases"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/release-notes/3lc-2.2.html",
+      "kind": "historical-release",
+      "feature_id": "release-notes",
+      "doc": "/docs/reference/releases"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/release-notes/3lc-2.1.html",
+      "kind": "historical-release",
+      "feature_id": "release-notes",
+      "doc": "/docs/reference/releases"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/release-notes/3lc-2.0.html",
+      "kind": "historical-release",
+      "feature_id": "release-notes",
+      "doc": "/docs/reference/releases"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/python-package/release-notes/3lc-1.0.html",
+      "kind": "historical-release",
+      "feature_id": "release-notes",
+      "doc": "/docs/reference/releases"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/dashboard/index.html",
+      "kind": "topic",
+      "feature_id": "workspace",
+      "doc": "/docs/explore/workspace"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/dashboard/panels/index.html",
+      "kind": "topic",
+      "feature_id": "workspace",
+      "doc": "/docs/explore/workspace"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/dashboard/panels/rows.html",
+      "kind": "topic",
+      "feature_id": "row-controls",
+      "doc": "/docs/explore/workspace#read-the-rows"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/dashboard/panels/filters.html",
+      "kind": "topic",
+      "feature_id": "filters",
+      "doc": "/docs/explore/workspace#narrow-the-evidence"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/dashboard/panels/charts.html",
+      "kind": "topic",
+      "feature_id": "charts",
+      "doc": "/docs/explore/charts#create-a-chart"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/dashboard/views/index.html",
+      "kind": "topic",
+      "feature_id": "multi-views",
+      "doc": "/docs/planned/advanced-analysis#additional-plot-and-view-types"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/dashboard/views/subset-table.html",
+      "kind": "topic",
+      "feature_id": "subsets",
+      "doc": "/docs/python/tables#subsets-and-new-data"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/dashboard/views/reduced-table.html",
+      "kind": "topic",
+      "feature_id": "reduced-tables",
+      "doc": "/docs/planned/advanced-analysis#additional-plot-and-view-types"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/dashboard/virtual-columns/index.html",
+      "kind": "topic",
+      "feature_id": "calculated-columns",
+      "doc": "/docs/explore/calculations"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/dashboard/virtual-columns/aggregates.html",
+      "kind": "topic",
+      "feature_id": "aggregates",
+      "doc": "/docs/guides/browse"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/dashboard/workflows/index.html",
+      "kind": "topic",
+      "feature_id": "workflow",
+      "doc": "/docs/explore/workflows"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/dashboard/workflows/confusion-matrix.html",
+      "kind": "topic",
+      "feature_id": "evaluation",
+      "doc": "/docs/explore/evaluation"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/dashboard/workflows/n-component-plot.html",
+      "kind": "topic",
+      "feature_id": "component-plot",
+      "doc": "/docs/planned/advanced-analysis#additional-plot-and-view-types"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/dashboard/workflows/n-d-travel-distance.html",
+      "kind": "topic",
+      "feature_id": "trajectories",
+      "doc": "/docs/explore/trajectories"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/dashboard/workflows/user-defined-workflow.html",
+      "kind": "topic",
+      "feature_id": "workflow",
+      "doc": "/docs/explore/workflows"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/dashboard/settings.html",
+      "kind": "topic",
+      "feature_id": "shortcuts",
+      "doc": "/docs/reference/shortcuts"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/dashboard/keyboard-shortcuts.html",
+      "kind": "topic",
+      "feature_id": "shortcuts",
+      "doc": "/docs/reference/shortcuts"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/dashboard/gpu-acceleration.html",
+      "kind": "topic",
+      "feature_id": "requirements",
+      "doc": "/docs/reference/requirements"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/dashboard/system-requirements.html",
+      "kind": "topic",
+      "feature_id": "requirements",
+      "doc": "/docs/reference/requirements"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/dashboard/release-notes/index.html",
+      "kind": "historical-release",
+      "feature_id": "release-notes",
+      "doc": "/docs/reference/releases"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/dashboard/release-notes/3lc-dashboard-2.8.html",
+      "kind": "historical-release",
+      "feature_id": "release-notes",
+      "doc": "/docs/reference/releases"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/dashboard/release-notes/3lc-dashboard-2.7.html",
+      "kind": "historical-release",
+      "feature_id": "release-notes",
+      "doc": "/docs/reference/releases"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/dashboard/release-notes/3lc-dashboard-2.6.html",
+      "kind": "historical-release",
+      "feature_id": "release-notes",
+      "doc": "/docs/reference/releases"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/dashboard/release-notes/3lc-dashboard-2.5.html",
+      "kind": "historical-release",
+      "feature_id": "release-notes",
+      "doc": "/docs/reference/releases"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/index.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/1-create-tables/index.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/1-create-tables/create-table-from-image-folder.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/1-create-tables/create-table-from-torch-dataset.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/1-create-tables/create-table-from-videos.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/1-create-tables/create-custom-table.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/1-create-tables/create-fhibe-table.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/1-create-tables/object%20detection/index.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/1-create-tables/object%20detection/create-table-from-coco-detection.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/1-create-tables/object%20detection/create-table-from-yolo-detection.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/1-create-tables/object%20detection/create-custom-bb-table.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/1-create-tables/instance-segmentation/index.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/1-create-tables/instance-segmentation/create-table-from-coco-segmentation.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/1-create-tables/instance-segmentation/create-table-from-yolo-segmentation.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/1-create-tables/instance-segmentation/create-instance-segmentations-from-masks.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/1-create-tables/instance-segmentation/create-instance-segmentations-from-image-masks.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/1-create-tables/instance-segmentation/create-custom-instance-segmentation-table.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/1-create-tables/semantic-segmentation/index.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/1-create-tables/semantic-segmentation/create-ade20k-semseg-table.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/1-create-tables/semantic-segmentation/create-oxford-pets-semseg-table.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/1-create-tables/semantic-segmentation/create-pascal-voc-semseg-table.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/1-create-tables/keypoints/index.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/1-create-tables/keypoints/create-table-from-coco-keypoints.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/1-create-tables/keypoints/create-table-from-yolo-keypoints.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/1-create-tables/keypoints/create-custom-keypoints-table.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/1-create-tables/obbs/index.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/1-create-tables/obbs/create-table-from-yolo-obb.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/1-create-tables/obbs/create-custom-obb-table.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/1-create-tables/3d/index.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/1-create-tables/3d/write-mammoth-table.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/1-create-tables/3d/pandaset/index.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/1-create-tables/3d/pandaset/load-pandaset.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/2-modify-tables/index.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/2-modify-tables/add-embeddings.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/2-modify-tables/add-classification-metrics.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/2-modify-tables/add-image-metrics.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/2-modify-tables/split-tables.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/2-modify-tables/add-new-data.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/2-modify-tables/add-new-data-and-split.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/2-modify-tables/dimensionality-reduction-toy-example.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/2-modify-tables/transform-bbs-to-segs.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/2-modify-tables/autosegment-image-column.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/2-modify-tables/compute-per-bb-metrics.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/2-modify-tables/1-weight-coreset.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/2-modify-tables/add-instance-embeddings/index.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/2-modify-tables/add-instance-embeddings/1-train-crop-model.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/2-modify-tables/add-instance-embeddings/2-add-instance-metrics.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/3-training-and-metrics/index.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/3-training-and-metrics/pytorch-mnist-resnet-training.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/3-training-and-metrics/pytorch-fashion-mnist-resnet-training.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/3-training-and-metrics/pytorch-cifar10-resnet-training.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/3-training-and-metrics/pytorch-cifar10-collect-metrics.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/3-training-and-metrics/pytorch-cifar10-train-autoencoder.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/3-training-and-metrics/pytorch-augmentation-explorer.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/3-training-and-metrics/pytorch-oxford-pets-unet-training.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/3-training-and-metrics/lightning-cifar10-resnet-training.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/3-training-and-metrics/lightning-balloons-segformer-training.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/3-training-and-metrics/huggingface-cifar100-collect-embeddings.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/3-training-and-metrics/huggingface-imdb-finetuning.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/3-training-and-metrics/huggingface-mrcp-bert-finetuning.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/3-training-and-metrics/huggingface-pascal-voc-mask2former-finetuning.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/3-training-and-metrics/huggingface-coco128-segformer-collection.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/3-training-and-metrics/huggingface-sugarbeets-segformer-training.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/3-training-and-metrics/detectron2-coco128-detection-collection.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/3-training-and-metrics/detectron2-balloons-detection-finetuning.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/3-training-and-metrics/detectron2-coco128-segmentation-collection.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/3-training-and-metrics/detectron2-balloons-segmentation-finetuning.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/3-training-and-metrics/ultralytics-cifar10-yolo11-cls-training.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/3-training-and-metrics/ultralytics-animalpose-yolo11-pose-training.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/3-training-and-metrics/ultralytics-cell-segmentation-yolo11-seg.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/3-training-and-metrics/ultralytics-hrsc-2016-yolo-obb-training.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/3-training-and-metrics/supergradients-detection-yolonas-training.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/3-training-and-metrics/supergradients-animalpose-yolonas-training.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/3-training-and-metrics/sam-coco128-collect-embeddings.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/3-training-and-metrics/dimensionality-reduction-example.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/4-end-to-end-examples/index.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/4-end-to-end-examples/deep-fish.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/examples/tutorials/4-end-to-end-examples/hard-hat.html",
+      "kind": "example",
+      "feature_id": "recipes",
+      "doc": "/docs/measure/recipes"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/hub/index.html",
+      "kind": "topic",
+      "feature_id": "compute",
+      "doc": "/docs/planned/compute#compute-service"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/hub/plugins.html",
+      "kind": "topic",
+      "feature_id": "plugins",
+      "doc": "/docs/planned/compute#plugin-sdk-and-catalogue"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/hub/compute-service/release-notes/index.html",
+      "kind": "historical-release",
+      "feature_id": "release-notes",
+      "doc": "/docs/reference/releases"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/hub/compute-service/release-notes/3lc-compute-1.1.html",
+      "kind": "historical-release",
+      "feature_id": "release-notes",
+      "doc": "/docs/reference/releases"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/hub/compute-service/release-notes/3lc-compute-1.0.html",
+      "kind": "historical-release",
+      "feature_id": "release-notes",
+      "doc": "/docs/reference/releases"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/hub/frontend/release-notes/index.html",
+      "kind": "historical-release",
+      "feature_id": "release-notes",
+      "doc": "/docs/reference/releases"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/hub/frontend/release-notes/3lc-hub-frontend-1.1.html",
+      "kind": "historical-release",
+      "feature_id": "release-notes",
+      "doc": "/docs/reference/releases"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/hub/frontend/release-notes/3lc-hub-frontend-1.0.html",
+      "kind": "historical-release",
+      "feature_id": "release-notes",
+      "doc": "/docs/reference/releases"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/for-agents.html",
+      "kind": "topic",
+      "feature_id": "python-api",
+      "doc": "/docs/python/api"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/faq/faq.html",
+      "kind": "topic",
+      "feature_id": "help",
+      "doc": "/docs/help/troubleshooting"
+    },
+    {
+      "reference": "https://docs.3lc.ai/3lc/latest/glossary.html",
+      "kind": "topic",
+      "feature_id": "help",
+      "doc": "/docs/help/troubleshooting"
+    }
+  ]
+}

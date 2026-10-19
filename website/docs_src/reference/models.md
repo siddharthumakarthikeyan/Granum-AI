@@ -1,64 +1,52 @@
 ---
-title: Models you can train
-summary: YOLO, RT-DETR and RF-DETR — sizes, hardware and when each is the right choice.
+title: Models and task support
+summary: Choose among the model families exposed by the current training catalogue and check their task requirements.
+status: partial
 ---
 
-All three families are trained from the same dialog, recorded the same way, and scored by the same
-framework-neutral scorer, so their numbers compare.
+The Training dialog reads the model catalogue from the running service. Available choices depend on
+the installed build and model packages. Use the catalogue shown in your workspace as the final source
+for which variants you can start there.
 
-## YOLO — Ultralytics
+## Included families
 
-Fast, reliable and the most widely used detector. The right first choice in almost every case.
-
-| Weights | Size | Note |
+| Family | Catalogue choices | Tasks |
 |---|---|---|
-| `yolo26n.pt` | nano | Fastest. Good for trying things out |
-| `yolo26s.pt` | small | A good balance of speed and accuracy |
-| `yolo26m.pt` | medium | More accurate, about three times slower |
-| `yolo11n.pt`, `yolo11s.pt` | nano, small | Previous generation, very well tested |
-| `yolov8n.pt` | nano | Older; use it to match an existing YOLOv8 setup |
+| Ultralytics YOLO | YOLO26 nano/small/medium; YOLO11 nano/small; YOLOv8 nano | Detection |
+| Ultralytics YOLO task variants | Nano/small YOLO26 and YOLO11 variants | Instance masks, pose, OBB |
+| RT-DETR through Ultralytics | `rtdetr-l.pt`, `rtdetr-x.pt` | Detection |
+| RF-DETR | nano, small, medium, base, large | Detection |
+| Torchvision | `resnet18` | Whole-image classification |
+| Torchvision | `lraspp-mobilenet-v3` | Semantic segmentation |
 
-## RT-DETR — Baidu, through Ultralytics
+The new classification and semantic paths are development implementations with broader qualification
+still in progress. See [training tasks](/docs/measure/tasks) for input requirements and current limits.
+A model name in the catalogue is not a benchmark result for your data.
 
-A transformer detector that sees the whole image at once, which helps when many objects overlap. Slower
-to train and hungrier for graphics memory.
+## Select a baseline
 
-| Weights | Size | Note |
-|---|---|---|
-| `rtdetr-l.pt` | large | About 8 GB of graphics memory at batch 8 |
-| `rtdetr-x.pt` | extra large | Most accurate, slowest |
+Begin with a small compatible model and a short run to confirm loading, task geometry, metrics and
+checkpoint persistence. Then choose a model size and input resolution based on measured memory use,
+throughput and your validation results. Preserve the seed and recipe with each run.
 
-## RF-DETR — Roboflow
+RF-DETR uses its own input-size behaviour; the same image-size control does not apply to every family.
+A larger model or image does not guarantee a useful improvement. Compare compatible experiments and
+inspect the [per-class errors](/docs/explore/evaluation) behind their headline scores.
 
-A modern transformer on a large pretrained backbone, so it often learns from fewer images. It uses its
-own input size, so the image-size setting does not apply.
+## Dependencies and weights
 
-| Weights | Size | Note |
-|---|---|---|
-| `nano` | nano | Fastest RF-DETR |
-| `small` | small | A good balance |
-| `medium` | medium | More accurate, slower |
+Install training support where prompted and inspect its environment report. Model weights may download
+on first use. A successful package installation does not guarantee CUDA availability or a completed
+model run. If resources are insufficient, adjust the supported batch, image size or model choice and
+record the changed recipe.
 
-## Choosing
+Framework integrations for Hugging Face, Lightning, Detectron2 and SuperGradients are available
+through [Python guides](/docs#integrations); they are not all one-click training-catalogue entries.
+SAM supplies interactive mask proposals rather than this training loop.
 
-| Situation | Try |
-|---|---|
-| First run on a new dataset | YOLO nano, few rounds — confirm the pipeline before spending hours |
-| Normal production run | YOLO small or medium at 640 px |
-| Small objects, aerial or satellite | YOLO medium at 1024 px or more |
-| Dense, overlapping objects | RT-DETR large, if you have the memory |
-| Few hundred images total | RF-DETR small |
-| Matching an existing deployment | The family and version already in production |
+## Current boundaries
 
-## Hardware
-
-Training needs the PyTorch add-on (about 3 GB with CUDA) and, realistically, an NVIDIA GPU. Without one
-training still runs, on the CPU, slowly enough that nano models and small datasets are the only sensible
-combination.
-
-Rules of thumb on one modern laptop GPU: a nano model on a few thousand images at 640 px is minutes per
-round; a medium model on 11,000 images at 640 px is a few minutes per round; doubling the image size
-roughly quadruples both memory and time.
-
-If a run stops with an out-of-memory error, reduce the image size first, then the model size. The batch
-size is chosen per family and is usually not the thing to change first.
+A universal model marketplace, automatic model recommendation system, qualified hardware matrix and
+complete panoptic training path are **Not yet included**. Avoid comparing detection mAP directly with
+classification accuracy or semantic IoU. Use [Compare runs](/docs/guides/compare) only with compatible
+tasks and evaluation context.

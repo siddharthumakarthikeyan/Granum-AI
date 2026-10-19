@@ -22,6 +22,10 @@ export interface ScatterSpec {
   kind: "scatter";
   x: string;
   y: string;
+  /** A third axis switches the scatter to an orbitable 3D view. */
+  z?: string | null;
+  /** Connect observations of each sample in the order of a numeric column. */
+  trajectory?: { groupBy: string; orderBy: string } | null;
   color: string | null;
   size: string | null;
   pointSize: number;
@@ -128,13 +132,13 @@ export function chartFromColumns(selected: string[], columns: ColumnInfo[]): Cha
 /** Two specs draw the same chart. Used to recognise a favourite. */
 export function chartSignature(spec: ChartSpec): string {
   return spec.kind === "scatter"
-    ? `scatter|${spec.x}|${spec.y}|${spec.color ?? ""}|${spec.size ?? ""}`
+    ? `scatter|${spec.x}|${spec.y}|${spec.color ?? ""}|${spec.size ?? ""}${spec.z ? `|z=${spec.z}` : ""}${spec.trajectory ? `|trajectory=${JSON.stringify(spec.trajectory)}` : ""}`
     : `image|${spec.image}`;
 }
 
 export function chartColumns(spec: ChartSpec): string[] {
   const out = spec.kind === "scatter"
-    ? [spec.x, spec.y, spec.color, spec.size]
+    ? [spec.x, spec.y, spec.z ?? null, spec.color, spec.size, spec.trajectory?.groupBy ?? null, spec.trajectory?.orderBy ?? null]
     : [spec.image, ...spec.labels];
   return out.filter((c): c is string => c !== null && c !== ROW_INDEX);
 }

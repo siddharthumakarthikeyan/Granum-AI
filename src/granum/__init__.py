@@ -34,6 +34,7 @@ from granum.errors import (
     TableError,
 )
 from granum.formats.coco import export_coco
+from granum.formats.semantic import export_semantic_masks
 from granum.formats.yolo import export_yolo
 from granum.metrics.collect import collect_metrics
 from granum.samplers import (
@@ -62,6 +63,7 @@ __all__ = [
     "box_iou",
     "collect_metrics",
     "export_coco",
+    "export_semantic_masks",
     "export_yolo",
     "match_boxes",
     "nms",

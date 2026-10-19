@@ -37,12 +37,14 @@ Yes. Log runs and per-image metrics from Python and every screen in Granum works
 [Use Granum from Python](/docs/guides/python).
 
 **Which model should I pick?**
-YOLO nano for the first run, YOLO small or medium for real work, RT-DETR when objects crowd each other,
-RF-DETR when you have few images. → [Models you can train](/docs/reference/models)
+Choose a family that matches your annotation task, then use a small model and short run to confirm the
+pipeline. Select larger models from measured validation results and resource use.
+→ [Models and task support](/docs/reference/models)
 
 **Do I need a GPU?**
-For training, effectively yes. Everything else — import, review, editing, versioning — runs happily
-without one.
+Core import, review, editing and versioning do not require a training GPU. Small model jobs can run on
+CPU, while practical training requirements depend on the model and dataset.
+→ [Environment requirements](/docs/reference/requirements)
 
 **What happens when my plan ends?**
 The current unrestricted alpha has no enforced subscription expiry. Use and paid support remain subject
@@ -60,5 +62,7 @@ A REST service and a Python SDK. The default is local; explicitly configured sha
 authentication and HTTPS. Neither is a managed hosted service.
 
 **Does Granum support segmentation or keypoints?**
-It stores, shows and edits masks and keypoints, and a project can declare those types. Checks, metrics
-and training are box-based today. → [Scale and limits](/docs/reference/limits)
+Yes: supported imports, mask/landmark editing, task-aware metrics and YOLO mask/pose training are
+included. Oriented boxes are also supported. The development source adds classification and semantic
+training paths, with broader qualification still in progress. See [training tasks](/docs/measure/tasks)
+and [feature availability](/docs/reference/features) for the exact scope.

@@ -29,7 +29,7 @@ import os
 import re
 from collections.abc import Sequence
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 from urllib.parse import urlsplit
 
 import pyarrow as pa
@@ -132,6 +132,7 @@ class SourceRequest(BaseModel):
     format: str = "coco"
     #: YOLO only: which split of its data.yaml this source is.
     yolo_split: str | None = None
+    yolo_task: Literal["detect", "segment", "pose", "obb"] | None = None
 
 
 class PreflightRequest(BaseModel):
@@ -304,6 +305,7 @@ class ExportRequest(BaseModel):
     format: str = "coco"
     #: Where the images go: beside the labels, or referenced where they already are.
     images: str = "symlink"
+    yolo_task: Literal["detect", "segment", "pose", "obb"] = "detect"
 
 
 class TagRequest(AttributedRequest):
@@ -427,7 +429,9 @@ def create_app(
     index = index or get_index(config=config)
     cache = cache or ByteCache()
     limits = limits or WorkflowLimits()
-    jobs = JobRegistry()
+    from granum.core import appdirs
+
+    jobs = JobRegistry(appdirs.state_dir() / "jobs" / hashlib.sha256(str(config.project_root).encode()).hexdigest())
     #: Images listed by each finished preflight, so its examples can be previewed.
     preflight_media: dict[str, frozenset[str]] = {}
     hosts = {h.lower() for h in (allowed_hosts or []) } | set(LOOPBACK_HOSTS)
@@ -1310,6 +1314,22 @@ def create_app(
                 out.setdefault(name, _column_info(name, source.schema[name], "table"))
             for name in table.columns:
                 out.setdefault(name, _column_info(name, table.schema[name], "metrics"))
+            from granum.formats._common import root_producer
+
+            categories = root_producer(source, "from_coco").get("categories") or []
+            for info in out.values():
+                if "instance_properties" not in info:
+                    continue
+                layouts = info.setdefault("pose_categories", {})
+                for category in categories:
+                    if not category.get("keypoints"):
+                        continue
+                    key = str(category["id"])
+                    layout = {"name": category.get("name", key), "names": category["keypoints"]}
+                    if key in layouts and layouts[key] != layout:
+                        layouts[key] = {"name": category.get("name", key), "names": [], "ambiguous": True}
+                    else:
+                        layouts[key] = layout
             for name, value in table.constants.items():
                 if name not in out:
                     kind = "string" if isinstance(value, str) else "int64"
@@ -1326,9 +1346,10 @@ def create_app(
 
         run = _run_at(url)
         limits.check(run.metrics_tables(), "Learning history")
+        metric = {"classify": "accuracy", "semantic": "mean_iou"}.get(run.parameters.get("task"), "f1")
         by_split: dict[str, list[MetricsTable]] = {}
         for table in run.metrics_tables():
-            if table.foreign_table_url is None or "f1" not in table.columns or "epoch" not in table.columns:
+            if table.foreign_table_url is None or metric not in table.columns or ("epoch" not in table.columns and "epoch" not in table.constants):
                 continue
             by_split.setdefault(str(table.constants.get("split") or "all"), []).append(table)
 
@@ -1337,11 +1358,13 @@ def create_app(
             records: list[dict[str, Any]] = []
             source_url = str(tables[0].foreign_table_url)
             for table in tables:
-                data = table.to_arrow().select([c for c in ("example_id", "epoch", "tp", "fp", "fn", "f1") if c in table.columns]).to_pylist()
+                data = table.to_arrow().select([c for c in ("example_id", "epoch", "tp", "fp", "fn", metric) if c in table.columns]).to_pylist()
                 for record in data:
                     record["_src"] = str(table.foreign_table_url)
+                    if "epoch" not in record:
+                        record["epoch"] = table.constants["epoch"]
                 records.extend(data)
-            stats = image_learning(records, good=good)
+            stats = image_learning(records, good=good, score=metric)
             epochs = sorted({e for s_ in stats.values() for e in s_["epochs"]})
             try:
                 source = Table.from_url(source_url)
@@ -1394,6 +1417,7 @@ def create_app(
             "name": run.name,
             "good": good,
             "tracks_learning": bool(run.parameters.get("tracks_learning")),
+            "metric": metric,
             "splits": splits,
         }
 
@@ -1859,6 +1883,17 @@ def create_app(
         train_table = str(run.parameters.get("train_table") or "")
         return data[split]["table"] != train_table if train_table else split != "train"
 
+    @app.get("/api/runs/compare-vision")
+    def compare_vision_runs(baseline: str = Query(...), candidate: str = Query(...), split: str | None = Query(None)) -> dict[str, Any]:
+        from granum.metrics.task_comparison import compare_vision
+
+        left, right = _run_at(baseline), _run_at(candidate)
+        limits.check([*left.metrics_tables(), *right.metrics_tables()], "Run comparison")
+        try:
+            return compare_vision(left, right, split)
+        except GranumError as exc:
+            raise _error(400, str(exc)) from exc
+
     @app.get("/api/runs/compare")
     def runs_compare(
         baseline: str = Query(...),
@@ -2005,6 +2040,13 @@ def create_app(
         source = _table_at(table)
         if example >= len(source):
             raise _error(404, f"{source.name} has no image {example}")
+        if run.parameters.get("task") in ("classify", "semantic"):
+            from granum.metrics.task_comparison import vision_image_rounds
+
+            try:
+                return vision_image_rounds(run, source, example)
+            except GranumError as exc:
+                raise _error(400, str(exc)) from exc
         box_column = next((n for n in source.columns if isinstance(source.schema[n], Geometry2DSchema)), None)
         if box_column is None:
             raise _error(400, f"{source.name} has no boxes")
@@ -2312,6 +2354,7 @@ def create_app(
         from granum.core.curation import CurationError, image_column
         from granum.core.tags import TagStore
         from granum.core.url import sample_key
+        from granum.formats._common import root_producer
 
         log = _qa_log(project, dataset)
         source = _table_at(table)
@@ -2330,6 +2373,8 @@ def create_app(
         box_column = next((n for n in source.columns if isinstance(source.schema[n], Geometry2DSchema)), None)
         value = (record.get(box_column) or {}) if box_column else {}
         value_map = (source.schema[box_column].value_map or {}) if box_column else {}
+        origin = root_producer(source, "from_coco")
+        categories = origin.get("categories") or []
         return {
             "image": image,
             "row": row,
@@ -2340,6 +2385,7 @@ def create_app(
             "width": value.get("width"),
             "height": value.get("height"),
             "labels": {str(k): (v.display_name or v.internal_name) for k, v in value_map.items()},
+            "pose_categories": {str(c["id"]): {"names": c.get("keypoints", []), "skeleton": c.get("skeleton", [])} for c in categories if c.get("keypoints") or c.get("skeleton")},
             "boxes": value.get("instances", []),
             # The tags on this image's own boxes, keyed as they are addressed: the inspector
             # is where a box is picked, so it is where one gets a word put on it.
@@ -3012,7 +3058,7 @@ def create_app(
         probe = (
             "import json, importlib.util as u\n"
             "out = {'ultralytics': bool(u.find_spec('ultralytics')), 'torch': bool(u.find_spec('torch')),"
-            " 'rfdetr': bool(u.find_spec('rfdetr'))}\n"
+            " 'rfdetr': bool(u.find_spec('rfdetr')), 'torchvision': bool(u.find_spec('torchvision'))}\n"
             "if out['torch']:\n"
             "    import torch\n"
             "    out['gpu'] = torch.cuda.get_device_name(0) if torch.cuda.is_available() else None\n"
@@ -3083,7 +3129,7 @@ def create_app(
 
     def _running_model_job() -> Any:
         """A training or a label check: one machine, one GPU, so each waits for the other."""
-        return _running_training() or _running_screening()
+        return next((j for j in jobs.all() if j.kind in {"training", "screening", "prelabel", "segmentation"} and j.status == "running"), None)
 
     def _rfdetr_steps(record: Any) -> Any:
         """In-round progress for RF-DETR trainers started before they reported steps: its own
@@ -3140,6 +3186,7 @@ def create_app(
     def _resume_trainers() -> None:
         """Reattach to trainers that survived a restart; mark abandoned dashboard runs interrupted."""
         from granum.service import trainers
+        from granum.service.segmentation import finish_segment
 
         live: set[tuple[str, str]] = set()
         for record in trainers.TrainerRecord.load_all(str(config.project_root)):
@@ -3147,15 +3194,25 @@ def create_app(
                 live.add((record.project, record.run_name))
                 # A label check survives a restart exactly as a training run does, and is
                 # followed the same way; only what it is called differs.
-                checking = record.module == trainers.SCREEN_MODULE
-                job = jobs.start("screening" if checking else "training", lambda job, record=record, checking=checking: trainers.follow(
-                    job, record, None, _finish_screening if checking else _finish_training,
-                    fallback_step=None if checking else _rfdetr_steps(record)))
+                kind, finish = {trainers.SCREEN_MODULE: ("screening", _finish_screening),
+                                trainers.PRELABEL_MODULE: ("prelabel", _finish_prelabel),
+                                trainers.SEGMENT_MODULE: ("segmentation", finish_segment)}.get(record.module, ("training", _finish_training))
+                job = jobs.start(kind, lambda job, record=record, kind=kind, finish=finish: trainers.follow(
+                    job, record, None, finish,
+                    fallback_step=_rfdetr_steps(record) if kind == "training" else None))
                 job.payload = record.project
                 job.started = record.started  # elapsed time counts from when training began
             else:
-                trainers.finish_run(ProjectLayout(config.project_root).run(record.project, record.run_name), False, None)
-                record.remove()
+                if record.module in (trainers.SEGMENT_MODULE, trainers.PRELABEL_MODULE):
+                    # These workers write a proposal/dataset, not a Run. Finalize their
+                    # actual output after a restart, including temporary-mask cleanup.
+                    kind, finish = ("segmentation", finish_segment) if record.module == trainers.SEGMENT_MODULE else ("prelabel", _finish_prelabel)
+                    job = jobs.start(kind, lambda job, record=record, finish=finish: trainers.follow(job, record, None, finish))
+                    job.payload = record.project
+                    job.started = record.started
+                else:
+                    trainers.finish_run(ProjectLayout(config.project_root).run(record.project, record.run_name), False, None)
+                    record.remove()
         for entry in index.runs():
             if (entry.project_name, entry.name) in live:
                 continue
@@ -3201,8 +3258,9 @@ def create_app(
             raise _error(400, f"{chosen['name']} is not installed on this computer: {chosen['install_hint']}")
         if request.version not in [v["id"] for v in chosen["versions"]]:
             raise _error(400, f"{chosen['name']} versions are {[v['id'] for v in chosen['versions']]}")
-        if request.image_size not in (640, 960, 1280):
-            raise _error(400, "image_size must be 640, 960 or 1280")
+        sizes = chosen.get("image_sizes", [640, 960, 1280])
+        if request.image_size not in sizes:
+            raise _error(400, f"image_size must be one of {sizes}")
         tables = {str(e.url): e for e in index.tables(request.project)}
         chosen_tables = [request.train_table, request.valid_table, *([request.test_table] if request.test_table else [])]
         for url in chosen_tables:
@@ -3235,6 +3293,23 @@ def create_app(
                     _qa_log(request.project, selected_release["dataset"]).require_approved(request.release_id, chosen_tables)
                 except GranumError as exc:
                     raise _error(409, str(exc)) from exc
+
+        from granum.training.data import validate_training
+        from granum.training.models import task_for_version
+
+        if request.compare_with:
+            earlier_entry = next(e for e in index.runs(request.project) if e.name == request.compare_with)
+            earlier = _run_at(str(earlier_entry.url))
+            if earlier.parameters.get("task", "detect") != task_for_version(request.version):
+                raise _error(400, "comparison requires the same prediction task")
+        try:
+            validate_training({key: _table_at(url) for key, url in
+                               [("train", request.train_table), ("valid", request.valid_table), ("test", request.test_table)] if url},
+                              task_for_version(request.version))
+        except (GranumError, OSError, ValueError) as exc:
+            raise _error(400, str(exc)) from exc
+        if name in runs:
+            raise _error(409, "choose a new run name; an existing run must not be overwritten")
 
         from granum.cli.desktop import app_executable, running_appimage
         from granum.service import trainers
@@ -3342,7 +3417,7 @@ def create_app(
             done = 0
             if request.format == "yolo":
                 # YOLO wants every split in one tree, so it is written in one call.
-                data_yaml = export_yolo(tables, folder, image_strategy=strategy)
+                data_yaml = export_yolo(tables, folder, image_strategy=strategy, task=request.yolo_task)
                 written.append({"set": "all", "path": str(data_yaml), "images": images})
                 done = images
                 job.progress("Writing", done, images)
@@ -4092,7 +4167,9 @@ def create_app(
 
         for child in children:
             name = child.name.lower()
-            if child.is_file() and name in ("data.yaml", "data.yml", "dataset.yaml"):
+            if child.is_file() and name == "semantic.json":
+                found.append(source("semantic", child, root.name or "train"))
+            elif child.is_file() and name in ("data.yaml", "data.yml", "dataset.yaml"):
                 try:
                     import yaml as yaml_module
 
@@ -4173,7 +4250,9 @@ def create_app(
             raise _error(400, f"format must be coco or one of {sorted(CONVERTERS)}")
         try:
             if item.format == "yolo":
-                payload = convert(annotations, item.yolo_split or item.split or "train")
+                payload = convert(annotations, item.yolo_split or item.split or "train", task=item.yolo_task)
+            elif item.format == "semantic":
+                payload = convert(annotations, images_dir=images, check_path=_check_import_path)
             elif item.format in ("voc", "kitti"):
                 payload = convert(annotations, images_dir=images)
             elif item.format == "csv":
@@ -4406,6 +4485,14 @@ def create_app(
         for job_id in [k for k in preflight_media if k not in live]:
             preflight_media.pop(job_id, None)
         return any(resolved in urls for urls in preflight_media.values())
+
+    from granum.service.analysis import register_analysis
+    from granum.service.compute import register_compute
+    from granum.service.segmentation import register_segmentation
+
+    register_analysis(app, table_at=_table_at, run_at=_run_at, jobs=jobs, index=index, config=config)
+    register_compute(app, table_at=_table_at, jobs=jobs, index=index, config=config)
+    register_segmentation(app, table_at=_table_at, jobs=jobs, environment=_training_environment, busy=_running_model_job, config=config)
 
     # -- dashboard ------------------------------------------------------------
 

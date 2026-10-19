@@ -114,10 +114,18 @@ class Predictor:
         self._captured = {}
         model_input = self.preprocess(batch) if self.preprocess is not None else batch
 
-        if self.eval_mode and hasattr(self.model, "eval"):
-            self.model.eval()
-
-        outputs = self._forward(model_input)
+        # A collection pass can run inside training. Restore each module's original
+        # state, including intentionally frozen/eval submodules, even if forward fails.
+        modes = [(module, module.training) for module in self.model.modules()] if (
+            self.eval_mode and hasattr(self.model, "modules")
+        ) else []
+        try:
+            if self.eval_mode and hasattr(self.model, "eval"):
+                self.model.eval()
+            outputs = self._forward(model_input)
+        finally:
+            for module, training in modes:
+                module.training = training
         return Prediction(outputs=outputs, activations=dict(self._captured))
 
     def _forward(self, model_input: Any) -> Any:

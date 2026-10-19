@@ -63,6 +63,11 @@
 .doc-nav-home:hover { background: var(--mist); text-decoration: none; }
 .doc-nav-home.on { color: var(--brand); background: var(--brand-tint); }
 .doc-nav-group { margin-bottom: 20px; }
+.doc-nav-group summary { cursor: pointer; line-height: 1.5; }
+.doc-nav-group summary::marker { color: var(--brand); }
+.doc-nav-group summary:focus-visible { outline: 2px solid var(--brand); outline-offset: 4px; }
+.doc-nav-group[open] summary { color: var(--ink); }
+.doc-nav li .doc-status { display: table; margin-top: 5px; font-size: 10px; }
 .doc-nav-title {
   font: 600 11.5px/1 var(--sans); letter-spacing: .08em; text-transform: uppercase;
   color: var(--text-3); padding: 0 10px; margin-bottom: 8px;
@@ -85,6 +90,17 @@
 .doc-crumb a:hover { color: var(--brand); }
 
 .doc-article h1 { font-size: clamp(32px, 4vw, 42px); line-height: 1.1; letter-spacing: -.03em; }
+.doc-status {
+  display: inline-block; width: fit-content; padding: 3px 8px; border-radius: 5px;
+  font: 600 11px/1.5 var(--sans); letter-spacing: .01em;
+}
+.doc-status.available { background: #e8f4ed; color: #195f3a; }
+.doc-status.partial { background: #fff3db; color: #805310; }
+.doc-status.planned { background: #eef0f4; color: #50586a; }
+.doc-article > .doc-status { margin: 0 0 12px; }
+.doc-section li span.doc-status { display: inline-block; font-size: 11px; }
+.doc-article td .doc-status { white-space: nowrap; }
+.doc-search-box li .doc-status { margin: 4px 0; }
 .doc-summary { font-size: 19px; line-height: 1.55; color: var(--text-2); margin-top: 14px; }
 .doc-article h2 {
   font-size: 24px; line-height: 1.25; margin: 52px 0 14px; padding-top: 18px;

@@ -7,3 +7,9 @@
 __pycache__/
 .pytest_cache/
 .vercel
+
+# Documentation chapters named "data" are published content, not local datasets.
+!/docs_src/data/
+!/docs_src/data/**
+!/public/docs/data/
+!/public/docs/data/**

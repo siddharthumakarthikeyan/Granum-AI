@@ -14,6 +14,7 @@ from typing import Any
 #: Task id -> display name, in the order the import form lists them.
 TASKS: dict[str, str] = {
     "object_detection": "Object detection",
+    "oriented_object_detection": "Oriented object detection",
     "instance_segmentation": "Instance segmentation",
     "semantic_segmentation": "Semantic segmentation",
     "panoptic_segmentation": "Panoptic segmentation",
@@ -52,11 +53,13 @@ def _covers_image(annotation: dict[str, Any], image: dict[str, Any] | None) -> b
 
 def detect_task(splits: Iterable[Any]) -> dict[str, Any]:
     """Suggest a task from parsed COCO splits (``ParsedSplit``), with the counts behind it."""
-    counts = {"annotations": 0, "masks": 0, "keypoints": 0, "panoptic": 0, "full_image": 0,
+    counts = {"annotations": 0, "masks": 0, "keypoints": 0, "oriented_boxes": 0, "panoptic": 0, "full_image": 0,
               "labelled_images": 0, "repeated_class_images": 0}
     keypoint_categories = False
+    semantic_manifest = False
     for split in splits:
         coco = split.coco
+        semantic_manifest |= bool(coco.get("granum_semantic"))
         keypoint_categories |= any(isinstance(c, dict) and c.get("keypoints") for c in coco.get("categories", []))
         for image_id, image_annotations in split.annotations_by_image.items():
             if not image_annotations:
@@ -69,6 +72,7 @@ def detect_task(splits: Iterable[Any]) -> dict[str, Any]:
                 counts["annotations"] += 1
                 counts["masks"] += _has_mask(annotation)
                 counts["keypoints"] += _has_keypoints(annotation)
+                counts["oriented_boxes"] += isinstance(annotation.get("obb"), list) and len(annotation["obb"]) == 8
                 counts["panoptic"] += "segments_info" in annotation
                 category = annotation.get("category_id")
                 repeated |= category in seen
@@ -78,8 +82,12 @@ def detect_task(splits: Iterable[Any]) -> dict[str, Any]:
             counts["repeated_class_images"] += repeated
 
     total = counts["annotations"]
-    if counts["panoptic"]:
+    if semantic_manifest:
+        task, reason = "semantic_segmentation", "class-ID masks declared by a semantic dataset manifest"
+    elif counts["panoptic"]:
         task, reason = "panoptic_segmentation", "annotations carry panoptic segments_info"
+    elif counts["oriented_boxes"]:
+        task, reason = "oriented_object_detection", f"{counts['oriented_boxes']:,} annotations have oriented corners"
     elif counts["keypoints"] or (keypoint_categories and total):
         task, reason = "keypoint_detection", f"{counts['keypoints']:,} annotations have keypoints"
     elif counts["masks"] and counts["masks"] >= 0.5 * total:
@@ -105,6 +113,8 @@ def task_warning(task: str, counts: dict[str, int]) -> str | None:
         return f"{name}: the annotation files have no panoptic segments."
     if task == "keypoint_detection" and not counts.get("keypoints"):
         return f"{name}: the annotation files have no keypoints."
+    if task == "oriented_object_detection" and not counts.get("oriented_boxes"):
+        return f"{name}: the annotation files have no oriented corners."
     if task == "classification" and counts.get("labelled_images") and counts.get("full_image", 0) < 0.9 * counts["labelled_images"]:
         return f"{name}: most images have boxes around objects, not one label for the whole image."
     return None

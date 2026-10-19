@@ -24,6 +24,8 @@ import { isActive, isFilterable, makeElementFilters, makeFilter, regionFilterKey
 import { visibleIndices } from "./derive";
 import { draftKey, flushDrafts, scheduleDraft } from "./drafts";
 import { isSessionColumn, sessionColumnInfos, setSession } from "./session";
+import { reconcileAnalysis } from "../analysis/state";
+import { materializeColumns, type VirtualColumn } from "../analysis/virtualColumns";
 
 /** Derived per image: the number of labelled boxes. */
 export const BOX_COUNT_COLUMN = "boxes_per_image";
@@ -100,6 +102,9 @@ export interface OpenOptions {
 }
 
 interface State extends EditActions, BoxActions, BoxState {
+  virtualColumns: VirtualColumn[];
+  analysisError: string | null;
+  setVirtualColumns: (columns: VirtualColumn[]) => string | null;
   // navigation
   page: Page;
   project: string | null;
@@ -224,7 +229,23 @@ export type StoreSet = (
 ) => void;
 export type StoreGet = () => State;
 
-export const useStore = create<State>((set, get) => ({
+export const useStore = create<State>((baseSet, get) => {
+  const set: StoreSet = (partial) => baseSet(previous => {
+    const patch = typeof partial === "function" ? partial(previous) : partial;
+    return patch === previous ? previous : reconcileAnalysis(previous, patch);
+  });
+  return ({
+  virtualColumns: [],
+  analysisError: null,
+  setVirtualColumns: (virtualColumns) => {
+    try {
+      materializeColumns(get().rows, get().columns, virtualColumns);
+      set({ virtualColumns });
+      return null;
+    } catch (error) {
+      return error instanceof Error ? error.message : String(error);
+    }
+  },
   page: "projects",
   project: null,
   projects: [],
@@ -642,7 +663,8 @@ export const useStore = create<State>((set, get) => ({
     columnsCache = { columns, order, hidden, result };
     return result;
   },
-}));
+  });
+});
 
 interface InstallArgs {
   kind: "table" | "run";
@@ -687,6 +709,8 @@ function installObject(previous: State, args: InstallArgs): Partial<State> {
   }
   const address: RowAddressing = { kind: args.kind, sources: args.sources };
   const base = {
+    virtualColumns: args.keepView ? previous.virtualColumns : [],
+    analysisError: null,
     focusedInstance: null,
     dismissed: new Set<string>(),
     staged: new Map<string, "accept" | "reject">(),

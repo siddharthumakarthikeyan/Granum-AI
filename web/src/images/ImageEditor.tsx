@@ -1,3 +1,4 @@
+import { exclusiveMasks, nonemptyMask } from "./semanticEditing";
 /** Edit one image's annotations: boxes, masks (polygons), keypoints and the image label.
  *
  * Tools: V select · B box · P polygon · K keypoint, offered by project type (toolsFor). With select, drag an object to move it,
@@ -15,8 +16,12 @@ import { fileName } from "../review/status";
 import { CROWD_COLOR, labelColor } from "./labelColors";
 import { editorDraftKey } from "../store/editorDrafts";
 import { useEditorDraft } from "../store/useEditorDraft";
+import { MaskOverlay } from "./MaskOverlay";
+import { decodeMask, encodeMask, maskBounds, paintMask, polygonsToMask, rleCounts, translateMask } from "./masks";
+import { fitOriented, orientedBox, orientedCorners, resizeOriented } from "./oriented";
+import { SamPanel, type SamPoint } from "./SamPanel";
 
-type Tool = "select" | "box" | "polygon" | "keypoint";
+type Tool = "select" | "box" | "polygon" | "keypoint" | "brush" | "eraser" | "oriented" | "sam-positive" | "sam-negative";
 
 /** One object as the editor holds it; converted back to a stored instance on save. */
 interface Shape {
@@ -25,7 +30,7 @@ interface Shape {
   crowd: boolean;
   /** Mask polygons, flat [x, y, x, y, ...] each. */
   polygons: number[][];
-  /** A run-length mask: kept as it is, it cannot be edited here. */
+  /** A lossless COCO bitmap, edited with the paint and erase tools. */
   rle: unknown;
   /** COCO keypoints, [x, y, visibility] triples. */
   keypoints: number[];
@@ -43,6 +48,8 @@ type Drag =
   | { kind: "handle"; handle: number; origin: Shape }
   | { kind: "vertex"; polygon: number; at: number }
   | { kind: "keypoint"; at: number }
+  | { kind: "oriented-handle"; at: number; origin: Shape }
+  | { kind: "rotate"; origin: Shape; start: [number, number] }
   | { kind: "draw"; start: [number, number]; end: [number, number] }
   | { kind: "pan"; start: [number, number]; view: View };
 
@@ -51,8 +58,11 @@ interface View { x: number; y: number; w: number; h: number }
 const TOOLS: { id: Tool; label: string; key: string; hint: string }[] = [
   { id: "select", label: "Select", key: "V", hint: "Move, resize and reshape" },
   { id: "box", label: "Box", key: "B", hint: "Drag to draw a box" },
+  { id: "oriented", label: "Oriented box", key: "O", hint: "Draw a rectangle, then use its rotation handle" },
   { id: "polygon", label: "Polygon", key: "P", hint: "Click points; click the first point or press Enter to close" },
   { id: "keypoint", label: "Keypoint", key: "K", hint: "Click to add a point to the selected object, or to start a new object; Esc starts the next one" },
+  { id: "brush", label: "Paint", key: "M", hint: "Paint pixels onto the selected object's mask; Esc starts a new object" },
+  { id: "eraser", label: "Erase", key: "E", hint: "Erase pixels from the selected mask" },
 ];
 
 /** The drawing tools a project's types call for; projects from before types are detection. */
@@ -60,7 +70,8 @@ export function toolsFor(tasks: TaskId[] | undefined | null): Tool[] {
   const chosen = new Set<TaskId>(tasks?.length ? tasks : ["object_detection"]);
   const drawing: Tool[] = [];
   if (chosen.has("object_detection")) drawing.push("box");
-  if (chosen.has("instance_segmentation") || chosen.has("semantic_segmentation") || chosen.has("panoptic_segmentation")) drawing.push("polygon");
+  if (chosen.has("oriented_object_detection")) drawing.push("oriented");
+  if (chosen.has("instance_segmentation") || chosen.has("semantic_segmentation") || chosen.has("panoptic_segmentation")) drawing.push("polygon", "brush", "eraser");
   if (chosen.has("keypoint_detection")) drawing.push("keypoint");
   return drawing.length ? ["select", ...drawing] : [];
 }
@@ -134,7 +145,9 @@ function toInstance(shape: Shape, declared: Set<string>): QaBox {
   const out: QaBox = { ...shape.props, vertices: box, label: shape.label };
   if (declared.has("iscrowd") || "iscrowd" in shape.props) out.iscrowd = shape.crowd;
   if (declared.has("area") && (shape.moved || shape.props.area === null || shape.props.area === undefined)) {
-    out.area = round(shape.polygons.length ? shape.polygons.reduce((n, p) => n + polygonArea(p), 0) : (box[2]! - box[0]!) * (box[3]! - box[1]!));
+    out.area = round(shape.rle ? rleCounts(shape.rle).counts.reduce((sum, n, i) => sum + (i % 2 ? n : 0), 0)
+      : shape.polygons.length ? shape.polygons.reduce((n, p) => n + polygonArea(p), 0)
+      : orientedBox(shape.extra.obb) ? polygonArea(shape.extra.obb as number[]) : (box[2]! - box[0]!) * (box[3]! - box[1]!));
   }
   if (declared.has("segmentation")) {
     out.segmentation = shape.polygons.length
@@ -185,6 +198,10 @@ export function ImageEditor({ project, dataset, tasks, items, index, onIndex, on
   const [saving, setSaving] = useState<"idle" | "saving" | "saved">("idle");
   const [newClass, setNewClass] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [brushSize, setBrushSize] = useState(24);
+  const [samPoints, setSamPoints] = useState<SamPoint[]>([]);
+  const [samPreview, setSamPreview] = useState<unknown>(null);
+  const paintRef = useRef<{ at: number; previous: [number, number]; arrays: Map<number, Uint8Array>; shapes: Shape[]; erase: boolean } | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const dirty = past.length > 0 || addedClasses;
@@ -202,6 +219,7 @@ export function ImageEditor({ project, dataset, tasks, items, index, onIndex, on
 
   const width = detail?.width ?? 0;
   const height = detail?.height ?? 0;
+  useEffect(() => { setSamPoints([]); setSamPreview(null); }, [item.image]);
   const fit = useCallback(() => setView({ x: 0, y: 0, w: width || 1, h: height || 1 }), [width, height]);
   const tools = useMemo(() => toolsFor(tasks), [tasks]);
   const toolsRef = useRef(tools);
@@ -218,6 +236,7 @@ export function ImageEditor({ project, dataset, tasks, items, index, onIndex, on
     let alive = true;
     setError(null);
     setDetail(null);
+    paintRef.current = null;
     api.qaImage(project, dataset, item.table, item.image)
       .then((next) => {
         if (!alive) return;
@@ -271,9 +290,15 @@ export function ImageEditor({ project, dataset, tasks, items, index, onIndex, on
     });
   }, []);
 
-  const update = (at: number, change: (shape: Shape) => Shape) => commit((was) => was.map((s, i) => (i === at ? change(s) : s)));
+  const semantic = tasks?.includes("semantic_segmentation") || tasks?.includes("panoptic_segmentation");
+  const normalizeMasks = (next: Shape[], at: number) => semantic ? exclusiveMasks(next, at, width, height, tasks?.includes("panoptic_segmentation")) : next;
+  const update = (at: number, change: (shape: Shape) => Shape) => {
+    try { commit(normalizeMasks(shapes.map((s, i) => i === at ? change(s) : s), at)); }
+    catch (e) { setError(e instanceof Error ? e.message : String(e)); }
+  };
 
   const undo = () => {
+    if (paintRef.current || drag) return;
     const previous = past[past.length - 1];
     if (!previous) return;
     setFuture((f) => [shapes, ...f]);
@@ -283,6 +308,7 @@ export function ImageEditor({ project, dataset, tasks, items, index, onIndex, on
     if (selected !== null && selected >= previous.length) setSelected(null);
   };
   const redo = () => {
+    if (paintRef.current || drag) return;
     const next = future[0];
     if (!next) return;
     setPast((p) => [...p, shapes]);
@@ -307,7 +333,7 @@ export function ImageEditor({ project, dataset, tasks, items, index, onIndex, on
       return;
     }
     if (pick?.kind === "keypoint") {
-      update(selected, (s) => withKeypoints(s, s.keypoints.filter((_, j) => j < pick.at || j >= pick.at + 3)));
+      update(selected, (s) => withKeypoints(s, s.keypoints.map((v, j) => j >= pick.at && j < pick.at + 3 ? 0 : v)));
       setPick(null);
       return;
     }
@@ -320,6 +346,7 @@ export function ImageEditor({ project, dataset, tasks, items, index, onIndex, on
 
   // -- saving ---------------------------------------------------------------
   const save = async (): Promise<boolean> => {
+    if (paintRef.current || drag) { setError("Finish the current drawing gesture before saving."); return false; }
     if (saveInFlight.current || recovery.blocked) return false;
     if (draft.length) { setError("Finish or cancel the polygon before saving or leaving this image."); return false; }
     if (!dirty || !detail?.box_column) return true;
@@ -330,11 +357,12 @@ export function ImageEditor({ project, dataset, tasks, items, index, onIndex, on
       const needs: Record<string, string> = {};
       if (shapes.some((s) => s.polygons.length || s.rle) && !declared.has("segmentation")) needs.segmentation = "string";
       if (shapes.some((s) => s.keypoints.length || Object.keys(s.extra).length) && !declared.has("coco_extra")) needs.coco_extra = "string";
+      for (const key of ["source", "model"]) if (shapes.some((s) => typeof s.props[key] === "string") && !declared.has(key)) needs[key] = "string";
       const keys = new Set([...declared, ...Object.keys(needs)]);
       const valueMap = Object.fromEntries(Object.entries(labels).map(([id, name]) => [id, { internal_name: name }])) as unknown as ValueMap;
       const saved = await api.commit({
         url: detail.table,
-        values: { [detail.box_column]: { [String(detail.row)]: { width, height, instances: shapes.map((s) => toInstance(s, keys)) } } },
+        values: { [detail.box_column]: { [String(detail.row)]: { width, height, instances: (semantic ? shapes.filter(nonemptyMask) : shapes).map((s) => toInstance(s, keys)) } } },
         new_columns: {},
         value_maps: addedClasses ? { [detail.box_column]: valueMap } : {},
         instance_properties: Object.keys(needs).length ? { [detail.box_column]: needs } : {},
@@ -377,6 +405,44 @@ export function ImageEditor({ project, dataset, tasks, items, index, onIndex, on
   };
   const clamp = ([x, y]: [number, number]): [number, number] => [Math.min(width, Math.max(0, x)), Math.min(height, Math.max(0, y))];
 
+  const withOriented = (shape: Shape, points: number[]): Shape => {
+    const fitted = fitOriented(points, width, height);
+    return { ...shape, box: boundsOf([fitted])!, extra: { ...shape.extra, obb: fitted }, moved: true };
+  };
+
+  const paintTo = (point: [number, number]) => {
+    const stroke = paintRef.current;
+    if (!stroke) return;
+    const next = stroke.shapes.map((shape, at) => {
+      const pixels = stroke.arrays.get(at);
+      if (!pixels) return shape;
+      paintMask(pixels, width, height, stroke.previous, point, brushSize / 2, at === stroke.at && !stroke.erase ? 1 : 0);
+      return { ...shape, rle: encodeMask(pixels, width, height), polygons: [], box: maskBounds(pixels, width, height), moved: true };
+    });
+    stroke.previous = point;
+    stroke.shapes = next;
+    setShapes(next);
+  };
+
+  const beginPaint = (point: [number, number]): boolean => {
+    if (tool === "eraser" && selected === null) { setNotice("Select a mask to erase."); return false; }
+    const at = selected ?? shapes.length;
+    const next = selected === null ? [...shapes, { box: [0, 0, 0, 0] as Shape["box"], label: drawLabel, crowd: false, polygons: [], rle: null, keypoints: [], props: {}, extra: {}, moved: true }] : shapes;
+    const semantic = tasks?.includes("semantic_segmentation") || tasks?.includes("panoptic_segmentation");
+    const arrays = new Map<number, Uint8Array>();
+    try {
+      for (let i = 0; i < next.length; i++) if (i === at || (semantic && tool === "brush" && (next[i]!.rle || next[i]!.polygons.length))) {
+        if ((arrays.size + 1) * width * height > 128_000_000) throw new Error("Too many large masks to paint together; use polygons for this image.");
+        const shape = next[i]!;
+        arrays.set(i, shape.rle ? decodeMask(shape.rle, width, height) : polygonsToMask(shape.polygons, width, height));
+      }
+    } catch (e) { setError(e instanceof Error ? e.message : String(e)); return false; }
+    setPast((p) => [...p.slice(-99), shapes]); setFuture([]); setSelected(at); setPick(null);
+    paintRef.current = { at, previous: point, arrays, shapes: next, erase: tool === "eraser" };
+    paintTo(point);
+    return true;
+  };
+
   const finishPolygon = (points: number[]) => {
     if (points.length < 6) {
       setDraft([]);
@@ -386,11 +452,17 @@ export function ImageEditor({ project, dataset, tasks, items, index, onIndex, on
     if (selected !== null) {
       // A second part for the selected object's mask.
       update(selected, (s) => {
+        if (s.rle) {
+          const pixels = decodeMask(s.rle, width, height), added = polygonsToMask([points], width, height);
+          for (let i = 0; i < pixels.length; i++) if (added[i]) pixels[i] = 1;
+          return { ...s, rle: encodeMask(pixels, width, height), box: maskBounds(pixels, width, height), moved: true };
+        }
         const polygons = [...s.polygons, points];
         return { ...s, polygons, box: boundsOf(polygons)!, moved: true };
       });
     } else {
-      commit((was) => [...was, { box: bounds, label: drawLabel, crowd: false, polygons: [points], rle: null, keypoints: [], props: {}, extra: {}, moved: true }]);
+      try { commit(normalizeMasks([...shapes, { box: bounds, label: drawLabel, crowd: false, polygons: [points], rle: null, keypoints: [], props: {}, extra: {}, moved: true }], shapes.length)); }
+      catch (e) { setError(e instanceof Error ? e.message : String(e)); return; }
       setSelected(shapes.length);
     }
     setDraft([]);
@@ -410,7 +482,17 @@ export function ImageEditor({ project, dataset, tasks, items, index, onIndex, on
     const role = target.getAttribute("data-role");
     const at = Number(target.getAttribute("data-shape"));
 
-    if (tool === "box") {
+    if (tool === "sam-positive" || tool === "sam-negative") {
+      if (samPoints.length >= 128) { setNotice("SAM supports at most 128 prompt points."); return; }
+      setSamPoints((points) => [...points, { point: clamp(point), label: tool === "sam-positive" ? 1 : 0 }]);
+      return;
+    }
+
+    if (tool === "brush" || tool === "eraser") {
+      if (beginPaint(clamp(point))) event.currentTarget.setPointerCapture(event.pointerId);
+      return;
+    }
+    if (tool === "box" || tool === "oriented") {
       event.currentTarget.setPointerCapture(event.pointerId);
       const p = clamp(point);
       setDrag({ kind: "draw", start: p, end: p });
@@ -424,6 +506,24 @@ export function ImageEditor({ project, dataset, tasks, items, index, onIndex, on
     }
     if (tool === "keypoint") {
       const p = clamp(point);
+      const shape = selected === null ? null : shapes[selected]!;
+      const names = detail.pose_categories?.[String(shape?.label ?? drawLabel)]?.names ?? [];
+      if (names.length) {
+        const keypoints = shape?.keypoints.length ? [...shape.keypoints] : Array<number>(names.length * 3).fill(0);
+        if (keypoints.length !== names.length * 3) { setError("This object's keypoints do not match its class layout. Remove its keypoints to redraw them."); return; }
+        const missing = names.findIndex((_, i) => keypoints[i * 3 + 2] === 0) * 3;
+        const at = pick?.kind === "keypoint" ? pick.at : missing;
+        if (at < 0 || at >= keypoints.length) { setNotice("All keypoints are placed. Select a named point to reposition it."); return; }
+        keypoints.splice(at, 3, p[0], p[1], 2);
+        if (shape && selected !== null) update(selected, s => withKeypoints(s, keypoints));
+        else {
+          const blank: Shape = { box: [p[0], p[1], p[0], p[1]], label: drawLabel, crowd: false, polygons: [], rle: null, keypoints: [], props: {}, extra: {}, moved: true };
+          commit(was => [...was, withKeypoints(blank, keypoints)]); setSelected(shapes.length);
+        }
+        const next = names.findIndex((_, i) => keypoints[i * 3 + 2] === 0);
+        setPick(next < 0 ? null : { kind: "keypoint", at: next * 3 });
+        return;
+      }
       if (selected === null) {
         // A new object, starting from this point.
         const blank: Shape = { box: [p[0], p[1], p[0], p[1]], label: drawLabel, crowd: false, polygons: [], rle: null, keypoints: [], props: {}, extra: {}, moved: true };
@@ -431,12 +531,20 @@ export function ImageEditor({ project, dataset, tasks, items, index, onIndex, on
         setSelected(shapes.length);
         return;
       }
-      update(selected, (s) => withKeypoints(s, [...s.keypoints, p[0], p[1], 2]));
+      update(selected, (s) => withKeypoints(s, pick?.kind === "keypoint"
+        ? s.keypoints.map((v, i) => i === pick.at ? p[0] : i === pick.at + 1 ? p[1] : i === pick.at + 2 ? 2 : v)
+        : [...s.keypoints, p[0], p[1], 2]));
       return;
     }
 
     // Select tool.
     event.currentTarget.setPointerCapture(event.pointerId);
+    if ((role === "oriented-handle" || role === "rotate") && selected !== null) {
+      setPast((p) => [...p.slice(-99), shapes]); setFuture([]);
+      setDrag(role === "rotate" ? { kind: "rotate", origin: shapes[selected]!, start: point }
+        : { kind: "oriented-handle", at: Number(target.getAttribute("data-corner")), origin: shapes[selected]! });
+      return;
+    }
     if (role === "handle" && selected !== null) {
       setPast((p) => [...p.slice(-99), shapes]);
       setFuture([]);
@@ -476,6 +584,7 @@ export function ImageEditor({ project, dataset, tasks, items, index, onIndex, on
   const onPointerMove = (event: React.PointerEvent<SVGSVGElement>) => {
     const point = toImage(event);
     setCursor(point);
+    if (paintRef.current) { paintTo(clamp(point)); return; }
     if (!drag) return;
     if (drag.kind === "pan") {
       const dx = (event.clientX - drag.start[0]) / scale;
@@ -496,12 +605,21 @@ export function ImageEditor({ project, dataset, tasks, items, index, onIndex, on
       let dy = point[1] - drag.start[1];
       dx = Math.min(width - Math.max(o.box[0], o.box[2]), Math.max(-Math.min(o.box[0], o.box[2]), dx));
       dy = Math.min(height - Math.max(o.box[1], o.box[3]), Math.max(-Math.min(o.box[1], o.box[3]), dy));
+      if (o.rle) { dx = Math.round(dx); dy = Math.round(dy); }
       set(() => ({
         ...o, moved: true,
         box: [o.box[0] + dx, o.box[1] + dy, o.box[2] + dx, o.box[3] + dy],
         polygons: o.polygons.map((p) => p.map((v, i) => v + (i % 2 === 0 ? dx : dy))),
+        rle: o.rle ? translateMask(o.rle, dx, dy) : null,
+        extra: orientedBox(o.extra.obb) ? { ...o.extra, obb: (o.extra.obb as number[]).map((v, i) => v + (i % 2 ? dy : dx)) } : o.extra,
         keypoints: o.keypoints.map((v, i) => (i % 3 === 0 ? v + dx : i % 3 === 1 ? v + dy : v)),
       }));
+    } else if (drag.kind === "rotate") {
+      const box = orientedBox(drag.origin.extra.obb)!;
+      const angle = box.angle + Math.atan2(point[1] - box.cy, point[0] - box.cx) - Math.atan2(drag.start[1] - box.cy, drag.start[0] - box.cx);
+      set((s) => withOriented(s, orientedCorners({ ...box, angle })));
+    } else if (drag.kind === "oriented-handle") {
+      set((s) => withOriented(s, resizeOriented(drag.origin.extra.obb as number[], drag.at, clamp(point))));
     } else if (drag.kind === "handle") {
       const [x, y] = clamp(point);
       const [x0, y0, x1, y1] = drag.origin.box;
@@ -527,13 +645,20 @@ export function ImageEditor({ project, dataset, tasks, items, index, onIndex, on
   };
 
   const onPointerUp = () => {
+    if (paintRef.current) {
+      const stroke = paintRef.current;
+      const removed = new Set([...stroke.arrays].filter(([, pixels]) => !pixels.some(Boolean)).map(([i]) => i));
+      if (removed.size) { setShapes(stroke.shapes.filter((_, i) => !removed.has(i))); setSelected(null); }
+      paintRef.current = null;
+    }
     if (drag?.kind === "draw") {
       const [x0, y0] = drag.start;
       const [x1, y1] = drag.end;
       if (Math.abs(x1 - x0) >= 3 && Math.abs(y1 - y0) >= 3) {
         commit((was) => [...was, {
           box: [Math.min(x0, x1), Math.min(y0, y1), Math.max(x0, x1), Math.max(y0, y1)], label: drawLabel, crowd: false,
-          polygons: [], rle: null, keypoints: [], props: {}, extra: {}, moved: true,
+          polygons: [], rle: null, keypoints: [], props: {},
+          extra: tool === "oriented" ? { obb: orientedCorners({ cx: (x0 + x1) / 2, cy: (y0 + y1) / 2, width: Math.abs(x1 - x0), height: Math.abs(y1 - y0), angle: 0 }) } : {}, moved: true,
         }]);
         setSelected(shapes.length);
       }
@@ -541,6 +666,10 @@ export function ImageEditor({ project, dataset, tasks, items, index, onIndex, on
     if (drag?.kind === "handle" && selected !== null) {
       // Keep boxes the right way round after dragging a handle past the other side.
       setShapes((was) => was.map((s, i) => (i === selected ? { ...s, box: [Math.min(s.box[0], s.box[2]), Math.min(s.box[1], s.box[3]), Math.max(s.box[0], s.box[2]), Math.max(s.box[1], s.box[3])] } : s)));
+    }
+    if (semantic && selected !== null && drag && ["move", "vertex"].includes(drag.kind)) {
+      try { setShapes(normalizeMasks(shapes, selected)); }
+      catch (e) { setError(e instanceof Error ? e.message : String(e)); const previous = past[past.length - 1]; if (previous) setShapes(previous); }
     }
     setDrag(null);
   };
@@ -675,6 +804,7 @@ export function ImageEditor({ project, dataset, tasks, items, index, onIndex, on
   const labelName = (label: number | null) => (label === null ? "Unlabelled" : labels[String(label)] ?? String(label));
   const colorOf = (shape: Shape) => (shape.crowd ? CROWD_COLOR : labelColor(shape.label));
   const current = selected !== null ? shapes[selected] : undefined;
+  const currentObb = orientedBox(current?.extra.obb);
   const numbered = useMemo(() => {
     const seen = new Map<number | null, number>();
     return shapes.map((s) => {
@@ -734,6 +864,7 @@ export function ImageEditor({ project, dataset, tasks, items, index, onIndex, on
               onPointerDown={onPointerDown}
               onPointerMove={onPointerMove}
               onPointerUp={onPointerUp}
+              onPointerCancel={onPointerUp}
               onPointerLeave={() => setCursor(null)}
               onWheel={onWheel}
               onDoubleClick={onDoubleClick}
@@ -745,14 +876,17 @@ export function ImageEditor({ project, dataset, tasks, items, index, onIndex, on
                 const [x0, y0, x1, y1] = shape.box;
                 return (
                   <g key={i} className={on ? "shape selected" : "shape"}>
+                    {Boolean(shape.rle) && <MaskOverlay value={shape.rle} color={color} selected={on} at={i} />}
+                    {orientedBox(shape.extra.obb) && <polygon data-role="shape" data-shape={i} points={(shape.extra.obb as number[]).join(" ")}
+                      fill={color} fillOpacity={0.08} stroke={color} strokeWidth={px(on ? 2 : 1.3)} />}
                     {shape.polygons.map((p, pi) => (
                       <polygon key={pi} data-role="shape" data-shape={i} points={p.join(" ")}
                         fill={color} fillOpacity={on ? 0.35 : 0.22} stroke={color} strokeWidth={px(on ? 2 : 1.2)} />
                     ))}
-                    <rect data-role="shape" data-shape={i}
+                    {!orientedBox(shape.extra.obb) && <rect data-role="shape" data-shape={i}
                       x={Math.min(x0, x1)} y={Math.min(y0, y1)} width={Math.abs(x1 - x0)} height={Math.abs(y1 - y0)}
                       fill={on ? "rgba(255,255,255,0.06)" : "transparent"} stroke={color} strokeWidth={px(on ? 2 : 1.3)}
-                      strokeDasharray={shape.polygons.length ? `${px(4)} ${px(3)}` : undefined} />
+                      strokeDasharray={shape.polygons.length || shape.rle ? `${px(4)} ${px(3)}` : undefined} />}
                     {on && (
                       <text x={Math.min(x0, x1)} y={Math.min(y0, y1) - px(4)} fontSize={fontSize} fill={color} className="qa-box-label">
                         {labelName(shape.label)}
@@ -767,6 +901,10 @@ export function ImageEditor({ project, dataset, tasks, items, index, onIndex, on
                           cx={kx} cy={ky} r={px(picked ? 6 : 4)} fill={kv === 1 ? "none" : color} stroke={picked ? "#fff" : color} strokeWidth={px(1.5)} />
                       );
                     })}
+                    {(detail.pose_categories?.[String(shape.label)]?.skeleton ?? []).map(([a, b], edge) => {
+                      const ai = (a - 1) * 3, bi = (b - 1) * 3;
+                      return shape.keypoints[ai + 2] && shape.keypoints[bi + 2] ? <line key={`edge${edge}`} x1={shape.keypoints[ai]} y1={shape.keypoints[ai + 1]} x2={shape.keypoints[bi]} y2={shape.keypoints[bi + 1]} stroke={color} strokeWidth={px(1.5)} pointerEvents="none" /> : null;
+                    })}
                   </g>
                 );
               })}
@@ -779,7 +917,13 @@ export function ImageEditor({ project, dataset, tasks, items, index, onIndex, on
                         cx={p[v * 2]} cy={p[v * 2 + 1]} r={px(picked ? 6 : 4.5)} className={picked ? "vertex picked" : "vertex"} />
                     );
                   }))}
-                  {!current.polygons.length && boxHandles(current.box).map(([hx, hy], h) => (
+                  {currentObb && <>
+                    {[0, 1, 2, 3].map((corner) => <circle key={corner} data-role="oriented-handle" data-corner={corner}
+                      cx={(current.extra.obb as number[])[corner * 2]} cy={(current.extra.obb as number[])[corner * 2 + 1]} r={px(5)} className="vertex" />)}
+                    <line x1={currentObb.cx} y1={currentObb.cy} x2={currentObb.cx + Math.sin(currentObb.angle) * (currentObb.height / 2 + px(25))} y2={currentObb.cy - Math.cos(currentObb.angle) * (currentObb.height / 2 + px(25))} stroke="#fff" strokeWidth={px(1)} pointerEvents="none" />
+                    <circle data-role="rotate" cx={currentObb.cx + Math.sin(currentObb.angle) * (currentObb.height / 2 + px(25))} cy={currentObb.cy - Math.cos(currentObb.angle) * (currentObb.height / 2 + px(25))} r={px(6)} fill="#fff" stroke={colorOf(current)} strokeWidth={px(2)} style={{ cursor: "grab" }} />
+                  </>}
+                  {!currentObb && !current.rle && !current.polygons.length && boxHandles(current.box).map(([hx, hy], h) => (
                     <rect key={h} data-role="handle" data-handle={h} x={hx - px(5)} y={hy - px(5)} width={px(10)} height={px(10)} className={`handle handle-${h}`} />
                   ))}
                 </g>
@@ -789,6 +933,12 @@ export function ImageEditor({ project, dataset, tasks, items, index, onIndex, on
                   width={Math.abs(drawing.end[0] - drawing.start[0])} height={Math.abs(drawing.end[1] - drawing.start[1])}
                   stroke={labelColor(drawLabel)} strokeWidth={px(1.5)} />
               )}
+              {Boolean(samPreview) && <g pointerEvents="none"><MaskOverlay value={samPreview} color="#56f0c0" selected at={-1} /></g>}
+              {samPoints.map((p, i) => <g key={`sam${i}`} pointerEvents="none">
+                <circle cx={p.point[0]} cy={p.point[1]} r={px(5)} fill={p.label ? "#58e895" : "#ff6e76"} stroke="#fff" strokeWidth={px(1)} />
+                <text x={p.point[0] + px(8)} y={p.point[1]} fontSize={px(12)} fill="#fff">{p.label ? "+" : "−"}</text>
+              </g>)}
+              {(tool === "brush" || tool === "eraser") && cursor && <circle cx={cursor[0]} cy={cursor[1]} r={brushSize / 2} fill="none" stroke="#fff" strokeWidth={px(1)} pointerEvents="none" />}
               {draft.length > 0 && (
                 <g className="editor-draft">
                   <polyline points={[...draft, ...(cursor ? cursor : [])].join(" ")} stroke={labelColor(drawLabel)} strokeWidth={px(1.5)} fill="none" />
@@ -814,6 +964,10 @@ export function ImageEditor({ project, dataset, tasks, items, index, onIndex, on
         </div>
 
         {!editable && detail && <p className="form-error qa-side-error">This version is read-only.</p>}
+        {(tool === "brush" || tool === "eraser") && <div className="qa-side-section">
+          <label className="field">Brush diameter · {brushSize} pixels<input type="range" min={1} max={200} value={brushSize} onChange={(e) => setBrushSize(Number(e.target.value))} /></label>
+          <p className="faint small">{tasks?.includes("semantic_segmentation") || tasks?.includes("panoptic_segmentation") ? "Painting assigns these pixels to this object and clears them from other masks." : "Paint or erase the selected mask. Press Escape to start a new object."}</p>
+        </div>}
 
         {tools.length > 0 && (
           <div className="qa-side-section">
@@ -847,6 +1001,51 @@ export function ImageEditor({ project, dataset, tasks, items, index, onIndex, on
           </div>
         )}
 
+        {editable && tools.includes("brush") && detail && <SamPanel key={`${item.image}:${detail.table}`}
+          project={project} dataset={dataset} table={detail.table} image={item.image} box={current?.box ?? null} points={samPoints}
+          onRestore={(box, points) => {
+            const at = box ? shapes.findIndex(s => JSON.stringify(s.box) === JSON.stringify(box)) : -1;
+            if (box && at < 0) return false;
+            setSelected(at >= 0 ? at : null); setSamPoints(points); return true;
+          }}
+          onPointTool={(label) => setTool(label ? "sam-positive" : "sam-negative")} onClear={() => setSamPoints([])} onPreview={setSamPreview}
+          onApply={(mask, model) => {
+            try {
+              const pixels = decodeMask(mask, width, height), box = maskBounds(pixels, width, height);
+              if (box[0] >= box[2] || box[1] >= box[3]) throw new Error("The proposed mask is empty.");
+              const apply = (s: Shape): Shape => {
+                const extra = { ...s.extra }; delete extra.obb;
+                return { ...s, box, rle: mask, polygons: [], moved: true,
+                  props: { ...s.props, source: "model", model }, extra: { ...extra, segmentation_assistance: { model, points: samPoints } } };
+              };
+              // Compute the whole change first, so invalid masks never leave a partial edit.
+              const next: Shape[] = [];
+              let selectedIndex = -1;
+              for (let i = 0; i < shapes.length; i++) {
+                let shape = shapes[i]!;
+                if (i === selected) { selectedIndex = next.length; next.push(apply(shape)); continue; }
+                if ((tasks?.includes("semantic_segmentation") || tasks?.includes("panoptic_segmentation")) && (shape.rle || shape.polygons.length)) {
+                  const other = shape.rle ? decodeMask(shape.rle, width, height) : polygonsToMask(shape.polygons, width, height);
+                  let changed = false;
+                  for (let p = 0; p < pixels.length; p++) if (pixels[p] && other[p]) { other[p] = 0; changed = true; }
+                  if (changed) {
+                    const bounds = maskBounds(other, width, height);
+                    if (bounds[0] >= bounds[2] || bounds[1] >= bounds[3]) continue;
+                    shape = { ...shape, rle: encodeMask(other, width, height), polygons: [], box: bounds, moved: true };
+                  }
+                }
+                next.push(shape);
+              }
+              if (selected === null) {
+                selectedIndex = next.length;
+                next.push(apply({ box, label: drawLabel, crowd: false, polygons: [], rle: null, keypoints: [], props: {}, extra: {}, moved: true }));
+              }
+              commit(next); setSelected(selectedIndex);
+              setTool("select"); setSamPoints([]);
+              return true;
+            } catch (e) { setError(e instanceof Error ? e.message : String(e)); return false; }
+          }} />}
+
         {current && (
           <div className="qa-side-section editor-selected">
             <h3 className="qa-side-title">Selected <span className="faint">{labelName(current.label)} #{numbered[selected!]}</span></h3>
@@ -863,16 +1062,20 @@ export function ImageEditor({ project, dataset, tasks, items, index, onIndex, on
             </div>
             <dl className="image-meta">
               <div><dt>Box</dt><dd className="tabular">{Math.round(Math.abs(current.box[2] - current.box[0]))} × {Math.round(Math.abs(current.box[3] - current.box[1]))}</dd></div>
-              <div><dt>Mask</dt><dd>{current.polygons.length ? `${plural(current.polygons.length, "polygon")}, ${formatNumber(current.polygons.reduce((n, p) => n + p.length / 2, 0))} points` : current.rle ? "Run-length (not editable)" : "—"}</dd></div>
+              <div><dt>Mask</dt><dd>{current.polygons.length ? `${plural(current.polygons.length, "polygon")}, ${formatNumber(current.polygons.reduce((n, p) => n + p.length / 2, 0))} points` : current.rle ? "Bitmap · paint or erase" : "—"}</dd></div>
               <div><dt>Keypoints</dt><dd>{current.keypoints.length ? formatNumber(current.keypoints.length / 3) : "—"}</dd></div>
             </dl>
+            {currentObb && <label className="field">Rotation (degrees)
+              <input type="number" step={1} value={Math.round(currentObb.angle * 180 / Math.PI * 10) / 10}
+                onChange={(e) => { const angle = Number(e.target.value); if (Number.isFinite(angle)) update(selected!, (s) => withOriented(s, orientedCorners({ ...currentObb, angle: angle * Math.PI / 180 }))); }} />
+            </label>}
             {current.keypoints.length > 0 && (
               <ul className="editor-keypoints">
                 {Array.from({ length: current.keypoints.length / 3 }, (_, k) => {
                   const v = current.keypoints[k * 3 + 2]!;
                   return (
                     <li key={k} className={pick?.kind === "keypoint" && pick.at === k * 3 ? "on" : ""}>
-                      <button className="linkish" onClick={() => setPick({ kind: "keypoint", at: k * 3 })}>Point {k + 1}</button>
+                      <button className="linkish" onClick={() => { setPick({ kind: "keypoint", at: k * 3 }); setTool("keypoint"); }}>{detail?.pose_categories?.[String(current.label)]?.names[k] ?? `Point ${k + 1}`}</button>
                       <div className="segmented" role="group" aria-label={`Visibility of point ${k + 1}`}>
                         {([[0, "Off"], [1, "Hidden"], [2, "Visible"]] as const).map(([value, text]) => (
                           <button key={value} className={v === value ? "on" : ""}
@@ -880,7 +1083,7 @@ export function ImageEditor({ project, dataset, tasks, items, index, onIndex, on
                         ))}
                       </div>
                       <button className="icon-button" aria-label={`Delete point ${k + 1}`}
-                        onClick={() => update(selected!, (s) => withKeypoints(s, s.keypoints.filter((_, j) => j < k * 3 || j >= k * 3 + 3)))}>
+                        onClick={() => update(selected!, (s) => withKeypoints(s, s.keypoints.map((v, j) => j >= k * 3 && j < k * 3 + 3 ? 0 : v)))}>
                         <Icon name="close" size={12} />
                       </button>
                     </li>
@@ -895,8 +1098,8 @@ export function ImageEditor({ project, dataset, tasks, items, index, onIndex, on
               {tools.includes("keypoint") && (
                 <button className="button small" onClick={() => setTool("keypoint")} title="Click on the image to add keypoints (K)">Add keypoints</button>
               )}
-              {current.polygons.length > 0 && (
-                <button className="button small subtle" onClick={() => update(selected!, (s) => ({ ...s, polygons: [], moved: true }))}>Remove mask</button>
+              {(current.polygons.length > 0 || Boolean(current.rle)) && (
+                <button className="button small subtle" onClick={() => update(selected!, (s) => ({ ...s, polygons: [], rle: null, moved: true }))}>Remove mask</button>
               )}
               {current.keypoints.length > 0 && (
                 <button className="button small subtle" onClick={() => update(selected!, (s) => ({ ...s, keypoints: [] }))}>Remove keypoints</button>

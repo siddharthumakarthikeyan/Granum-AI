@@ -107,6 +107,7 @@ async function requestMethod<T>(method: string, path: string, params?: Record<st
 }
 
 export const api = {
+  compareVision: (baseline: string, candidate: string, split?: string) => request<import("../compare/VisionComparison").VisionReport>("/api/runs/compare-vision", { baseline, candidate, ...(split ? { split } : {}) }),
   health: () => request<Health>("/api/health"),
   access: () => request<{ mode: "local" | "shared"; name: string | null; role: string; scope: string; attribution: string; audit_available?: boolean }>("/api/access"),
   approveRelease: (project: string, dataset: string, release_id: string) =>
@@ -247,6 +248,12 @@ export const api = {
   embeddings: (project: string, dataset: string) =>
     request<EmbeddingStatus>("/api/embeddings", { project, dataset }),
 
+  reductionMethods: () => request<{ id: string; installed: boolean; install: string | null }[]>("/api/analysis/methods"),
+  savedProjections: (url: string, kind: "table" | "run") =>
+    request<{ id: string; name: string; method: string; dimensions: number; features: number; reference_samples: number; column: string; created_at: string }[]>("/api/analysis/reducers", { url, kind }),
+  projectEmbeddings: (payload: { url: string; kind: "table" | "run"; column: string; method: string; dimensions: number; neighbours: number; seed: number; prefix: string; reducer_id?: string; save_reducer_as?: string }) =>
+    request<Job<{ url: string; name: string; kind: "table" | "run"; project: string; axes: string[] }>>("/api/analysis/project", undefined, payload),
+
   /** Embedding a set is a job: seconds on a small dataset, minutes on a large one. */
   computeEmbeddings: (payload: { project: string; dataset: string; embedder?: string }) =>
     request<Job<{ status: EmbeddingStatus["status"]; unreadable: number }>>("/api/embeddings", undefined, payload),
@@ -302,6 +309,7 @@ export const api = {
   /** Write a dataset out for another tool. A job: every image of every set. */
   startExport: (payload: {
     project: string; dataset: string; release_id?: string | null; format: string; images: string;
+    yolo_task?: "detect" | "segment" | "pose" | "obb";
   }) => request<Job<ExportResult>>("/api/datasets/export", undefined, payload),
 
   /** Words people have put on this dataset's images. */
@@ -330,6 +338,9 @@ export const api = {
   }) => request<Job<PrelabelResult>>("/api/datasets/prelabel", undefined, payload),
 
   installTraining: () => request<Job<{ installed: string }>>("/api/training/install", undefined, {}),
+  samModels: () => request<{ available: boolean; reason: string | null; models: { id: string; name: string }[] }>("/api/annotations/segment/models"),
+  proposeMask: (payload: { project: string; dataset: string; table: string; image: string; model: string; box?: number[] | null; points: number[][]; labels: number[] }) =>
+    request<Job<{ model: string; width: number; height: number; cancelled?: boolean; candidates: { mask: unknown; quality: number }[] }>>("/api/annotations/segment", undefined, payload),
 
   trainingStatus: (project: string) =>
     request<TrainingStatus>("/api/training/status", { project }),
@@ -343,6 +354,8 @@ export const api = {
 
   imageRounds: (url: string, table: string, example: number, good?: number) =>
     request<ImageRounds>("/api/run/image-rounds", { url, table, example, ...(good === undefined ? {} : { good }) }),
+  taskImageRounds: (url: string, table: string, example: number) =>
+    request<import("../viewer/TaskSampleViewer").TaskRounds>("/api/run/image-rounds", { url, table, example }),
 
   removeImages: (payload: { project: string; table: string; samples: string[]; reason: string; reasons?: Record<string, string> }) =>
     request<{ count: number; missing: string[]; version: VersionRef; removed: VersionRef }>("/api/datasets/remove", undefined, payload),

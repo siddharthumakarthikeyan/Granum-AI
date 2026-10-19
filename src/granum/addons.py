@@ -22,7 +22,7 @@ from pathlib import Path
 from granum.processes import console_python, no_window
 
 #: What the training add-on installs. PyTorch from PyPI includes CUDA on Linux.
-TRAINING_PACKAGES = ["torch", "torchvision", "ultralytics"]
+TRAINING_PACKAGES = ["torch", "torchvision", "ultralytics", "pycocotools"]
 #: On Windows PyPI has only CPU builds of PyTorch; its own index has the CUDA ones. Their
 #: versions carry a local label (``2.14.0+cu130``) that ranks above PyPI's plain ``2.14.0``.
 WINDOWS_TORCH_INDEX = "https://download.pytorch.org/whl/cu130"

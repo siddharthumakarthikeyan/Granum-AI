@@ -1,0 +1,122 @@
+{
+  "recorded_on": "2026-10-19",
+  "timezone": "Asia/Kolkata",
+  "objective": "Finish the prioritized image-pilot work and validate on a standard people dataset suitable for the stated commercial-development context.",
+  "priority_scope_completed": true,
+  "full_parity_verified": false,
+  "superiority_over_3lc_established": false,
+  "repository": {
+    "branch": "feat/3lc-parity",
+    "base_commit": "319ade060e850aa5157a2075bb1eed892d516bd5",
+    "work_saved_as": "Local uncommitted changes and new files; no push or deployment. Concurrent website/dashboard edits were preserved."
+  },
+  "completed": [
+    "Dashboard/CLI classification (ResNet18) and semantic segmentation (LR-ASPP MobileNetV3): weighted training, explicit split contracts, best-validation checkpoints, original-resolution pooled semantic metrics and one final test evaluation.",
+    "Shared task preflight: vocabulary and annotation validation, media dimensions, positive training weights, complete evaluation sets and cross-split byte-identity checks.",
+    "Task-correct run comparisons and native sample histories: classification accuracy, semantic IoU, canonical image joins, paired bootstrap intervals, explicit incomplete-recipe and unverified-held-out states.",
+    "Semantic polygon, vertex, movement, class-change and SAM mask exclusivity with undo; named landmark layouts; SAM prompt/proposal recovery after browser reload while its service job remains available.",
+    "Downloaded and verified 1700 official COCO photos with recorded CC BY 2.0 licenses; trained six detection runs on three paired seeds; GPU qualification of native classification/semantic, instance masks, pose, MobileSAM and SAM 2.1 tiny.",
+    "Audited 24600 canonical detection metric rows, immutable selections, three 500-image comparison exports, 1462 COCO annotations and 80 lossless semantic PNG round trips; saved/reused a PCA reference on real learned features."
+  ],
+  "checks": [
+    {
+      "name": "Full backend suite",
+      "command": "OMP_NUM_THREADS=2 OPENBLAS_NUM_THREADS=2 .venv/bin/python -m pytest -q -rs -o addopts='' --junitxml=data/qualification/coco-person/python-tests.xml",
+      "passed": 641,
+      "skipped": 7,
+      "failed": 0,
+      "seconds": 124.216,
+      "log": "data/qualification/coco-person/python-tests.log",
+      "scope": "Combined backend before final comparison-evidence guard; focused guard checks below passed afterward."
+    },
+    {
+      "name": "Final native comparison provenance and history checks",
+      "passed": 5,
+      "failed": 0,
+      "seconds": 1.8,
+      "log": "data/qualification/coco-person/checks/comparison-integrity.log"
+    },
+    {
+      "name": "Frontend unit suite",
+      "passed": 214,
+      "files": 21,
+      "failed": 0,
+      "log": "data/qualification/coco-person/checks/frontend.log"
+    },
+    {
+      "name": "Full browser workflows, TypeScript checks and build",
+      "passed": 16,
+      "failed": 0,
+      "seconds": 47.6,
+      "log": "data/qualification/coco-person/checks/browser.log",
+      "scope": "All editor, native sample-history, comparison/export, workflow, projection and existing review/augmentation browser tests. SAM model responses in browser fixtures are deterministic; real GPU adapters tested separately."
+    },
+    {
+      "name": "Final native browser checks after comparison provenance guard",
+      "passed": 2,
+      "failed": 0,
+      "seconds": 3.9,
+      "log": "data/qualification/coco-person/checks/native-browser.log"
+    },
+    {
+      "name": "Final production build and typecheck",
+      "result": "passed",
+      "log": "data/qualification/coco-person/checks/build.log"
+    },
+    {
+      "name": "Python lint",
+      "command": ".venv/bin/python -m ruff check src tests tools",
+      "result": "passed"
+    },
+    {
+      "name": "Scoped whitespace check",
+      "command": "git diff --check -- src tests tools web docs",
+      "result": "passed",
+      "scope": "Concurrent generated website documentation is outside this check."
+    }
+  ],
+  "skips": [
+    "Detectron2 absent",
+    "SuperGradients absent",
+    "Hugging Face transformers absent (2 tests)",
+    "Lightning absent (2 tests)",
+    "Windows-only path test on Linux"
+  ],
+  "historical_framework_evidence": {
+    "report": "docs/3lc-parity-verification-2026-10-18.json",
+    "note": "Earlier CPU qualification of these optional frameworks is historical; it was not repeated in this CUDA environment."
+  },
+  "real_dataset_report": "docs/coco-people-validation-2026-10-19.json",
+  "real_dataset_outcome": {
+    "uniform_mean_coco_ap_points": 21.426637881915475,
+    "error_guided_mean_coco_ap_points": 18.76862188790886,
+    "mean_delta_ap_points": -2.6580159940066146,
+    "pretrained_reference_ap_points": 54.5757813627691,
+    "decision": "Workflow exercised successfully; this short fine-tuning/selection recipe did not improve detector accuracy."
+  },
+  "remaining": [
+    "Improve and independently evaluate the training/selection recipe; the current three-epoch recipe regresses. Any recipe tuned after seeing these results needs a new untouched test split.",
+    "A matched 3LC run and timed human-review study before competitive accuracy, productivity or cost claims.",
+    "Compute plugin SDK/catalogue/managed environments; enterprise SAML; point clouds and 3D annotations; retrieval and remaining virtual/foreign-table operators.",
+    "Supported platform/model version matrix, broad GPU/distributed framework qualification, OBB on a suitable real dataset, and customer-scale performance.",
+    "Large-image mask-editor memory qualification; saved reducer model/preprocessing identity enforcement; managed nonlinear reducer browser qualification.",
+    "SAM service-restart recovery and small/base model qualification. Browser-reload recovery currently depends on retained service jobs."
+  ],
+  "qualification_retry_notes": [
+    "The derived semantic qualification script needed uint8-to-bool mask conversion; native classification had already completed and was preserved.",
+    "COCOeval mutates predictions; evaluation now receives a copy so mask result JSON retains serializable values. The interrupted segment-inference run is marked failed and its successful retry is retained."
+  ],
+  "environment": {
+    "path": "/home/siddharth/Granum-AI/.venv",
+    "python": "3.12",
+    "torch": "2.8.0+cu128",
+    "torchvision": "0.23.0+cu128",
+    "ultralytics": "8.4.182",
+    "cuda": "12.8",
+    "gpu": "NVIDIA GeForce RTX 4070 Laptop GPU (8 GB)",
+    "packages": "data/qualification/coco-person/environment.txt",
+    "timing_limit": "Shared laptop with concurrent workloads; no isolated performance claim."
+  },
+  "coverage_inventory": "docs/feature-coverage.json",
+  "source_snapshot": "data/qualification/coco-person/source-snapshot.tar.gz"
+}
