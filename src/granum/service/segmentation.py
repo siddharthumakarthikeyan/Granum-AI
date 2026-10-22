@@ -11,6 +11,7 @@ from fastapi import HTTPException
 from pydantic import BaseModel, Field
 
 from granum.core.prelabel import box_column
+from granum.core.url import sample_key
 from granum.errors import GranumError
 from granum.formats._common import image_column
 from granum.integration.sam import SAM_MODELS
@@ -64,11 +65,12 @@ def register_segmentation(app: Any, *, table_at: Any, jobs: Any, environment: An
         if source.project_name != request.project or source.dataset_name != request.dataset:
             raise HTTPException(400, "choose an image in this dataset")
         paths = source.to_arrow().column(image_column(source)).to_pylist()
-        if request.image not in paths:
+        image = sample_key(request.image)
+        if image not in paths:
             raise HTTPException(404, "the image is not in the selected table")
         if len(request.points) != len(request.labels) or (not request.box and not any(request.labels)):
             raise HTTPException(400, "provide a box or foreground point, with one label per point")
-        row = paths.index(request.image)
+        row = paths.index(image)
         geometry = source.to_arrow().column(box_column(source))[row].as_py() or {}
         width, height = float(geometry.get("width") or 0), float(geometry.get("height") or 0)
         import math

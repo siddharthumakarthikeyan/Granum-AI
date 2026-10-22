@@ -34,7 +34,7 @@ def test_semantic_png_roundtrip_preserves_holes_disjoint_regions_and_void(isolat
     source = Table.from_semantic_masks(str(manifest), project_name="semantic", dataset_name="train")
     assert source.producer["args"]["tasks"] == ["semantic_segmentation"]
     assert len(source[0]["bbs"]["instances"]) == 2
-    assert source[0]["image"] == str(tmp_path / "input" / "image.png")
+    assert source[0]["image"] == (tmp_path / "input" / "image.png").as_posix()
     output = export_semantic_masks(source, tmp_path / "output")
     exported = json.loads(output.read_text())
     assert exported["ignore_index"] == ignore
