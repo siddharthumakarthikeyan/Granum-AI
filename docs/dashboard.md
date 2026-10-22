@@ -64,6 +64,42 @@ points in grey, lock, clone and favourite.
 Categorical colour uses three hues, the most that stay distinguishable in a scatter on this surface
 (colour-vision deficiency included). Click a category in the legend to give it a hue.
 
+Choose a **Z axis** for a 3D scatter plot. Drag to orbit and use the reset-view button
+to restore the camera. Colour and **Radius by** encode additional columns. Set
+**Trajectory sample** and **Trajectory order** to connect the same sample across
+epochs; lines never join rows from different source datasets. Duplicate time values
+break a trajectory rather than choosing an arbitrary order.
+
+Rectangle, lasso, polygon and brush also select points in 3D. Selection uses their
+projected screen positions at all depths and updates the linked row selection; it
+does not create a persistent 3D volume filter. Ctrl/Cmd adds, Shift subtracts, Enter
+closes a polygon and Escape cancels it.
+
+## Calculations, workflows and embeddings
+
+**Calculate** adds reactive columns for arithmetic, comparisons, vector distance,
+rank, occurrence, grouped statistics and ordered observations. Calculations use all
+loaded rows and update after edits, undo and redo. Later calculations can depend on
+earlier ones. Missing inputs, division by zero and nonfinite results produce nulls.
+
+**Workflows** saves calculations, charts, filters, sorting and column layout in the
+browser. Export a workflow as JSON to move it to another browser; import validates
+the required columns before applying the setup. These are Granum workflow files;
+direct import of 3LC workflow JSON is not supported.
+
+**Embeddings** offers PCA, UMAP and PaCMAP projections with two or three dimensions.
+Save pending edits first. A projection writes a new Table or analysis Run and leaves
+its source unchanged. A run projection fits on a reference epoch and transforms the
+other epochs with the same reducer, allowing trajectories to be compared. UMAP and
+PaCMAP require the optional reduction dependencies; install `granum[reduction]`.
+Enable **Save this coordinate system for reuse** and give it a name to keep the fitted
+projection. **Coordinate system** lists saved projections from the current project,
+including after a service restart. Reusing one transforms new samples without refitting.
+The embedding model, preprocessing and vector width must match the reference data;
+Granum checks the width but cannot infer whether two custom models have the same meaning.
+Saved models stay in the service's state directory. This dialog accepts models it fitted
+itself; it does not import external model files.
+
 ## Editing
 
 Nothing is written until you commit. Edits apply to the loaded rows immediately and are kept on an undo stack.
@@ -97,6 +133,33 @@ Unsaved edits are also kept in the browser (IndexedDB) and offered for restoring
 - **Patches**: one tile per box across visible rows; select several and relabel them together.
 
 All box edits use the same undo stack and commit as other edits.
+
+For segmentation, **Paint** and **Erase** edit bitmap masks, including holes. One
+continuous brush stroke is one undo step. Semantic painting assigns each pixel to
+one class. Polygon creation, vertex edits, mask movement and relabelling use the
+same exclusive-pixel rule; undo restores all affected masks together.
+**Oriented box** draws rotated rectangles, with rotation and resize
+controls that keep edited corners inside the image. YOLO export rejects annotations
+outside its normalized coordinate range. **Keypoint** creates fixed landmark slots when the dataset supplies names;
+deleting a landmark clears its visibility without renumbering the other landmarks.
+
+**Landmarks** appears when pose predictions contain per-keypoint metrics. It lists scored
+and unavailable observations, mean OKS and mean confidence for each slot, over all loaded
+rows or the filtered view. **OKS below** and **Confidence below** apply object filters
+while preserving other filters; missing scores are excluded. Unlabelled and unmatched
+keypoints do not contribute zero to the mean. Different epochs count as separate observations.
+Declared landmark names are shown per class. Choose a class layout to avoid mixing
+unrelated slots; conflicting layouts are marked as ambiguous.
+
+**SAM** accepts a box and/or foreground/background point prompts. It runs a separate
+local model worker and shows a proposal before changing annotations. **Apply mask**
+accepts the draft with model provenance; **Discard** leaves labels as they were.
+Applying to a semantic image removes the new region from other class masks. Model
+weights download on first use. PyTorch and Ultralytics are required; the panel links
+to training-support installation.
+Reloading the page restores the pending job and its prompts while the service retains
+that job. The restored proposal still requires **Apply mask**. A service restart or
+an evicted job can make the saved job unavailable; the panel reports this explicitly.
 
 ## Review decisions in the workspace
 
@@ -405,10 +468,15 @@ distinction the dataset is not drawing consistently.
 folder in a folder named for the version, the format and the time. The version is read as it
 was frozen, so what leaves is what was trained on, whatever has been edited since.
 
-Eight layouts: **COCO**, **YOLO**, **Pascal VOC**, **KITTI**, **CSV** (one row per box),
+Nine layouts: **COCO**, **YOLO**, **Semantic masks (PNG)**, **Pascal VOC**, **KITTI**, **CSV** (one row per box),
 **CVAT for images**, **Label Studio** tasks, and **folder per class**. A box a model drafted
 carries its source and its confidence wherever the format has room for them, so nothing
 downstream can mistake a draft for a label somebody checked.
+
+YOLO offers detection, segmentation, pose and oriented-box layouts. Its polygon masks
+approximate pixels; choose COCO RLE or native semantic PNG masks to preserve exact
+pixels. Native PNG export writes a `semantic.json` manifest with the class IDs and
+ignore ID. Different semantic classes must not overlap.
 
 The second question is what to do with the image files, and it is the one people get wrong:
 
@@ -424,11 +492,23 @@ The import wizard marks a folder it recognises with the layout it found.
 
 ## Training runs and samples
 
+- **Image classification** fine-tunes ResNet-18 on scalar class labels or one whole-image
+  label per image. **Semantic segmentation** fine-tunes LR-ASPP MobileNetV3 on exclusive
+  class masks, with unlabelled pixels ignored. Both save the best validation checkpoint,
+  evaluate the held-out test set once, and retain per-image predictions and metrics.
+- Before launching a model, training checks class contracts, media dimensions, required
+  annotations and split separation, including byte-identical images with different names.
+  Zero training weights exclude images; evaluation retains every image in its frozen set.
 - **Runs**: mAP50, precision, recall and losses per epoch for every run; the latest comparison
   against an earlier run, scored on the same current validation labels.
+- Classification runs show accuracy, macro F1 and loss. Semantic runs show pixel accuracy
+  and mean IoU computed from pooled pixel intersections/unions at original resolution.
 - **Samples**: per-image F1 every epoch groups images into *early*, *mid*, *late*, *forgotten*,
   *never learned* and *no objects*. Click an image for a full-screen viewer: zoom and pan, labels
   against model boxes round by round (`[` `]`, space to play), and Keep / Remove decisions.
+  Classification uses per-image accuracy; semantic segmentation uses per-image mean IoU.
+  Their sample viewer shows the selected epoch's class/confidence or ground-truth and
+  predicted masks side by side. At least three observations are required for a learning category.
 
 ## Comparing two runs
 
@@ -453,6 +533,12 @@ What it then shows, in order:
 
 **Download report** saves the whole thing as JSON — versions, checks, every image, slices and costs —
 for a pilot write-up or a regression record.
+
+Classification and semantic comparisons require the same frozen evaluation table and
+scoring policy, with every image scored once. Classification compares accuracy;
+semantic comparison pools class pixel counts before computing mean IoU. The paired
+image bootstrap interval describes evaluation-sample uncertainty; it does not measure
+variation across training seeds or establish that an edit caused an improvement.
 
 ## Performance
 

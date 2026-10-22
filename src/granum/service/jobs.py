@@ -1,13 +1,14 @@
 """Background jobs for work too slow for one request: preflight and import.
 
 A job runs in a thread and reports phase, progress and a result the dashboard polls.
-Jobs live in memory only -- restarting the service forgets them, which is stated to the
-user rather than hidden: a finished import is on disk regardless, and its report is saved
-with the project.
+Jobs normally live in memory. Opt-in durable jobs retain their terminal result and logs;
+an unfinished durable job is marked interrupted on restart, never silently replayed.
 """
 
 from __future__ import annotations
 
+import json
+import re
 import threading
 import time
 import traceback
@@ -15,6 +16,7 @@ from collections import deque
 from collections.abc import Callable
 from contextvars import copy_context
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
@@ -49,6 +51,7 @@ class Job:
     round_started: float | None = None
     #: The step when timing began: after a restart the service joins a round midway.
     round_base: int = 0
+    durable: bool = False
 
     def progress(self, phase: str, done: int, total: int) -> None:
         self.phase, self.done, self.total = phase, done, total
@@ -91,16 +94,45 @@ class Job:
 
 
 class JobRegistry:
-    def __init__(self) -> None:
+    def __init__(self, state_dir: Path | None = None) -> None:
         self._jobs: dict[str, Job] = {}
         self._lock = threading.Lock()
+        self.state_dir = state_dir
+        if state_dir is not None:
+            for path in sorted(state_dir.glob("*.json"), key=lambda p: p.stat().st_mtime)[-MAX_JOBS:]:
+                try:
+                    data = json.loads(path.read_text())
+                    if data.pop("version") != 1 or data["id"] != path.stem or not re.fullmatch(r"[a-f0-9]{12}", data["id"]):
+                        continue
+                    fields = {key: data[key] for key in ("id", "kind", "status", "phase", "done", "total", "started", "finished", "error", "result")}
+                    job = Job(**fields, durable=True)
+                    job.log.extend(data.get("log", [])[-80:])
+                    if job.status == "running":
+                        job.status, job.phase = "failed", "Interrupted"
+                        job.error = "The service restarted before this job finished. Check its result or installation before retrying."
+                        job.finished = time.time()
+                        self._checkpoint(job)
+                    self._jobs[job.id] = job
+                except (OSError, ValueError, KeyError, TypeError):
+                    logger.warning("Could not restore job record %s", path)
 
-    def start(self, kind: str, work: Callable[[Job], Any]) -> Job:
-        job = Job(id=uuid4().hex[:12], kind=kind)
+    def _checkpoint(self, job: Job) -> None:
+        if not job.durable or self.state_dir is None:
+            return
+        from granum.compute.manager import atomic_json
+
+        atomic_json(self.state_dir / f"{job.id}.json", {"version": 1, **job.to_dict(), "started": job.started, "finished": job.finished})
+
+    def start(self, kind: str, work: Callable[[Job], Any], *, durable: bool = False) -> Job:
+        job = Job(id=uuid4().hex[:12], kind=kind, durable=durable)
+        self._checkpoint(job)
         with self._lock:
             finished = [j for j in self._jobs.values() if j.status != "running"]
             while len(self._jobs) >= MAX_JOBS and finished:
-                self._jobs.pop(finished.pop(0).id, None)
+                old = finished.pop(0)
+                self._jobs.pop(old.id, None)
+                if old.durable and self.state_dir:
+                    (self.state_dir / f"{old.id}.json").unlink(missing_ok=True)
             self._jobs[job.id] = job
 
         def run() -> None:
@@ -116,6 +148,10 @@ class JobRegistry:
                 job.error = f"{type(exc).__name__}: {exc}"
             finally:
                 job.finished = time.time()
+                try:
+                    self._checkpoint(job)
+                except OSError:
+                    logger.error("Could not persist job %s", job.id, exc_info=True)
 
         context = copy_context()
         threading.Thread(target=lambda: context.run(run), name=f"granum-job-{job.id}", daemon=True).start()

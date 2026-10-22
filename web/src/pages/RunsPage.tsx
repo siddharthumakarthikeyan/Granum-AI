@@ -16,6 +16,9 @@ import { Comparison, TrainDialog, TrainingProgressCard, useTrainingJob } from ".
 import { TrainingChart } from "./TrainingChart";
 
 const SCORES = [
+  { key: "accuracy", label: "Accuracy" },
+  { key: "mean_iou", label: "Mean IoU" },
+  { key: "pixel_accuracy", label: "Pixel accuracy" },
   { key: "map50", label: "mAP50" },
   { key: "map50_95", label: "mAP50-95" },
   { key: "precision", label: "Precision" },
@@ -27,7 +30,7 @@ const score = (run: ObjectEntry, key: string): number | null => {
   return typeof value === "number" && Number.isFinite(value) ? value : null;
 };
 
-const FAMILY: Record<string, string> = { yolo: "YOLO", rtdetr: "RT-DETR", rfdetr: "RF-DETR" };
+const FAMILY: Record<string, string> = { yolo: "YOLO", rtdetr: "RT-DETR", rfdetr: "RF-DETR", classifier: "Classification", semantic: "Semantic segmentation" };
 
 export function RunsPage({ project }: { project: string }) {
   const everything = useStore((s) => s.runs);
@@ -39,9 +42,10 @@ export function RunsPage({ project }: { project: string }) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const training = runs.some((r) => r.status === "running") || job?.status === "running";
   const ordered = [...runs].sort((a, b) => b.created.localeCompare(a.created));
-  const latestCompared = ordered.find((r) => r.parameters?.compare_map50_this !== undefined);
+  const metricFor = (r: ObjectEntry) => r.parameters?.task === "classify" ? "accuracy" : r.parameters?.task === "semantic" ? "mean_iou" : "map50";
+  const latestCompared = ordered.find((r) => r.parameters?.[`compare_${metricFor(r)}_this`] !== undefined);
   const testScore = (run: ObjectEntry): number | null => {
-    const value = run.parameters?.test_map50;
+    const value = run.parameters?.[`test_${metricFor(run)}`];
     return typeof value === "number" && Number.isFinite(value) ? value : null;
   };
   const tested = runs.some((r) => testScore(r) !== null);
@@ -54,7 +58,8 @@ export function RunsPage({ project }: { project: string }) {
   }, [training, refreshProject]);
 
   // The best value of each score is marked, so the leading run reads at a glance.
-  const best = Object.fromEntries(SCORES.map(({ key }) => [key, Math.max(...runs.map((r) => score(r, key) ?? -Infinity))]));
+  const visibleScores = SCORES.filter(({ key }) => runs.some(run => score(run, key) !== null));
+  const best = Object.fromEntries(visibleScores.map(({ key }) => [key, Math.max(...runs.map((r) => score(r, key) ?? -Infinity))]));
 
   return (
     <div className="page">
@@ -83,7 +88,7 @@ export function RunsPage({ project }: { project: string }) {
           title="No runs"
           action={<button className="button primary" onClick={() => setDialogOpen(true)}><Icon name="runs" />Train model</button>}
         >
-          <p>Train YOLO, RT-DETR or RF-DETR here, or log runs from your own training script:</p>
+          <p>Train detection, classification or segmentation models here, or log runs from your own training script:</p>
           <pre className="code-block">{`run = granum.init("${project}", "baseline")
 granum.collect_metrics(table, collectors, predictor=predictor,
                        constants={"epoch": epoch})`}</pre>
@@ -101,8 +106,8 @@ granum.collect_metrics(table, collectors, predictor=predictor,
                   <th>Model</th>
                   <th>Train / validation{tested ? " / test" : ""} data</th>
                   <th className="num">Epochs</th>
-                  {SCORES.map((s) => <th key={s.key} className="num">{s.label}</th>)}
-                  {tested && <th className="num" title="mAP50 of the finished model on the held-out test set">Test mAP50</th>}
+                  {visibleScores.map((s) => <th key={s.key} className="num">{s.label}</th>)}
+                  {tested && <th className="num" title="Task-specific score of the selected model on the held-out test set">Test score</th>}
                   <th>Created</th>
                   <th />
                 </tr>
@@ -124,7 +129,7 @@ granum.collect_metrics(table, collectors, predictor=predictor,
                         {p.test_version ? <span className="cell-sub">{String(p.test_version)}</span> : null}
                       </td>
                       <td className="num">{run.epochs ?? "—"}</td>
-                      {SCORES.map(({ key }) => {
+                      {visibleScores.map(({ key }) => {
                         const value = score(run, key);
                         return (
                           <td key={key} className={`num${value !== null && value === best[key] && runs.length > 1 ? " value-best" : ""}`}>
@@ -135,8 +140,9 @@ granum.collect_metrics(table, collectors, predictor=predictor,
                       {tested && (() => {
                         const value = testScore(run);
                         return (
-                          <td className={`num${value !== null && value === bestTest && runs.length > 1 ? " value-best" : ""}`}>
+                          <td className={`num${value !== null && value === bestTest && runs.length > 1 && new Set(runs.map(metricFor)).size === 1 ? " value-best" : ""}`}>
                             {value !== null ? value.toFixed(3) : "—"}
+                            {value !== null && <span className="cell-sub">{SCORES.find(s => s.key === metricFor(run))?.label}</span>}
                           </td>
                         );
                       })()}
@@ -144,7 +150,7 @@ granum.collect_metrics(table, collectors, predictor=predictor,
                       <td className="actions" onClick={(event) => event.stopPropagation()}>
                         {(() => {
                           // Against the run before it: the question a new run raises.
-                          const earlier = ordered[ordered.indexOf(run) + 1];
+                          const earlier = ordered.slice(ordered.indexOf(run) + 1).find(r => (r.parameters?.task ?? "detect") === (run.parameters?.task ?? "detect"));
                           return earlier ? (
                             <a className="button" href={routeHref({ name: "compare", project, baseline: earlier.url, candidate: run.url })}
                                title={`Compare with ${earlier.name}`}>

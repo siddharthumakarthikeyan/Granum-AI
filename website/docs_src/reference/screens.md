@@ -3,8 +3,8 @@ title: Map of the app
 summary: Every screen, what it is for, and what its controls do.
 ---
 
-The sidebar holds the project switcher, five screens, **Create project**, and the **Licence** page at the
-bottom.
+The sidebar provides project navigation and the available data, training and review screens. Some
+analysis views open from a dataset or run. Licence controls depend on the build's enforcement mode.
 
 ## Projects
 
@@ -28,7 +28,25 @@ The main working screen, in three modes.
 | **Review** | *Review* in the ribbon | Verifying, rework, comments, isolate, delete → [guide](/docs/guides/review) |
 | **Edit** | *Edit* in the ribbon | Drawing and correcting boxes, masks, keypoints → [guide](/docs/guides/edit) |
 
-The header also holds **Create dataset** and **Removed**.
+The image workflow also provides **Create dataset**, **Removed**, **Pre-label**, **Duplicates**,
+**Stats** and **Fields**. Follow [duplicate inspection](/docs/explore/duplicates),
+[draft labels](/docs/improve/prelabel) and [annotation tools](/docs/guides/edit) for the full workflow.
+
+## Table and run workspace
+
+Linked Rows, Filters and Charts expose the data behind a dataset or run. Calculate derives columns;
+Workflows saves analysis settings; Embeddings creates projections; Landmarks inspects pose properties.
+→ [Inspect tables and runs](/docs/explore/workspace)
+
+## Health
+
+The dataset readiness view brings import, split, similarity, model-draft and review evidence together.
+Follow a check to the screen that can act on it. → [Check dataset health](/docs/explore/health)
+
+## Evaluation
+
+Inspect a run's confusion, class results, thresholds and individual object outcomes. Its specialised
+views depend on the task and stored predictions. → [Inspect model errors](/docs/explore/evaluation)
 
 ## Datasets
 
@@ -73,6 +91,9 @@ Every screen has one, so a link can be pasted into a message:
 #/p/<project>/images?dataset=<name>    Images  (&review=1, &edit=1, &open=<image>)
 #/p/<project>/datasets                 Datasets
 #/p/<project>/runs                     Runs
+#/p/<project>/table?url=<table>        Table workspace
+#/p/<project>/health?dataset=<name>    Dataset health
+#/p/<project>/evaluation?url=<run>     Evaluation
 #/p/<project>/run?url=<run>            One run
 #/p/<project>/learning?url=<run>       Samples
 #/p/<project>/findings?url=<run>       Findings

@@ -25,7 +25,7 @@ from granum.core.schemas import ImageSchema  # noqa: E402
 from granum.service.app import create_app  # noqa: E402
 
 
-def fixture(root: Path, images: int, epochs: int, boxes: int):
+def fixture(root: Path, images: int, epochs: int, boxes: int, *, browser: bool = False):
     from PIL import Image
 
     granum.set_config(granum.Config.load(overrides={"project-root-url": str(root)}, use_env=False, use_config_files=False))
@@ -63,11 +63,15 @@ def fixture(root: Path, images: int, epochs: int, boxes: int):
         run.set_status("completed")
         timings[name] = {"seconds": round(time.perf_counter() - started, 4),
                          "bytes": sum(p.stat().st_size for p in Path(run.url.path).rglob("*.parquet"))}
+    if browser:
+        from parity_fixture import add_parity_fixtures
+
+        add_parity_fixtures(root, paths[0])
     index = Index([root])
     start = time.perf_counter()
     index.refresh(force=True)
     timings["index_seconds"] = round(time.perf_counter() - start, 4)
-    return create_app(index=index, config=granum.get_config(), allowed_hosts=["testserver"]), table, run, timings
+    return create_app(index=index, config=granum.get_config(), allowed_hosts=["testserver"], data_roots=[str(root)]), table, run, timings
 
 
 def main() -> None:
@@ -81,7 +85,7 @@ def main() -> None:
     if not (1 <= args.images <= 100000 and 1 <= args.epochs <= 300 and 1 <= args.boxes <= 500):
         parser.error("images 1–100000, epochs 1–300, boxes 1–500")
     with tempfile.TemporaryDirectory(prefix="granum-qualification-") as temporary:
-        app, table, run, timings = fixture(Path(temporary), args.images, args.epochs, args.boxes)
+        app, table, run, timings = fixture(Path(temporary), args.images, args.epochs, args.boxes, browser=args.serve)
         if args.serve:
             import uvicorn
 

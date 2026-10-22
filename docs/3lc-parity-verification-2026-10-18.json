@@ -1,0 +1,193 @@
+{
+  "recorded_on": "2026-10-18",
+  "timezone": "Asia/Kolkata",
+  "objective": "Implement and verify Granum equivalents of documented 3LC capabilities.",
+  "full_parity_verified": false,
+  "scope_note": "Passing checks establish the listed behavior, not complete feature equivalence, production readiness or model accuracy.",
+  "repository": {
+    "branch": "feat/3lc-parity",
+    "base_commit": "319ade060e850aa5157a2075bb1eed892d516bd5",
+    "work_saved_as": "Local uncommitted changes and new files; no push or deployment."
+  },
+  "checks": [
+    {
+      "name": "Full Python suite",
+      "command": "OMP_NUM_THREADS=2 MKL_NUM_THREADS=2 pytest -o addopts='' -q --junitxml=/tmp/granum-verification-latest.xml",
+      "passed": 637,
+      "skipped": 2,
+      "failed": 0,
+      "seconds": 141.78,
+      "skips": [
+        "Windows-only path test on Linux.",
+        "SuperGradients is absent from the main Python 3.12 environment; its four real integration tests ran separately under Python 3.10."
+      ],
+      "log": "/tmp/granum-full-tests-latest.log",
+      "scope": "Combined current backend, including final SAM guard, real Hugging Face, Lightning, Detectron2, UMAP, PaCMAP, saved reducer reuse, image-boundary validation and augmentation tests."
+    },
+    {
+      "name": "Final SAM availability and trainer checks",
+      "command": "pytest tests/test_sam.py tests/test_trainers.py",
+      "passed": 9,
+      "failed": 0,
+      "seconds": 7.03
+    },
+    {
+      "name": "Frontend unit suite",
+      "command": "npm run test -- --run",
+      "directory": "web",
+      "passed": 211,
+      "files": 20,
+      "failed": 0,
+      "log": "/tmp/granum-all-frontend-latest.log"
+    },
+    {
+      "name": "Browser workflows, type checks and production build",
+      "command": "npm run test:e2e",
+      "directory": "web",
+      "passed": 12,
+      "failed": 0,
+      "seconds": 53.0,
+      "log": "/tmp/granum-all-browser-latest.log",
+      "coverage": "Semantic PNG import/export/reimport; bitmap paint/erase/undo; OBB rotation/resize; fixed-slot pose editing; SAM preview/apply; calculated workflows; PCA/3D selection/trajectories and saved projection reuse after reload; landmark summaries with numeric filters; existing image, review and augmentation workflows.",
+      "limit": "The browser SAM model response is a deterministic fixture. Real inference and worker execution were verified separately."
+    },
+    {
+      "name": "Python lint",
+      "command": "ruff check src tests tools",
+      "result": "passed"
+    },
+    {
+      "name": "Whitespace and patch checks",
+      "command": "git diff --check",
+      "result": "passed"
+    }
+  ],
+  "framework_checks": {
+    "hugging_face": {
+      "evidence": "tests/test_framework_integrations.py",
+      "verified": "Actual Trainer prediction and embeddings on shuffled/subset rows, plus a two-step training run with evaluation callbacks.",
+      "not_verified": "Distributed Trainer, GPU and a broad version matrix."
+    },
+    "lightning": {
+      "evidence": "tests/test_framework_integrations.py",
+      "verified": "Actual two-epoch fit and test; two-process CPU/Gloo ddp_fork validation with five samples padded to six, persisted once as five correct source IDs.",
+      "not_verified": "GPU and additional distributed strategies."
+    },
+    "detectron2": {
+      "evidence": "tests/test_detectron_integration.py",
+      "verified": "Actual catalogues, mapper, keypoint/RLE conversion, one Mask R-CNN SGD step and inference over reordered source rows.",
+      "limit": "Model initialized without pretrained weights; integration smoke test only.",
+      "not_verified": "Distributed training, GPU, semantic/panoptic-specific adapters and embedding hooks."
+    },
+    "super_gradients": {
+      "evidence": "tests/test_super_gradients_integration.py",
+      "command": "OMP_NUM_THREADS=2 MKL_NUM_THREADS=2 UPLOAD_LOGS=FALSE CRASH_HANDLER=FALSE pytest -o addopts='' -q -rs tests/test_super_gradients_integration.py",
+      "passed": 4,
+      "failed": 0,
+      "seconds": 5.54,
+      "verified": "Real two-epoch Trainer fit, shuffled validation and test collection, embedding schemas, DetectionCollateFN identity, and YOLO-NAS-S/YOLO-NAS-pose-N inference with image resizing and canonical callbacks.",
+      "limit": "Vision models were randomly initialized. This is integration qualification, not an accuracy benchmark. Distributed and GPU callbacks and full native vision training recipes are not verified.",
+      "log": "/tmp/granum-supergradients-tests-final.log",
+      "environment": {
+        "path": "/tmp/granum-supergradients-evaluation",
+        "python": "3.10.22",
+        "super-gradients": "3.7.1",
+        "torch": "2.5.1+cpu",
+        "torchvision": "0.20.1+cpu",
+        "numpy": "1.23.0",
+        "torchmetrics": "0.8.0",
+        "setuptools": "66.1.1"
+      }
+    }
+  },
+  "model_smoke_checks": {
+    "device": "CPU",
+    "purpose": "Verify real model, format, callback and worker compatibility; not an accuracy benchmark.",
+    "pretrained_yolo": {
+      "input": "Official Ultralytics bus.jpg, 810 by 1080 pixels",
+      "detect": {
+        "weights": "yolo11n.pt",
+        "predictions": 5
+      },
+      "segment": {
+        "weights": "yolo11n-seg.pt",
+        "predictions": 4
+      },
+      "pose": {
+        "weights": "yolo11n-pose.pt",
+        "predictions": 3,
+        "keypoints_per_person": 17
+      },
+      "obb": {
+        "weights": "yolo11n-obb.pt",
+        "predictions": 0,
+        "limit": "Valid empty result on a non-aerial photograph; does not establish oriented-box detection quality."
+      }
+    },
+    "yolo_training": {
+      "tasks": [
+        "segment",
+        "pose",
+        "obb"
+      ],
+      "epochs_each": 1,
+      "synthetic_samples_each": 4,
+      "metric_tables_each": 2,
+      "verified": "Real train_ultralytics path, task-specific export, weights saved and per-sample metrics linked to stable source IDs.",
+      "limit": "Training and validation use the same tiny synthetic table; no accuracy or generalization claim."
+    },
+    "sam": {
+      "mobile_sam": {
+        "candidates": 1,
+        "foreground_pixels": 64233
+      },
+      "sam_2_1_tiny": {
+        "candidates": 1,
+        "foreground_pixels": 64909
+      },
+      "worker": "MobileSAM request through actual FastAPI endpoint and detached worker returned one mask, preserved source annotations and cleaned the proposal artifact.",
+      "not_verified": "Small/base weights, GPU and UI restoration of an in-progress request after reload."
+    },
+    "temporary_artifacts": "/tmp/granum-model-verification",
+    "artifact_limit": "Temporary scripts, weights and logs can be removed by reboot or cleanup; framework integration regression tests are in the repository."
+  },
+  "environment": {
+    "python_environment": "/tmp/granum-evaluation-319ade0",
+    "python": "3.12.3",
+    "torch": "2.14.1+cpu",
+    "torchvision": "0.29.1+cpu",
+    "ultralytics": "8.4.182",
+    "transformers": "5.20.1",
+    "datasets": "5.1.0",
+    "accelerate": "1.15.0",
+    "lightning": "2.6.6",
+    "detectron2": "0.6, revision 1e3e13bbf607b54f62205c4c33922521822fb298",
+    "detectron2_build": "GCC 13 and Python headers extracted under /tmp/granum-build-tools; no system compiler installation.",
+    "browser": "Chromium with Playwright 1.63",
+    "limit": "Single Linux CPU development environment, not a supported-platform matrix."
+  },
+  "remaining": [
+    "Compute plugin SDK, catalogue and managed environments.",
+    "Enterprise SAML single sign-on and real identity-provider deployment qualification.",
+    "Point clouds and 3D annotation import/export, viewing and editing.",
+    "Dashboard classification and semantic-segmentation training workflows.",
+    "Complete virtual-operator audit, including retrieval and foreign-table operations.",
+    "Managed nonlinear reducer browser qualification, embedding-model identity checks and large-run performance.",
+    "Semantic-mask overlap handling for all polygon and move tools; large-image editor memory qualification.",
+    "SuperGradients native vision training recipes and ready-made Table transforms; GPU and distributed qualification across frameworks.",
+    "Representative customer datasets, accuracy measurements and supported-platform/version matrix."
+  ],
+  "coverage_inventory": "docs/feature-coverage.json",
+  "resumed_implementation": [
+    "Added SuperGradients IndexedDataset, identity-preserving collation, validation/test callbacks, canonical detection/pose prediction passes and real framework tests.",
+    "Fixed reduce_run to reuse fitted reducers without refitting. Added project-scoped managed reducer storage and dashboard save/reuse controls. Verified aligned coordinates across service restart and rejection of cross-project IDs.",
+    "Added landmark analysis summaries and low-OKS/confidence object filters. Null and missing scores do not enter means or low-score results.",
+    "Constrained edited oriented rectangles to image bounds, chose valid enclosing rectangles after augmentation cropping, and blocked invalid normalized YOLO exports."
+  ],
+  "previous_checkpoint": {
+    "full_python": "632 passed, 1 skipped",
+    "frontend": "208 passed",
+    "browser": "11 passed",
+    "note": "Superseded by the combined checks above."
+  }
+}

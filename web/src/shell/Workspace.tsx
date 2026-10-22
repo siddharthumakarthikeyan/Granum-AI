@@ -13,6 +13,7 @@ import { navigate, routeHref } from "../router";
 import { draftKey, loadDraft, removeDraft, type Draft } from "../store/drafts";
 import { loadReviews } from "../store/reviews";
 import { useStore } from "../store/store";
+import { AnalysisControls } from "../analysis/AnalysisControls";
 
 export function Workspace({ kind, project, url }: { kind: "table" | "run"; project: string; url: string }) {
   const sourceUrl = useStore((s) => s.sourceUrl);
@@ -224,6 +225,7 @@ export function Workspace({ kind, project, url }: { kind: "table" | "run"; proje
         <button className={`button subtle${helpOpen ? " on" : ""}`} onClick={() => (helpOpen ? closeHelp() : setHelpOpen(true))} aria-expanded={helpOpen}>
           <kbd>?</kbd> Shortcuts
         </button>
+        {ready && <AnalysisControls />}
         {ready && <EditBar onCommit={() => setCommitOpen(true)} />}
       </header>
 

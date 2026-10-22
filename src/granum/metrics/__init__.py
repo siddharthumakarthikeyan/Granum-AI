@@ -16,6 +16,7 @@ from granum.metrics.collect import CollectionError, collect_metrics, iter_batche
 from granum.metrics.collectors import (
     ClassificationMetricsCollector,
     CollectorError,
+    EmbeddingsMetricsCollector,
     FunctionalMetricsCollector,
     MetricsCollector,
 )
@@ -27,6 +28,7 @@ from granum.metrics.dynamics import (
     training_dynamics,
 )
 from granum.metrics.predictor import Prediction, Predictor, PredictorError
+from granum.metrics.semantic import SemanticMetricsCollector
 
 __all__ = [
     "Aggregator",
@@ -35,6 +37,7 @@ __all__ = [
     "CollectorError",
     "DetectionMetricsCollector",
     "DynamicsThresholds",
+    "EmbeddingsMetricsCollector",
     "FunctionalMetricsCollector",
     "MaxAggregator",
     "MeanAggregator",
@@ -44,6 +47,7 @@ __all__ = [
     "Predictor",
     "PredictorError",
     "SumAggregator",
+    "SemanticMetricsCollector",
     "aggregate_metrics_table",
     "collect_metrics",
     "compute_dynamics",

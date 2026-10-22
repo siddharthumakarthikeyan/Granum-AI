@@ -92,6 +92,19 @@ def test_predictor_captures_hidden_activations():
     assert prediction.as_numpy().shape == (6, 3)
 
 
+def test_predictor_restores_mixed_training_modes_on_success_and_failure():
+    model = TinyNet()
+    model.train()
+    model.hidden.eval()
+    modes = [module.training for module in model.modules()]
+    predictor = Predictor(model, preprocess=to_tensor)
+    predictor({"features": [[1, 2, 3, 4]]})
+    assert [module.training for module in model.modules()] == modes
+    with pytest.raises(RuntimeError):
+        predictor({"features": [[1, 2]]})
+    assert [module.training for module in model.modules()] == modes
+
+
 def test_predictor_rejects_layers_on_a_plain_callable():
     from granum.metrics.predictor import PredictorError
 

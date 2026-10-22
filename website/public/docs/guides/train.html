@@ -4,10 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Train a model · Granum documentation</title>
-  <meta name="description" content="Choose data, model and schedule; watch the run; know what it is doing to your machine.">
+  <meta name="description" content="Choose a dataset version and matching model task, record sample measurements, and inspect the completed run.">
   <meta name="theme-color" content="#ffffff">
   <meta property="og:title" content="Train a model · Granum documentation">
-  <meta property="og:description" content="Choose data, model and schedule; watch the run; know what it is doing to your machine.">
+  <meta property="og:description" content="Choose a dataset version and matching model task, record sample measurements, and inspect the completed run.">
   <meta property="og:type" content="article">
   <meta property="og:image" content="/assets/og.jpg">
   <link rel="canonical" href="https://granum.app/docs/guides/train">
@@ -47,7 +47,15 @@
     <div class="doc-sidebar" id="doc-sidebar">
       <nav class="doc-nav" aria-label="Documentation">
 <a class="doc-nav-home" href="/docs">Start here</a>
-<div class="doc-nav-group"><p class="doc-nav-title">Guided aerial-data course</p><ul>
+<details class="doc-nav-group"><summary class="doc-nav-title">Start with Granum</summary><ul>
+<li><a href="/docs/reference/features">Feature availability</a></li>
+<li><a href="/docs/start/install">Install Granum</a></li>
+<li><a href="/docs/start/activate">Alpha access and licences</a></li>
+<li><a href="/docs/start/first-project">Your first project</a></li>
+<li><a href="/docs/start/the-loop">Run the loop once</a></li>
+<li><a href="/docs/start/source">Run from source</a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Guided aerial-data course</summary><ul>
 <li><a href="/docs/course/start">Start the guided course</a></li>
 <li><a href="/docs/course/setup">1. Prepare the workspace</a></li>
 <li><a href="/docs/course/data">2. Understand the sample</a></li>
@@ -61,14 +69,8 @@
 <li><a href="/docs/course/handoff">10. Approve and export an excerpt</a></li>
 <li><a href="/docs/course/backup">11. Back up, restore and share safely</a></li>
 <li><a href="/docs/course/next">12. Move to your own project</a></li>
-</ul></div>
-<div class="doc-nav-group"><p class="doc-nav-title">Getting started</p><ul>
-<li><a href="/docs/start/install">Install Granum</a></li>
-<li><a href="/docs/start/activate">Alpha access and licences</a></li>
-<li><a href="/docs/start/first-project">Your first project</a></li>
-<li><a href="/docs/start/the-loop">Run the loop once</a></li>
-</ul></div>
-<div class="doc-nav-group"><p class="doc-nav-title">Concepts</p><ul>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Concepts</summary><ul>
 <li><a href="/docs/concepts/model">How Granum is organised</a></li>
 <li><a href="/docs/concepts/projects">Projects and project types</a></li>
 <li><a href="/docs/concepts/versions">Versions and lineage</a></li>
@@ -77,117 +79,158 @@
 <li><a href="/docs/concepts/identity">Image identity</a></li>
 <li><a href="/docs/concepts/runs">Runs and metrics</a></li>
 <li><a href="/docs/concepts/evidence">What the evidence is worth</a></li>
-</ul></div>
-<div class="doc-nav-group"><p class="doc-nav-title">Guides</p><ul>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Bring data in</summary><ul>
 <li><a href="/docs/guides/import">Import data</a></li>
 <li><a href="/docs/guides/pull-from-projects">Build from existing projects</a></li>
+<li><a href="/docs/guides/projects">Manage projects</a></li>
+<li><a href="/docs/data/formats">Choose an import format</a></li>
+<li><a href="/docs/data/tabular">Numbers labels and text</a></li>
+<li><a href="/docs/data/images">Images and thumbnails</a></li>
+<li><a href="/docs/data/video">Video frames and sequences<span class="doc-status planned">Not yet included</span></a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Explore and diagnose</summary><ul>
 <li><a href="/docs/guides/browse">Browse images</a></li>
+<li><a href="/docs/explore/workspace">Inspect tables and runs</a></li>
+<li><a href="/docs/explore/charts">Build linked charts</a></li>
+<li><a href="/docs/explore/calculations">Calculate derived columns</a></li>
+<li><a href="/docs/explore/workflows">Save an analysis workflow</a></li>
+<li><a href="/docs/explore/embeddings">Explore embedding space</a></li>
+<li><a href="/docs/explore/trajectories">Follow samples across epochs</a></li>
+<li><a href="/docs/explore/duplicates">Find duplicates leakage and outliers</a></li>
+<li><a href="/docs/explore/health">Check dataset health</a></li>
+<li><a href="/docs/explore/evaluation">Inspect model errors</a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Review and improve</summary><ul>
 <li><a href="/docs/guides/review">Review and verify</a></li>
 <li><a href="/docs/guides/edit">Edit annotations</a></li>
+<li><a href="/docs/data/boxes">Bounding boxes and rotated boxes</a></li>
+<li><a href="/docs/data/masks">Instance and semantic masks</a></li>
+<li><a href="/docs/data/keypoints">Keypoints and pose</a></li>
+<li><a href="/docs/improve/prelabel">Draft labels with a model</a></li>
+<li><a href="/docs/improve/sam">Propose masks with SAM</a></li>
+<li><a href="/docs/improve/weights">Control sample weights</a></li>
 <li><a href="/docs/guides/isolate-remove">Isolate, remove and restore</a></li>
 <li><a href="/docs/guides/dataset-versions">Create a dataset version</a></li>
 <li><a href="/docs/guides/augmentation">Augmentation</a></li>
+<li><a href="/docs/improve/export">Export a dataset version</a></li>
+</ul></details>
+<details class="doc-nav-group" open><summary class="doc-nav-title">Train and measure</summary><ul>
 <li><a href="/docs/guides/train" class="on" aria-current="page">Train a model</a></li>
+<li><a href="/docs/measure/tasks">Choose a training task</a></li>
 <li><a href="/docs/guides/runs">Read a run</a></li>
 <li><a href="/docs/guides/learning">Per-image learning</a></li>
 <li><a href="/docs/guides/findings">Work the Findings queue</a></li>
 <li><a href="/docs/guides/compare">Compare two runs</a></li>
-<li><a href="/docs/guides/projects">Manage projects</a></li>
+<li><a href="/docs/measure/metrics">Record per sample metrics</a></li>
+<li><a href="/docs/measure/recipes">Examples and complete workflows</a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Connect your training code</summary><ul>
+<li><a href="/docs/integrations/pytorch">Connect a PyTorch loop</a></li>
+<li><a href="/docs/integrations/ultralytics">Connect YOLO training</a></li>
+<li><a href="/docs/integrations/hugging-face">Connect Hugging Face</a></li>
+<li><a href="/docs/integrations/lightning">Connect Lightning</a></li>
+<li><a href="/docs/integrations/detectron2">Connect Detectron2</a></li>
+<li><a href="/docs/integrations/supergradients">Connect SuperGradients</a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Build with Python</summary><ul>
 <li><a href="/docs/guides/python">Use Granum from Python</a></li>
+<li><a href="/docs/python/tables">Create and revise tables</a></li>
+<li><a href="/docs/python/schemas">Define column schemas</a></li>
+<li><a href="/docs/python/transforms">Transform samples on read</a></li>
+<li><a href="/docs/python/runs">Manage runs in Python</a></li>
+<li><a href="/docs/python/custom-metrics">Write custom collectors</a></li>
+<li><a href="/docs/python/storage">Storage paths and caches</a></li>
+<li><a href="/docs/python/api">Python API reference</a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Run your workspace</summary><ul>
+<li><a href="/docs/operate/service">Run the Granum service</a></li>
+<li><a href="/docs/operate/configuration">Configure a workspace</a></li>
+<li><a href="/docs/operate/shared">Share a workspace with a team</a></li>
+<li><a href="/docs/operate/cloud">Use cloud storage</a></li>
+<li><a href="/docs/operate/remote">Remote and container environments</a></li>
 <li><a href="/docs/guides/operations">Operate a pilot workspace</a></li>
-</ul></div>
-<div class="doc-nav-group"><p class="doc-nav-title">Reference</p><ul>
+<li><a href="/docs/operate/upgrades">Upgrade and migrate safely</a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Not yet included</summary><ul>
+<li><a href="/docs/planned/advanced-analysis">Advanced analysis extensions<span class="doc-status planned">Not yet included</span></a></li>
+<li><a href="/docs/planned/compute">Managed compute and plugins<span class="doc-status planned">Not yet included</span></a></li>
+<li><a href="/docs/planned/enterprise">Enterprise identity and delivery<span class="doc-status planned">Not yet included</span></a></li>
+<li><a href="/docs/planned/spatial">Point clouds and 3D annotations<span class="doc-status planned">Not yet included</span></a></li>
+<li><a href="/docs/planned/extensions">Custom data and storage extensions<span class="doc-status planned">Not yet included</span></a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Reference</summary><ul>
 <li><a href="/docs/reference/screens">Map of the app</a></li>
 <li><a href="/docs/reference/shortcuts">Keyboard shortcuts</a></li>
 <li><a href="/docs/reference/preflight">Import checks</a></li>
-<li><a href="/docs/reference/models">Models you can train</a></li>
+<li><a href="/docs/reference/models">Models and task support</a></li>
+<li><a href="/docs/reference/cli">Command line reference</a></li>
+<li><a href="/docs/reference/rest">Service API reference</a></li>
+<li><a href="/docs/reference/requirements">Environment and capacity requirements</a></li>
 <li><a href="/docs/reference/files">Files and settings</a></li>
 <li><a href="/docs/reference/limits">Scale and limits</a></li>
+<li><a href="/docs/reference/releases">Builds and release information</a></li>
 <li><a href="/docs/reference/glossary">Glossary</a></li>
-</ul></div>
-<div class="doc-nav-group"><p class="doc-nav-title">Help</p><ul>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Help</summary><ul>
 <li><a href="/docs/help/troubleshooting">Troubleshooting</a></li>
 <li><a href="/docs/help/faq">Frequently asked questions</a></li>
 <li><a href="/docs/help/privacy">Your data and privacy</a></li>
-</ul></div>
+</ul></details>
 </nav>
     </div>
     <main class="doc-main" id="main">
       <article class="doc-article">
-        <nav class="doc-crumb" aria-label="Breadcrumb"><a href="/docs">Documentation</a><span aria-hidden="true">/</span><a href="/docs#guides">Guides</a></nav>
+        <nav class="doc-crumb" aria-label="Breadcrumb"><a href="/docs">Documentation</a><span aria-hidden="true">/</span><a href="/docs#measure">Train and measure</a></nav>
+<span class="doc-status partial">Partially included</span>
         <h1>Train a model</h1>
-        <p class="doc-summary">Choose data, model and schedule; watch the run; know what it is doing to your machine.</p>
-        <p><strong>Runs → Train model</strong> trains a detector on this computer, on a dataset version, and records everything
-about it. Training runs as a separate process, so a long job cannot take the app down with it, and the
-app can be closed and reopened while it runs.</p>
-<h2 id="the-dialog">The dialog</h2>
-<p><strong>Dataset version.</strong> Choose one; then which of its sets to <strong>train on</strong>, which to <strong>validate on</strong>, and
-optionally a <strong>test</strong> set. Only dataset versions are offered — if the list is empty, create one from
-Images first.</p>
-<p><strong>Model.</strong> Three families, each with sizes:</p>
-<table>
-<thead>
-<tr>
-<th>Family</th>
-<th>Character</th>
-<th>Start here when</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>YOLO</strong></td>
-<td>Fast, reliable, the most widely used</td>
-<td>Always, for a first run</td>
-</tr>
-<tr>
-<td><strong>RT-DETR</strong></td>
-<td>Transformer; often better in crowded scenes</td>
-<td>Many overlapping objects, and you have GPU memory</td>
-</tr>
-<tr>
-<td><strong>RF-DETR</strong></td>
-<td>Modern transformer on a large pretrained backbone</td>
-<td>Few images, and you want the most from them</td>
-</tr>
-</tbody>
-</table>
-<p>Sizes run from nano to extra large. Nano trains in minutes and tells you whether the pipeline works;
-medium is where most real runs land. → <a href="/docs/reference/models">Models you can train</a></p>
-<p><strong>Image size</strong> decides how much detail survives. The default 640 px is right for most datasets; raise it
-when your objects are small in frame — aerial and satellite work usually wants 1024 or more — and expect
-memory and time to rise with the square of it. RF-DETR uses its own input size and ignores this.</p>
-<p><strong>Epochs</strong> are full passes over the training set. Ten to fifteen is a reasonable first run on a few
-thousand images. Long schedules matter more than people expect for the evidence features: a model that
-never becomes competent produces no findings worth reading.</p>
-<p><strong>Record per-sample metrics and predictions every epoch</strong> keeps the per-image record that
-<a href="/docs/guides/learning">learning</a> and <a href="/docs/guides/findings">Findings</a> are built on. Leave it on. The
-cost is disk — on a dense dataset of 12,000 images it is roughly 15 MB per round — and it is what makes
-the difference between a score and a list of images to look at.</p>
-<p><strong>Compare with</strong> scores an earlier run's weights on the same labels at the end, giving an immediate
-like-for-like number. The fuller picture is <a href="/docs/guides/compare">Compare runs</a>.</p>
-<h2 id="while-it-runs">While it runs</h2>
-<p>The progress card shows the phase — preparing images, loading the model, training round <em>n</em> of <em>m</em>,
-recording per-image results, scoring — with a progress bar within the round so a long round does not look
-stuck. The chart and the per-image dynamics update at the end of each round.</p>
-<p>You can leave the page, close the window, or restart the service; the run keeps going and is picked up
-again. <strong>Cancel</strong> stops it; what it recorded up to that point is kept.</p>
-<p>One training job runs at a time per machine. The dialog says so if another is already going.</p>
-<h2 id="what-it-does-to-your-machine">What it does to your machine</h2>
-<ul>
-<li><strong>GPU</strong>: it will use all of it. Training a medium model at 640 px needs roughly 8 GB; RT-DETR large
-  wants about 8 GB at batch 8. If you run out of memory, drop the size or the image size.</li>
-<li><strong>Disk</strong>: weights in <code>~/granum-training</code>, per-image metrics in the project. Both are listed in
-  <a href="/docs/reference/files">Files and settings</a>.</li>
-<li><strong>First run</strong>: pretrained weights are downloaded once, into <code>~/granum-training</code>.</li>
-</ul>
-<h2 id="the-final-score">The final score</h2>
-<p>When training ends, Granum scores the finished model itself — same matching rules, same operating point,
-for every family — on the validation set's current labels, and records that as the run's score. If you
-chose a test set, it is scored once here too, and never used for anything else.
-→ <a href="/docs/concepts/runs">Runs and metrics</a></p>
-        <div class="doc-steps"><a class="doc-step prev" href="/docs/guides/augmentation"><span>Previous</span>Augmentation</a><a class="doc-step next" href="/docs/guides/runs"><span>Next</span>Read a run</a></div>
+        <p class="doc-summary">Choose a dataset version and matching model task, record sample measurements, and inspect the completed run.</p>
+        <p><strong>Runs → Train model</strong> starts a supervised model process using a named dataset version. The current
+catalogue includes detection, instance segmentation, pose, oriented detection, classification and
+semantic segmentation paths. See <a href="/docs/measure/tasks">task support</a> for dependencies and development
+qualification limits.</p>
+<h2 id="choose-the-data">Choose the data</h2>
+<p>Select the dataset version, then its training and validation sets and, optionally, a held-out test set.
+If no versions are offered, create one from Images first. An exploratory version and an approved
+version have different review guarantees; read the acknowledgement or approval requirement shown.</p>
+<p>The task preflight checks the annotation contract, class maps, media and split overlap. Fix a mismatch
+before starting the model. Choosing detection simply because the intended mask task fails preflight
+would change what the experiment measures.</p>
+<h2 id="choose-the-model-and-recipe">Choose the model and recipe</h2>
+<p>Choose the family, prediction task and size offered by the running build. Detection families include
+YOLO, RT-DETR and RF-DETR. YOLO also exposes mask, pose and rotated-box variants. The newer Torchvision
+paths use ResNet-18 for classification and LR-ASPP MobileNetV3 for semantic masks.</p>
+<p>Set epochs and the input-size controls supported by that family. Larger images and models can increase
+memory and processing time; check a short representative run before committing to a long schedule.
+RF-DETR has its own image-size behaviour. The <a href="/docs/reference/models">model reference</a> describes the
+catalogue without assuming one family is best for every dataset.</p>
+<p><strong>Record per-sample metrics and predictions every epoch</strong> retains the observations used for learning
+analysis and supported Findings workflows. It adds inference work and storage; masks and embeddings
+can be substantially larger than scalar metrics. Collect the frequency your investigation needs.</p>
+<p><strong>Compare with</strong> evaluates an earlier compatible model against the intended evaluation context.
+Only compare matching tasks. The full <a href="/docs/guides/compare">comparison guide</a> explains the evidence
+needed before attributing a change to better data.</p>
+<h2 id="follow-the-job">Follow the job</h2>
+<p>The progress card shows preparation, model loading, training, metric collection and evaluation phases.
+Inspect logs when progress stops or a dependency/device error appears. Closing the browser does not
+cancel a job. Supervised trainers can survive a service restart and reconnect; a dead trainer may
+instead be reported as interrupted.</p>
+<p>Use <strong>Cancel</strong> when you intend to stop. Inspect the resulting status and partial records before
+starting again. Conflicting model jobs can occupy the worker; the interface reports when a new request
+cannot start.</p>
+<h2 id="inspect-the-result">Inspect the result</h2>
+<p>Open the completed run and check its source version, class map, recipe, selected checkpoint and recorded
+metrics. Classification uses accuracy/loss, semantic segmentation uses pixel and class-overlap metrics,
+and detection-style tasks use their task-specific matching. These headline numbers are not interchangeable.</p>
+<p>Where a test set was supplied, keep its final evaluation separate from iterative validation decisions.
+Open several joined samples and inspect predictions against their actual labels before relying on a
+score. Continue with <a href="/docs/guides/runs">reading runs</a>, <a href="/docs/guides/learning">learning</a> and
+<a href="/docs/explore/evaluation">error inspection</a>.</p>
+<p>A complete panoptic trainer and managed training/sweep scheduler are <strong>Not yet included</strong>. Newly added
+classification/semantic paths still require broader dataset, device and dashboard qualification.</p>
+        <div class="doc-steps"><a class="doc-step prev" href="/docs/improve/export"><span>Previous</span>Export a dataset version</a><a class="doc-step next" href="/docs/measure/tasks"><span>Next</span>Choose a training task</a></div>
       </article>
-      <aside class="doc-toc" aria-label="On this page"><p>On this page</p><ul><li><a href="#the-dialog">The dialog</a></li><li><a href="#while-it-runs">While it runs</a></li><li><a href="#what-it-does-to-your-machine">What it does to your machine</a></li><li><a href="#the-final-score">The final score</a></li></ul></aside>
+      <aside class="doc-toc" aria-label="On this page"><p>On this page</p><ul><li><a href="#choose-the-data">Choose the data</a></li><li><a href="#choose-the-model-and-recipe">Choose the model and recipe</a></li><li><a href="#follow-the-job">Follow the job</a></li><li><a href="#inspect-the-result">Inspect the result</a></li></ul></aside>
     </main>
   </div>
 

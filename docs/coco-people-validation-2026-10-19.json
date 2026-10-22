@@ -1,0 +1,333 @@
+{
+  "recorded_on": "2026-10-19",
+  "decision": "Core image pilot workflows exercised on real data. Accuracy improvement and superiority over 3LC are not established.",
+  "dataset": {
+    "name": "Official COCO 2017 person, image-license-filtered CC BY 2.0 subset",
+    "images": 1700,
+    "splits": {
+      "train": {
+        "images": 1000,
+        "annotations": 2939,
+        "individual_people": 2886,
+        "slices": {
+          "all": 1000,
+          "border_touching_proxy": 298,
+          "crowd_regions": 53,
+          "dense_5plus_people": 200,
+          "no_individual_person": 200,
+          "overlapping_boxes_proxy": 91,
+          "person_present": 800,
+          "small_person": 286
+        },
+        "annotation_sha256": "e5b51545f0bdacf6082fbef391392f91a1e0de05b4530001027aeab9758d26cb"
+      },
+      "valid": {
+        "images": 200,
+        "annotations": 617,
+        "individual_people": 604,
+        "slices": {
+          "all": 200,
+          "border_touching_proxy": 57,
+          "crowd_regions": 13,
+          "dense_5plus_people": 40,
+          "no_individual_person": 40,
+          "overlapping_boxes_proxy": 23,
+          "person_present": 160,
+          "small_person": 59
+        },
+        "annotation_sha256": "383bb77a248c98c6a3b523f2c1229ae68eb88bfb4fe3cf2b4a534d3d0b6fdcbe"
+      },
+      "test": {
+        "images": 500,
+        "annotations": 1462,
+        "individual_people": 1441,
+        "slices": {
+          "all": 500,
+          "border_touching_proxy": 149,
+          "crowd_regions": 21,
+          "dense_5plus_people": 100,
+          "no_individual_person": 100,
+          "overlapping_boxes_proxy": 54,
+          "person_present": 400,
+          "small_person": 140
+        },
+        "annotation_sha256": "df6214aa1563dda7cae8cc88cbe978ebfa98d8305c4605c9aed50b1247097b02"
+      }
+    },
+    "manifest": "data/qualification/coco-person/manifest.json",
+    "manifest_sha256": "bf1755ceddc0b95eb744629a2d3df611e38d31edcccfa4763451a9fb552df80d",
+    "license_selection": "Only COCO image license id 4 (CC BY 2.0); all original image source, Flickr, license and file SHA256 records retained.",
+    "rights_limit": "COCO metadata was checked; original image rights were not independently reverified. COCO annotation licensing does not license every COCO photograph.",
+    "excluded_alternative": "CrowdHuman: its official terms restrict use to non-commercial research and education.",
+    "split_policy": "train and valid are disjoint subsets of official train2017; test is from official val2017 and is never used for selection or checkpoint choice.",
+    "duplicate_bytes_across_splits": false,
+    "complexity": "Dense groups, small people, crowd regions, overlapping boxes and border-touching people. Overlap and border contact are geometric proxies, not ground-truth occlusion/truncation labels."
+  },
+  "detection_experiment": {
+    "metric": "Official pycocotools COCO bbox AP at IoU .50:.05:.95, in points (0\u2013100)",
+    "recipe": {
+      "epochs": 3,
+      "seeds": [
+        0,
+        1,
+        2
+      ],
+      "image_size": 640,
+      "batch": 8,
+      "model": "yolo11n.pt",
+      "training_images_each": 500
+    },
+    "test_images": 500,
+    "test_individual_people": 1441,
+    "selection": "Same 400 person/100 negative training counts. Uniform SHA256 order versus half highest training-pool error scores plus half hashed samples; no human label corrections.",
+    "crowd_policy": "Both selection policies exclude training images containing crowd regions because YOLO training cannot mask ignored regions. Validation and test retain all official crowd annotations.",
+    "conditions": {
+      "uniform": {
+        "mean_ap_points": 21.42663788191548,
+        "mean_ap50_points": 42.53216678142985,
+        "per_seed": [
+          {
+            "seed": 0,
+            "ap_points": 24.57731519300642,
+            "ap50_points": 47.192758543761826
+          },
+          {
+            "seed": 1,
+            "ap_points": 16.523413257155973,
+            "ap50_points": 36.219343281520075
+          },
+          {
+            "seed": 2,
+            "ap_points": 23.179185195584033,
+            "ap50_points": 44.18439851900766
+          }
+        ]
+      },
+      "review-selected": {
+        "mean_ap_points": 18.76862188790886,
+        "mean_ap50_points": 37.048362645391656,
+        "per_seed": [
+          {
+            "seed": 0,
+            "ap_points": 19.363191753675327,
+            "ap50_points": 38.10997842634213
+          },
+          {
+            "seed": 1,
+            "ap_points": 19.367954013639785,
+            "ap50_points": 38.06920639383957
+          },
+          {
+            "seed": 2,
+            "ap_points": 17.574719896411473,
+            "ap50_points": 34.965903115993264
+          }
+        ]
+      }
+    },
+    "mean_selection_delta_ap_points": -2.6580159940066146,
+    "per_seed_delta_ap_points": [
+      -5.214123439331095,
+      2.8445407564838128,
+      -5.604465299172562
+    ],
+    "pretrained_reference_ap_points": 54.575781362769106,
+    "conclusion": "Error-guided selection regressed on average (two seeds worse, one better). Both three-epoch fine-tuning conditions scored below the untouched pretrained detector. Do not promote this recipe as an accuracy improvement.",
+    "architecture_note": "Ultralytics changes nc=80 to nc=1 for person-only fine-tuning. The untouched reference retains the 80-class head; only person predictions are evaluated.",
+    "pretraining_note": "YOLO weights were pretrained on full COCO train2017, which includes this qualification's training and validation pools. This is a workflow/fine-tuning qualification, not evaluation in a new domain.",
+    "test_use": "Training-pool predictions determine selection; validation chooses checkpoints. The six recipes were held fixed and test results were not used to tune them. The untouched reference was evaluated afterward for context."
+  },
+  "additional_gpu_qualification": {
+    "classify": {
+      "model": "ResNet18",
+      "derived_task": "Any annotated person, including a crowd region, versus no person",
+      "train_valid_test_images": [
+        200,
+        40,
+        80
+      ],
+      "epochs": 3,
+      "accuracy_percent": 83.75,
+      "macro_f1": 0.6117954460619635,
+      "majority_class_accuracy_percent": 80.0
+    },
+    "semantic": {
+      "model": "LR-ASPP MobileNetV3",
+      "derived_task": "Union of individual-person masks versus background; crowd pixels ignored",
+      "train_valid_test_images": [
+        200,
+        40,
+        80
+      ],
+      "epochs": 3,
+      "dataset_mean_iou_percent": 71.65824304792112,
+      "person_iou_percent": 51.417477846625836,
+      "pixel_accuracy_percent": 92.53871716724308,
+      "aggregation": "Pooled class intersections/unions at original image resolution"
+    },
+    "instance_masks": {
+      "model": "YOLO11n-seg pretrained",
+      "test_images": 80,
+      "official_coco_mask_ap_points": 37.7003076527636
+    },
+    "pose": {
+      "model": "YOLO11n-pose pretrained",
+      "test_images": 80,
+      "official_coco_keypoint_ap_points": 50.3360012139216
+    },
+    "sam": {
+      "mobile_sam.pt": {
+        "oracle_box_prompts": 10,
+        "mean_mask_iou_percent": 83.75223218982161,
+        "all_nonempty": true
+      },
+      "sam2.1_t.pt": {
+        "oracle_box_prompts": 10,
+        "mean_mask_iou_percent": 85.94382148226313,
+        "all_nonempty": true
+      }
+    },
+    "sam_limit": "Ten largest-person ground-truth box prompts; selected examples, direct model adapter on GPU. This is not automatic detection or a general SAM quality benchmark.",
+    "embeddings": {
+      "model_weights_sha256": "d9e8951b72447c9629153e769791c12f024f916651d7939db2e6f76c08f0decd",
+      "preprocessing": "ImageNet normalization, RGB resize to 224 square",
+      "reference_split": "train",
+      "feature_dimensions": 512,
+      "splits": {
+        "train": {
+          "images": 200,
+          "source": "/home/siddharth/Granum-AI/data/qualification/coco-person/task-granum/projects/coco-task-qualification/datasets/person-embeddings/tables/train",
+          "projection": "/home/siddharth/Granum-AI/data/qualification/coco-person/task-granum/projects/coco-task-qualification/datasets/person-embeddings/tables/train_reduce_embeddings",
+          "saved_projection_matches": true,
+          "source_unchanged": true,
+          "identity_preserved": true
+        },
+        "test": {
+          "images": 80,
+          "source": "/home/siddharth/Granum-AI/data/qualification/coco-person/task-granum/projects/coco-task-qualification/datasets/person-embeddings/tables/test",
+          "projection": "/home/siddharth/Granum-AI/data/qualification/coco-person/task-granum/projects/coco-task-qualification/datasets/person-embeddings/tables/test_reduce_embeddings",
+          "saved_projection_matches": true,
+          "source_unchanged": true,
+          "identity_preserved": true
+        }
+      }
+    },
+    "limit": "Classification and semantic tasks are derived engineering checks, not official COCO benchmark tasks. Single training seed. Mask and pose checks are pretrained inference only."
+  },
+  "integrity_audit": {
+    "source": "data/qualification/coco-person/audit/report.json",
+    "canonical_detection_metric_rows": 24600,
+    "selection_versions_preserve_originals": true,
+    "matched_test_images_per_comparison": 500,
+    "coco_roundtrip": {
+      "images": 500,
+      "annotations": 1462,
+      "masks_crowds_ids_and_license_metadata_preserved": true
+    },
+    "native": {
+      "classify": {
+        "three_epoch_history": true,
+        "test_scored_once": true,
+        "test_images": 80,
+        "test_class_counts": {
+          "0": 16,
+          "1": 64
+        },
+        "majority_class_accuracy": 0.8
+      },
+      "semantic": {
+        "three_epoch_history": true,
+        "test_scored_once": true,
+        "test_images": 80,
+        "lossless_png_roundtrip_images": 80
+      }
+    }
+  },
+  "claims": [
+    {
+      "claim": "Per-sample metrics and epoch histories",
+      "result": "verified in this scope",
+      "evidence": "6 detection runs with 3 epochs, plus native classification and semantic API histories."
+    },
+    {
+      "claim": "Immutable selection, retraining and comparison",
+      "result": "verified in this scope",
+      "evidence": "Six frozen 500-image selections; original 1000-image labels/weights unchanged; 500 matched test images in every comparison."
+    },
+    {
+      "claim": "Mask/pose analysis and SAM proposals",
+      "result": "bounded verification",
+      "evidence": "Real GPU inference and stored task metrics; editor and proposal recovery tested in a browser with deterministic model responses."
+    },
+    {
+      "claim": "Embeddings and reusable 3D projections",
+      "result": "bounded verification",
+      "evidence": "512-dimensional learned ResNet features, 200-image PCA reference reused on 80 test images; saved coordinates and identity preserved. Interactive rendering separately tested."
+    },
+    {
+      "claim": "Better accuracy after this selection recipe",
+      "result": "not supported",
+      "evidence": "Mean delta -2.6580 AP points across three paired seeds."
+    },
+    {
+      "claim": "Faster annotation, reduced human effort, better than 3LC",
+      "result": "not measured",
+      "evidence": "No timed human study and no matched 3LC execution."
+    },
+    {
+      "claim": "Full platform parity or production scale",
+      "result": "not established",
+      "evidence": "Plugin SDK/managed environments, SAML, point clouds, retrieval operators, broad GPU/distributed frameworks and large-scale qualification remain."
+    }
+  ],
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 4070 Laptop GPU",
+    "torch": "2.8.0+cu128",
+    "cuda": "12.8",
+    "packages": "data/qualification/coco-person/environment.txt",
+    "timing_limit": "Shared development laptop with concurrent workloads. Timing and memory observations are descriptive, not isolated performance or competitor benchmarks."
+  },
+  "raw_artifacts": {
+    "manifest.json": {
+      "path": "data/qualification/coco-person/manifest.json",
+      "sha256": "bf1755ceddc0b95eb744629a2d3df611e38d31edcccfa4763451a9fb552df80d"
+    },
+    "results/report.json": {
+      "path": "data/qualification/coco-person/results/report.json",
+      "sha256": "fe3b192dd4e74f66e3d8421c59eab702ebed921dc0499434cb5397d011bc128d"
+    },
+    "task-results/report.json": {
+      "path": "data/qualification/coco-person/task-results/report.json",
+      "sha256": "33985b931850d6571b7aa20db6d953d5c6287cbe2319432eb24325186c73b8cd"
+    },
+    "audit/report.json": {
+      "path": "data/qualification/coco-person/audit/report.json",
+      "sha256": "3ff91df1300676714c438b37d4b9464039bf66f514247957e45fe31343fdd6c1"
+    }
+  },
+  "reproduce": [
+    "Use an empty --root for a new experiment; completed artifacts are preserved.",
+    ".venv/bin/python tools/qualify_coco_people.py prepare --root <new-root>",
+    ".venv/bin/python tools/run_coco_people.py --root <new-root>",
+    ".venv/bin/python tools/qualify_coco_tasks.py --root <new-root>",
+    ".venv/bin/python tools/audit_coco_people.py --root <new-root>",
+    ".venv/bin/python tools/report_coco_people.py --root <new-root>"
+  ],
+  "sources": {
+    "official_dataset": "https://cocodataset.org/#download",
+    "dataset_terms": "https://github.com/cocodataset/cocodataset.github.io/blob/master/dataset/termsofuse.htm",
+    "image_license": "https://creativecommons.org/licenses/by/2.0/",
+    "crowdhuman_terms": "https://www.crowdhuman.org/download.html",
+    "evaluation": "https://cocodataset.org/dataset/detection-eval.htm",
+    "3lc_platform": "https://3lc.ai/platform/",
+    "3lc_docs": "https://docs.3lc.ai/3lc/latest/introduction.html"
+  },
+  "model_weights_sha256": {
+    "yolo11n.pt": "0ebbc80d4a7680d14987a577cd21342b65ecfd94632bd9a8da63ae6417644ee1",
+    "yolo11n-seg.pt": "55ed65c56c91713d23e8402371c6c49a6fd84f257f7dce452e8d70e41dcbe152",
+    "yolo11n-pose.pt": "869e83fcdffdc7371fa4e34cd8e51c838cc729571d1635e5141e3075e9319dc0",
+    "mobile_sam.pt": "6dbb90523a35330fedd7f1d3dfc66f995213d81b29a5ca8108dbcdd4e37d6c2f",
+    "sam2.1_t.pt": "3c1e81ca9b037dd39d70a014ddb9a813d6c4c4e12555420db7eaff31689bd4e3"
+  },
+  "figure": "data/qualification/coco-person/results/detection-comparison.png"
+}

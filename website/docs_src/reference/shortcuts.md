@@ -32,7 +32,10 @@ summary: Every key, by screen.
 |---|---|
 | <kbd>V</kbd> | Select tool |
 | <kbd>B</kbd> | Box tool |
+| <kbd>O</kbd> | Oriented-box tool, when supported by the task |
 | <kbd>P</kbd> | Polygon (mask) tool; <kbd>Enter</kbd> closes the polygon |
+| <kbd>M</kbd> | Paint mask pixels |
+| <kbd>E</kbd> | Erase mask pixels |
 | <kbd>K</kbd> | Keypoint tool |
 | <kbd>0</kbd> | Fit the image |
 | Wheel | Zoom; drag empty space to pan |

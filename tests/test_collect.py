@@ -224,6 +224,30 @@ def test_classification_loss_is_correct():
     assert rows[0]["confidence"] > 0.99
 
 
+@pytest.mark.parametrize("labels,predictions", [
+    ([-1], [[0., 1.]]), ([2], [[0., 1.]]), ([0.5], [[0., 1.]]),
+    ([0], [[float("nan"), 1.]]), ([0], [[0., float("inf")]]),
+])
+def test_classification_rejects_invalid_outputs_instead_of_writing_misleading_metrics(labels, predictions):
+    from granum.metrics.predictor import Prediction
+
+    with pytest.raises(CollectorError):
+        ClassificationMetricsCollector().collect({"label": labels}, Prediction(np.asarray(predictions)))
+
+
+def test_metric_collectors_cannot_overwrite_sample_identity_or_each_other():
+    run = granum.init("demo", "identity")
+    table = make_table(2)
+    spoofed = FunctionalMetricsCollector(lambda b, p: {"example_id": [1, 0]})
+    with pytest.raises(CollectionError, match="reserved"):
+        collect_metrics(table, [spoofed], run=run)
+    first = FunctionalMetricsCollector(lambda b, p: {"loss": [1., 2.]})
+    second = FunctionalMetricsCollector(lambda b, p: {"loss": [3., 4.]})
+    with pytest.raises(CollectionError, match="duplicate"):
+        collect_metrics(table, [first, second], run=run)
+    assert not run.metrics_tables()
+
+
 # -- aggregation ------------------------------------------------------------
 
 

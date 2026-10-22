@@ -6,6 +6,7 @@ Docs are generated (`tools/docs.py`) and the output is committed, because Vercel
 
 from __future__ import annotations
 
+import json
 import re
 import sys
 from pathlib import Path
@@ -95,3 +96,49 @@ def test_search_index_covers_every_page(built):
     index = docs.search_index()
     assert {row["url"] for row in index} == {page.url for page in docs.PAGES.values()}
     assert all(row["text"] for row in index)
+
+
+def test_navigation_covers_sources_once(built):
+    slugs = [slug for section in docs.NAV for slug in section.slugs]
+    assert len(slugs) == len(set(slugs)), "A page appears in more than one section"
+    sources = {path.relative_to(ROOT / "docs_src").with_suffix("").as_posix()
+               for path in (ROOT / "docs_src").rglob("*.md")}
+    assert sources == {"index", *slugs}, "A documentation source is missing from navigation"
+
+
+def test_feature_availability_is_explicit_and_linked(built):
+    features = docs.feature_inventory()
+    assert len({item["id"] for item in features}) == len(features)
+    targets = _local_targets()
+    for item in features:
+        assert item["status"] in docs.STATUS_LABELS, item["id"]
+        assert item["scope"] and item["area"], item["id"]
+        target, _, anchor = item["doc"].partition("#")
+        assert target in targets, item["id"]
+        assert not anchor or anchor in targets[target], item["id"]
+        if item["status"] == "planned":
+            page = docs.PAGES[target.removeprefix("/docs/")]
+            assert "Not yet included" in page.body, item["id"]
+    index_page = docs.PAGES["reference/features"]
+    assert all(item["title"] in index_page.body for item in features)
+
+
+def test_status_survives_page_rendering_and_search(built):
+    search = {item["url"]: item for item in docs.search_index()}
+    for page in docs.PAGES.values():
+        assert search[page.url]["status"] == docs.STATUS_LABELS.get(page.status, "")
+        if page.status:
+            assert docs.status_badge(page.status) in docs.render(page)
+        if page.status == "planned":
+            assert "Not yet included" in page.body
+
+
+def test_reference_inventory_has_no_unmapped_topics(built):
+    coverage = json.loads((ROOT / "docs_reference_coverage.json").read_text())
+    entries = coverage["pages"]
+    assert len(entries) == coverage["reference_page_count"]
+    assert len({item["reference"] for item in entries}) == len(entries)
+    features = {item["id"]: item for item in docs.feature_inventory()}
+    for item in entries:
+        assert item["reference"].startswith("https://docs.3lc.ai/3lc/latest/")
+        assert item["doc"] == features[item["feature_id"]]["doc"]

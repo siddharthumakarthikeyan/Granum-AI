@@ -14,13 +14,21 @@ Which tools appear follows the project's [type](/docs/concepts/projects).
 |---|---|---|
 | **Select** | <kbd>V</kbd> | Click an object to select it. Drag it to move, drag a handle to resize, drag a vertex or keypoint to move that point |
 | **Box** | <kbd>B</kbd> | Drag on the image to draw a box |
+| **Oriented box** | <kbd>O</kbd> | Draw a rectangle and use its rotation handle |
 | **Polygon** | <kbd>P</kbd> | Click points to trace a mask; <kbd>Enter</kbd> closes it. Double-click an edge to add a vertex |
+| **Paint** | <kbd>M</kbd> | Add pixels to the selected mask |
+| **Erase** | <kbd>E</kbd> | Remove pixels from the selected mask |
 | **Keypoint** | <kbd>K</kbd> | Click to add points to the selected object; with nothing selected, starts a new one |
 | **Image label** | — | For classification projects: one label for the whole image |
 
-Detection projects get Box. Segmentation projects get Polygon. Keypoint projects get Keypoint, and a box
+Detection projects get Box. Oriented detection adds rotated rectangles. Segmentation projects provide
+polygon and pixel tools, with [SAM assistance](/docs/improve/sam) when its dependencies are available.
+Keypoint projects get Keypoint, and a box
 is fitted around the points automatically when the project has no box tool. Classification projects get
 no drawing tools at all, only the image label.
+
+See [boxes](/docs/data/boxes), [masks](/docs/data/masks) and [keypoints](/docs/data/keypoints) for the
+coordinate, export and task-specific rules.
 
 ## Moving around
 

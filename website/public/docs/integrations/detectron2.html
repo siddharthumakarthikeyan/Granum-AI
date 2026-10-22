@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Connect Detectron2 · Granum documentation</title>
+  <meta name="description" content="Register Granum tables and collect detection, instance-mask or keypoint predictions with a Detectron2 evaluator.">
+  <meta name="theme-color" content="#ffffff">
+  <meta property="og:title" content="Connect Detectron2 · Granum documentation">
+  <meta property="og:description" content="Register Granum tables and collect detection, instance-mask or keypoint predictions with a Detectron2 evaluator.">
+  <meta property="og:type" content="article">
+  <meta property="og:image" content="/assets/og.jpg">
+  <link rel="canonical" href="https://granum.app/docs/integrations/detectron2">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/docs/docs.css">
+  <script>document.documentElement.classList.remove("no-js");</script>
+</head>
+<body class="doc-body">
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header doc-header">
+    <div class="wrap">
+      <a class="brand" href="/" aria-label="Granum home"><img src="/assets/lockup-ink.svg" alt="Granum" width="128" height="32"></a>
+      <span class="doc-badge"><a href="/docs">Docs</a></span>
+      <nav class="nav" id="nav" aria-label="Main">
+        <a href="/#tour">Product</a>
+        <a href="/#plans">Pilots</a>
+        <a href="/docs/help/faq">FAQ</a>
+      </nav>
+      <div class="header-actions">
+        <button class="doc-search-button" type="button" data-search aria-label="Search documentation">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3 3"/></svg>
+          <span>Search</span><kbd>/</kbd>
+        </button>
+        <a class="btn primary small" href="/download">Download</a>
+        <button class="menu-button" type="button" aria-controls="doc-sidebar" aria-expanded="false" aria-label="Menu" data-sidebar-toggle>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="doc-shell">
+    <div class="doc-sidebar" id="doc-sidebar">
+      <nav class="doc-nav" aria-label="Documentation">
+<a class="doc-nav-home" href="/docs">Start here</a>
+<details class="doc-nav-group"><summary class="doc-nav-title">Start with Granum</summary><ul>
+<li><a href="/docs/reference/features">Feature availability</a></li>
+<li><a href="/docs/start/install">Install Granum</a></li>
+<li><a href="/docs/start/activate">Alpha access and licences</a></li>
+<li><a href="/docs/start/first-project">Your first project</a></li>
+<li><a href="/docs/start/the-loop">Run the loop once</a></li>
+<li><a href="/docs/start/source">Run from source</a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Guided aerial-data course</summary><ul>
+<li><a href="/docs/course/start">Start the guided course</a></li>
+<li><a href="/docs/course/setup">1. Prepare the workspace</a></li>
+<li><a href="/docs/course/data">2. Understand the sample</a></li>
+<li><a href="/docs/course/import">3. Import with preflight</a></li>
+<li><a href="/docs/course/explore">4. Explore before changing labels</a></li>
+<li><a href="/docs/course/baseline">5. Freeze an exploratory baseline</a></li>
+<li><a href="/docs/course/review">6. Review, edit and recover</a></li>
+<li><a href="/docs/course/train">7. Train the first model</a></li>
+<li><a href="/docs/course/results">8. Read the model evidence</a></li>
+<li><a href="/docs/course/compare">9. Make a controlled comparison</a></li>
+<li><a href="/docs/course/handoff">10. Approve and export an excerpt</a></li>
+<li><a href="/docs/course/backup">11. Back up, restore and share safely</a></li>
+<li><a href="/docs/course/next">12. Move to your own project</a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Concepts</summary><ul>
+<li><a href="/docs/concepts/model">How Granum is organised</a></li>
+<li><a href="/docs/concepts/projects">Projects and project types</a></li>
+<li><a href="/docs/concepts/versions">Versions and lineage</a></li>
+<li><a href="/docs/concepts/dataset-versions">Dataset versions</a></li>
+<li><a href="/docs/concepts/verification">Verification and decisions</a></li>
+<li><a href="/docs/concepts/identity">Image identity</a></li>
+<li><a href="/docs/concepts/runs">Runs and metrics</a></li>
+<li><a href="/docs/concepts/evidence">What the evidence is worth</a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Bring data in</summary><ul>
+<li><a href="/docs/guides/import">Import data</a></li>
+<li><a href="/docs/guides/pull-from-projects">Build from existing projects</a></li>
+<li><a href="/docs/guides/projects">Manage projects</a></li>
+<li><a href="/docs/data/formats">Choose an import format</a></li>
+<li><a href="/docs/data/tabular">Numbers labels and text</a></li>
+<li><a href="/docs/data/images">Images and thumbnails</a></li>
+<li><a href="/docs/data/video">Video frames and sequences<span class="doc-status planned">Not yet included</span></a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Explore and diagnose</summary><ul>
+<li><a href="/docs/guides/browse">Browse images</a></li>
+<li><a href="/docs/explore/workspace">Inspect tables and runs</a></li>
+<li><a href="/docs/explore/charts">Build linked charts</a></li>
+<li><a href="/docs/explore/calculations">Calculate derived columns</a></li>
+<li><a href="/docs/explore/workflows">Save an analysis workflow</a></li>
+<li><a href="/docs/explore/embeddings">Explore embedding space</a></li>
+<li><a href="/docs/explore/trajectories">Follow samples across epochs</a></li>
+<li><a href="/docs/explore/duplicates">Find duplicates leakage and outliers</a></li>
+<li><a href="/docs/explore/health">Check dataset health</a></li>
+<li><a href="/docs/explore/evaluation">Inspect model errors</a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Review and improve</summary><ul>
+<li><a href="/docs/guides/review">Review and verify</a></li>
+<li><a href="/docs/guides/edit">Edit annotations</a></li>
+<li><a href="/docs/data/boxes">Bounding boxes and rotated boxes</a></li>
+<li><a href="/docs/data/masks">Instance and semantic masks</a></li>
+<li><a href="/docs/data/keypoints">Keypoints and pose</a></li>
+<li><a href="/docs/improve/prelabel">Draft labels with a model</a></li>
+<li><a href="/docs/improve/sam">Propose masks with SAM</a></li>
+<li><a href="/docs/improve/weights">Control sample weights</a></li>
+<li><a href="/docs/guides/isolate-remove">Isolate, remove and restore</a></li>
+<li><a href="/docs/guides/dataset-versions">Create a dataset version</a></li>
+<li><a href="/docs/guides/augmentation">Augmentation</a></li>
+<li><a href="/docs/improve/export">Export a dataset version</a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Train and measure</summary><ul>
+<li><a href="/docs/guides/train">Train a model</a></li>
+<li><a href="/docs/measure/tasks">Choose a training task</a></li>
+<li><a href="/docs/guides/runs">Read a run</a></li>
+<li><a href="/docs/guides/learning">Per-image learning</a></li>
+<li><a href="/docs/guides/findings">Work the Findings queue</a></li>
+<li><a href="/docs/guides/compare">Compare two runs</a></li>
+<li><a href="/docs/measure/metrics">Record per sample metrics</a></li>
+<li><a href="/docs/measure/recipes">Examples and complete workflows</a></li>
+</ul></details>
+<details class="doc-nav-group" open><summary class="doc-nav-title">Connect your training code</summary><ul>
+<li><a href="/docs/integrations/pytorch">Connect a PyTorch loop</a></li>
+<li><a href="/docs/integrations/ultralytics">Connect YOLO training</a></li>
+<li><a href="/docs/integrations/hugging-face">Connect Hugging Face</a></li>
+<li><a href="/docs/integrations/lightning">Connect Lightning</a></li>
+<li><a href="/docs/integrations/detectron2" class="on" aria-current="page">Connect Detectron2</a></li>
+<li><a href="/docs/integrations/supergradients">Connect SuperGradients</a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Build with Python</summary><ul>
+<li><a href="/docs/guides/python">Use Granum from Python</a></li>
+<li><a href="/docs/python/tables">Create and revise tables</a></li>
+<li><a href="/docs/python/schemas">Define column schemas</a></li>
+<li><a href="/docs/python/transforms">Transform samples on read</a></li>
+<li><a href="/docs/python/runs">Manage runs in Python</a></li>
+<li><a href="/docs/python/custom-metrics">Write custom collectors</a></li>
+<li><a href="/docs/python/storage">Storage paths and caches</a></li>
+<li><a href="/docs/python/api">Python API reference</a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Run your workspace</summary><ul>
+<li><a href="/docs/operate/service">Run the Granum service</a></li>
+<li><a href="/docs/operate/configuration">Configure a workspace</a></li>
+<li><a href="/docs/operate/shared">Share a workspace with a team</a></li>
+<li><a href="/docs/operate/cloud">Use cloud storage</a></li>
+<li><a href="/docs/operate/remote">Remote and container environments</a></li>
+<li><a href="/docs/guides/operations">Operate a pilot workspace</a></li>
+<li><a href="/docs/operate/upgrades">Upgrade and migrate safely</a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Not yet included</summary><ul>
+<li><a href="/docs/planned/advanced-analysis">Advanced analysis extensions<span class="doc-status planned">Not yet included</span></a></li>
+<li><a href="/docs/planned/compute">Managed compute and plugins<span class="doc-status planned">Not yet included</span></a></li>
+<li><a href="/docs/planned/enterprise">Enterprise identity and delivery<span class="doc-status planned">Not yet included</span></a></li>
+<li><a href="/docs/planned/spatial">Point clouds and 3D annotations<span class="doc-status planned">Not yet included</span></a></li>
+<li><a href="/docs/planned/extensions">Custom data and storage extensions<span class="doc-status planned">Not yet included</span></a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Reference</summary><ul>
+<li><a href="/docs/reference/screens">Map of the app</a></li>
+<li><a href="/docs/reference/shortcuts">Keyboard shortcuts</a></li>
+<li><a href="/docs/reference/preflight">Import checks</a></li>
+<li><a href="/docs/reference/models">Models and task support</a></li>
+<li><a href="/docs/reference/cli">Command line reference</a></li>
+<li><a href="/docs/reference/rest">Service API reference</a></li>
+<li><a href="/docs/reference/requirements">Environment and capacity requirements</a></li>
+<li><a href="/docs/reference/files">Files and settings</a></li>
+<li><a href="/docs/reference/limits">Scale and limits</a></li>
+<li><a href="/docs/reference/releases">Builds and release information</a></li>
+<li><a href="/docs/reference/glossary">Glossary</a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Help</summary><ul>
+<li><a href="/docs/help/troubleshooting">Troubleshooting</a></li>
+<li><a href="/docs/help/faq">Frequently asked questions</a></li>
+<li><a href="/docs/help/privacy">Your data and privacy</a></li>
+</ul></details>
+</nav>
+    </div>
+    <main class="doc-main" id="main">
+      <article class="doc-article">
+        <nav class="doc-crumb" aria-label="Breadcrumb"><a href="/docs">Documentation</a><span aria-hidden="true">/</span><a href="/docs#integrations">Connect your training code</a></nav>
+<span class="doc-status partial">Partially included</span>
+        <h1>Connect Detectron2</h1>
+        <p class="doc-summary">Register Granum tables and collect detection, instance-mask or keypoint predictions with a Detectron2 evaluator.</p>
+        <p>The Detectron2 integration exposes tables through its dataset catalogue and records predictions with
+<code>GranumEvaluator</code>. Install Detectron2 for your chosen PyTorch, compiler and CUDA environment before
+using this optional adapter.</p>
+<h2 id="register-a-dataset">Register a dataset</h2>
+<pre><code class="language-python">from granum.integration.detectron2 import register_dataset, GranumEvaluator
+from detectron2.evaluation import inference_on_dataset
+
+register_dataset(&quot;granum_validation&quot;, table)
+evaluator = GranumEvaluator(table, run=run, task=&quot;segment&quot;, split=&quot;val&quot;, epoch=0)
+summary = inference_on_dataset(model, validation_loader, evaluator)
+</code></pre>
+<p>Here <code>validation_loader</code> must be built from the registered dataset using your Detectron2 loader
+configuration. Its mapper must preserve <code>image_id</code> and <code>__granum_table_url</code>. Use the task matching
+your table and model: detection, instance segmentation or pose.</p>
+<h2 id="preserve-annotation-meaning">Preserve annotation meaning</h2>
+<p>Category IDs are mapped to contiguous model classes and mapped back when recording metrics.
+Check class names rather than assuming dataset IDs already match model output positions.
+For bitmap masks, configure <code>cfg.INPUT.MASK_FORMAT = "bitmask"</code>.</p>
+<p>The adapter handles the COCO/Detectron2 half-pixel keypoint convention. Avoid applying that conversion
+a second time in a custom mapper. Keep source image dimensions so predictions can be related to
+original geometry.</p>
+<h2 id="integrate-with-training">Integrate with training</h2>
+<p>Return a <code>GranumEvaluator</code> from your <code>DefaultTrainer.build_evaluator</code> override or combine it with
+another evaluator. <code>iteration=lambda: trainer.iter</code> can record the active training step.
+Keep the Run available across evaluations and finish it when the training process concludes.</p>
+<p>Verify a small shuffled evaluation set and inspect joined predictions before extending training.
+Development evidence includes the real dataset catalogue/mapper, class and keypoint mapping,
+Mask R-CNN optimisation and inference on CPU.</p>
+<h2 id="not-yet-included">Not yet included</h2>
+<p>Rotated-box input is refused by this adapter. Dedicated semantic/panoptic adapters, embedding hooks
+and qualified distributed/GPU workflows are not yet included. Use the
+<a href="/docs/integrations/ultralytics">YOLO OBB path</a> for supported rotated-box work, or the
+<a href="/docs/python/custom-metrics">custom collector contract</a> for an explicit model-output adapter.</p>
+        <div class="doc-steps"><a class="doc-step prev" href="/docs/integrations/lightning"><span>Previous</span>Connect Lightning</a><a class="doc-step next" href="/docs/integrations/supergradients"><span>Next</span>Connect SuperGradients</a></div>
+      </article>
+      <aside class="doc-toc" aria-label="On this page"><p>On this page</p><ul><li><a href="#register-a-dataset">Register a dataset</a></li><li><a href="#preserve-annotation-meaning">Preserve annotation meaning</a></li><li><a href="#integrate-with-training">Integrate with training</a></li><li><a href="#not-yet-included">Not yet included</a></li></ul></aside>
+    </main>
+  </div>
+
+  <footer class="doc-footer">
+    <div class="wrap">
+    <p>© Granum. Local-first data workflows.</p>
+      <p><a href="/">Product</a><a href="/download">Download</a><a href="/privacy">Privacy</a><a href="/docs/help/troubleshooting">Support</a></p>
+    </div>
+  </footer>
+
+  <div class="doc-search" data-search-panel hidden>
+    <div class="doc-search-box" role="dialog" aria-modal="true" aria-label="Search documentation">
+    <input type="search" aria-label="Search documentation" aria-controls="doc-search-results" placeholder="Search the documentation" autocomplete="off" spellcheck="false" data-search-input>
+    <ul id="doc-search-results" aria-label="Search results" aria-live="polite" data-search-results></ul>
+      <p class="doc-search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move · <kbd>Enter</kbd> to open · <kbd>Esc</kbd> to close</p>
+    </div>
+  </div>
+
+  <script src="/docs/docs.js" defer></script>
+</body>
+</html>

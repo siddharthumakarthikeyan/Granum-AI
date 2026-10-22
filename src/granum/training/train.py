@@ -25,10 +25,10 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from granum.training.models import version_ids
+from granum.training.models import task_for_version, version_ids
 
 #: Batch size per family when the caller does not choose one.
-DEFAULT_BATCH = {"yolo": 16, "rtdetr": 8, "rfdetr": 4}
+DEFAULT_BATCH = {"yolo": 16, "rtdetr": 8, "rfdetr": 4, "classifier": 16, "semantic": 8}
 
 
 def phase(text: str) -> None:
@@ -82,7 +82,8 @@ def train_ultralytics(args: argparse.Namespace, train: Any, valid: Any, work: Pa
     phase("Preparing the images")
     export_dir = work / "exports" / args.run_name
     shutil.rmtree(export_dir, ignore_errors=True)
-    data_yaml = export_yolo({"train": train, "val": valid}, export_dir, image_strategy="symlink")
+    data_yaml = export_yolo({"train": train, "val": valid}, export_dir, image_strategy="symlink",
+                            task=task_for_version(args.version), split_weight_thresholds={"val": None})
 
     phase("Loading the model")
     if args.family == "rtdetr":
@@ -126,8 +127,9 @@ def train_ultralytics(args: argparse.Namespace, train: Any, valid: Any, work: Pa
     model.add_callback("on_fit_epoch_end", on_epoch_end)
     batch = args.batch or DEFAULT_BATCH[args.family]
     model.train(
-        data=str(data_yaml), epochs=args.epochs, imgsz=args.imgsz, batch=batch, seed=0, deterministic=True,
-        project=str(work / "runs"), name=args.run_name, exist_ok=True, verbose=False, plots=False, workers=4,
+        data=str(data_yaml), epochs=args.epochs, imgsz=args.imgsz, batch=batch, seed=args.seed, deterministic=True,
+        project=str(work / "runs"), name=args.run_name, exist_ok=False, verbose=False, plots=False,
+        workers=args.workers, device=None if args.device == "auto" else args.device,
     )
     run = granum.get_active_run()
     return run, work / "runs" / args.run_name / "weights" / "best.pt"
@@ -225,7 +227,7 @@ def train_rfdetr(args: argparse.Namespace, train: Any, valid: Any, work: Path) -
         model.train(
             dataset_dir=str(dataset_dir), epochs=args.epochs, batch_size=args.batch or DEFAULT_BATCH["rfdetr"],
             grad_accum_steps=4,
-            output_dir=str(output_dir), seed=0,
+            output_dir=str(output_dir), seed=args.seed,
         )
     finally:
         rf_training.build_trainer = original
@@ -241,13 +243,15 @@ def run_parameters(args: argparse.Namespace, train: Any, valid: Any) -> dict[str
     return {
         "framework": args.family,
         "version": args.version,
+        "task": task_for_version(args.version),
         # The recipe and the rules the scores were computed under: a later comparison needs
         # both to say whether two runs' numbers are the same kind of number.
         "epochs": args.epochs,
         "imgsz": args.imgsz,
         "batch": args.batch or DEFAULT_BATCH.get(args.family, 16),
-        "seed": 0,
-        "evaluator": evaluator_policy(),
+        "seed": getattr(args, "seed", 0),
+        "preflight": getattr(args, "preflight", {}),
+        "evaluator": evaluator_policy(task=task_for_version(args.version)),
         # The exact tables, so a dataset version can tell which runs used it.
         "train_table": str(train.url),
         "valid_table": str(valid.url),
@@ -271,7 +275,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--valid-table", required=True)
     parser.add_argument("--test-table", default=None, help="held-out set, scored once with the finished model")
     parser.add_argument("--run-name", required=True)
-    parser.add_argument("--family", choices=["yolo", "rtdetr", "rfdetr"], default="yolo")
+    parser.add_argument("--family", choices=["yolo", "rtdetr", "rfdetr", "classifier", "semantic"], default="yolo")
     parser.add_argument("--version", default="yolo26n.pt")
     parser.add_argument("--epochs", type=int, default=12)
     parser.add_argument("--imgsz", type=int, default=640)
@@ -281,6 +285,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--work-dir", default=None)
     parser.add_argument("--release-id", default=None)
     parser.add_argument("--require-approved", action="store_true")
+    parser.add_argument("--device", default="auto")
+    parser.add_argument("--workers", type=int, default=2)
+    parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument("--learning-rate", type=float, default=.0003)
+    parser.add_argument("--no-pretrained", action="store_true", help="Initialize torchvision weights randomly (for qualification).")
     args = parser.parse_args(argv)
     if args.version not in version_ids(args.family):
         parser.error(f"--version for {args.family} must be one of {version_ids(args.family)}")
@@ -292,9 +301,23 @@ def main(argv: list[str] | None = None) -> int:
     root = Path(args.project_root)
     granum.set_config(granum.Config.load(overrides={"project-root-url": str(root)}, use_config_files=False, use_env=False))
     work = Path(args.work_dir) if args.work_dir else root.parent / "granum-training"
+    if granum.ProjectLayout(root).run(args.project, args.run_name).exists() or (work / "runs" / args.run_name).exists():
+        parser.error("choose a new run name; existing results must not be overwritten")
+    if args.compare_with:
+        earlier = granum.Run.from_url(granum.ProjectLayout(root).run(args.project, args.compare_with))
+        if earlier.parameters.get("task", "detect") != task_for_version(args.version):
+            parser.error("comparison requires the same prediction task")
+        if weights_for(earlier, root, work) is None:
+            parser.error("the earlier run has no saved weights")
     train = Table.from_url(args.train_table)
     valid = Table.from_url(args.valid_table)
     args.test = Table.from_url(args.test_table) if args.test_table else None
+    from granum.training.data import validate_training
+
+    phase("Checking labels, images and split separation")
+    args.preflight = validate_training({"train": train, "valid": valid, **({"test": args.test} if args.test is not None else {})}, task_for_version(args.version))
+    if args.epochs < 1 or args.imgsz < 32 or args.batch < 0 or args.workers < 0 or not 0 < args.learning_rate < 1:
+        parser.error("invalid epochs, image size, batch, workers or learning rate")
     if args.require_approved:
         from granum.core.qa import QaLog
 
@@ -302,6 +325,38 @@ def main(argv: list[str] | None = None) -> int:
             args.release_id, [str(t.url) for t in (train, valid, args.test) if t is not None],
         )
         args.release_approval = {k: release["approval_record"][k] for k in ("author", "time", "policy")}
+
+    if args.family in ("classifier", "semantic"):
+        from granum.training.vision import score_checkpoint, train_vision
+
+        run, best = train_vision(args, train, valid, work)
+        try:
+            phase("Scoring the selected model")
+            scores = score_checkpoint(best, valid, device=args.device, run=run, split="valid_best", workers=args.workers)
+            run.set_parameters({"score_labels": f"{valid.dataset_name}/{valid.name}",
+                                **{f"score_{key}": value for key, value in scores.items()}})
+            if args.test is not None:
+                phase("Scoring the held-out test set")
+                tested = score_checkpoint(best, args.test, device=args.device, run=run, split="test", workers=args.workers)
+                run.set_parameters({"test_labels": f"{args.test.dataset_name}/{args.test.name}",
+                                    **{f"test_{key}": value for key, value in tested.items()}})
+            if args.compare_with:
+                earlier = granum.Run.from_url(granum.ProjectLayout(root).run(args.project, args.compare_with))
+                if earlier.parameters.get("task") != task_for_version(args.version):
+                    raise ValueError("cannot compare different prediction tasks")
+                previous = weights_for(earlier, root, work)
+                if previous is None:
+                    raise ValueError("the earlier run has no saved weights")
+                theirs = score_checkpoint(previous, valid, device=args.device, workers=args.workers)
+                run.set_parameters({"compare_labels": f"{valid.dataset_name}/{valid.name}",
+                                    **{f"compare_{key}_this": value for key, value in scores.items()},
+                                    **{f"compare_{key}_earlier": value for key, value in theirs.items()}})
+            run.set_status("finished")
+        except BaseException:
+            run.set_status("failed")
+            raise
+        phase("Finished")
+        return 0
 
     trainer = train_rfdetr if args.family == "rfdetr" else train_ultralytics
     run, best = trainer(args, train, valid, work)
@@ -339,6 +394,8 @@ def main(argv: list[str] | None = None) -> int:
         else:
             framework = earlier.parameters.get("framework", "rtdetr" if "rtdetr" in earlier_weights.name else "yolo")
             version = earlier.parameters.get("version", "")
+            if earlier.parameters.get("task", task_for_version(version)) != task_for_version(args.version):
+                raise ValueError("cannot compare scores from different prediction tasks")
             imgsz = int(earlier.parameters.get("imgsz", args.imgsz))
             theirs = score_detector(predictor_for(framework, version, earlier_weights, valid, imgsz=imgsz, conf=0.01), valid)
             run.set_parameters({

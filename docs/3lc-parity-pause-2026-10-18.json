@@ -1,0 +1,174 @@
+{
+  "status": "resumed_by_user",
+  "resumed_on": "2026-10-18",
+  "resume_instruction": "continue",
+  "latest_checkpoint": "docs/3lc-parity-verification-2026-10-19.json",
+  "historical_snapshot_note": "The implementation, validation and environment sections below record the earlier pause. Several listed gaps were subsequently implemented and verified. Use latest_checkpoint and docs/feature-coverage.json for current evidence and remaining work.",
+  "paused_on": "2026-10-18",
+  "timezone": "Asia/Kolkata",
+  "pause_instruction": "pause it and log. we will resume later",
+  "objective": "Implement Granum AI equivalents of all publicly documented 3LC capabilities, with honest coverage and validation.",
+  "resume_only_when_requested": false,
+  "repository": {
+    "path": "/home/siddharth/Granum-AI",
+    "remote": "https://github.com/siddharthumakarthikeyan/Granum-AI",
+    "branch_verified_at_pause": "feat/3lc-parity",
+    "recorded_base_commit": "319ade060e850aa5157a2075bb1eed892d516bd5",
+    "work_saved_as": "Uncommitted changes and new files in the local working tree.",
+    "committed_pushed_or_deployed": false,
+    "coverage_inventory": "docs/feature-coverage.json",
+    "coverage_inventory_caveat": "The coverage inventory includes subsequent resumed work and its validation limits. It is not a percentage-complete measure."
+  },
+  "product_context": {
+    "commercial_stage": "Building; no external users yet.",
+    "previous_assessment": "Substantial alpha; consider only a founder-assisted pilot with a deliberately bounded workflow.",
+    "progress_estimate": "More than half of full parity effort remains. This is a rough scope estimate, not a measured percentage of completed features.",
+    "full_parity_verified": false
+  },
+  "implemented_in_working_tree": [
+    {
+      "area": "Calculated columns and saved workflows",
+      "details": "Declarative arithmetic, comparisons, vector operations, grouping, rank, occurrence, ordered/window calculations; chained recipes; recalculation through edits and undo/redo; workflow import/export and local storage with compatibility checks.",
+      "files": [
+        "web/src/analysis/",
+        "web/src/store/store.ts",
+        "web/src/shell/Workspace.tsx"
+      ],
+      "remaining": "Browser validation and a complete comparison against 3LC's documented operators."
+    },
+    {
+      "area": "Embedding projections and 3D charts",
+      "details": "PCA, UMAP and PaCMAP in two or three dimensions; reference fit reused across run epochs; immutable output tables/runs; cancellable projection jobs; dashboard dialog and interactive 3D scatter view.",
+      "files": [
+        "src/granum/reduction.py",
+        "src/granum/service/analysis.py",
+        "src/granum/metrics/collectors.py",
+        "web/src/analysis/ProjectionDialog.tsx",
+        "web/src/charts/Scatter3D.tsx"
+      ],
+      "remaining": "Trajectory lines, persistent fitted reducers, 3D region selection, size encoding, browser verification and safer handling of edits made while a projection runs."
+    },
+    {
+      "area": "Computer vision formats and editor",
+      "details": "YOLO detection, segmentation, pose and oriented-box import/export; pose metadata preservation; COCO polygon and compressed/uncompressed RLE support; bitmap paint/erase/translation; oriented-box rotation and resize; keypoint visibility and skeleton display; image augmentation preserves mask geometry.",
+      "files": [
+        "src/granum/formats/vision.py",
+        "src/granum/formats/yolo.py",
+        "src/granum/formats/exchange.py",
+        "src/granum/core/augment.py",
+        "web/src/images/ImageEditor.tsx",
+        "web/src/images/masks.ts",
+        "web/src/images/MaskOverlay.tsx",
+        "web/src/images/oriented.ts"
+      ],
+      "remaining": "Native semantic bitmap datasets, skeleton-aware fixed-slot keypoint creation, browser verification, export bounds and filename collision checks."
+    },
+    {
+      "area": "Metrics, YOLO training and prelabeling",
+      "details": "Mask IoU/Dice, oriented-box IoU, keypoint OKS and semantic metrics; task-aware matching; YOLO segmentation/pose/OBB prediction adapters and training choices; task-correct dataset export; prelabels preserve masks, keypoints and oriented corners.",
+      "files": [
+        "src/granum/metrics/vision.py",
+        "src/granum/metrics/detection.py",
+        "src/granum/integration/ultralytics.py",
+        "src/granum/training/",
+        "src/granum/core/prelabel.py",
+        "web/src/training/Training.tsx"
+      ],
+      "remaining": "Real model training/inference verification, classification and semantic training, per-keypoint analysis UI, prelaunch task validation and missing-mask annotation validation."
+    },
+    {
+      "area": "SAM-assisted segmentation",
+      "details": "SAM 2.1/MobileSAM adapter with box and foreground/background point prompts; separate cancellable worker; validated service endpoints; dashboard model selection, prompt controls, preview, apply and discard; applied masks persist source metadata and integrate with undo.",
+      "files": [
+        "src/granum/integration/sam.py",
+        "src/granum/training/segment.py",
+        "src/granum/service/segmentation.py",
+        "src/granum/service/trainers.py",
+        "src/granum/service/app.py",
+        "src/granum/service/auth.py",
+        "web/src/images/SamPanel.tsx",
+        "web/src/images/ImageEditor.tsx",
+        "tests/test_sam.py"
+      ],
+      "remaining": "Real-weight inference smoke test, browser verification, completed-job recovery after restart and semantic-mask overlap handling when applying a proposal."
+    }
+  ],
+  "validation": {
+    "latest_completed_at_pause": {
+      "command": "/tmp/granum-evaluation-319ade0/bin/python -m pytest tests/test_sam.py tests/test_trainers.py tests/test_desktop.py tests/test_prelabel.py",
+      "result": "19 passed, 1 warning in 7.54 seconds; exit code 0.",
+      "warning": "FastAPI/Starlette TestClient warns that httpx support is deprecated in favor of httpx2.",
+      "model_limit": "SAM and YOLO adapter tests use deterministic injected/fake model outputs; they do not establish real model accuracy or runtime compatibility."
+    },
+    "previous_checks": [
+      "Full backend suite: 568 passed, 5 skipped, before the newest SAM and prelabel-preservation changes.",
+      "Full frontend unit suite: 205 passed across 18 files, after mask/oriented editor changes and before the SAM UI.",
+      "Frontend typecheck passed after the SAM UI changes.",
+      "Full Python lint passed before the latest SAM and prelabel changes; rerun on resume.",
+      "Native vision formats, vision metrics and prelabel subset: 23 passed with actual pycocotools and OpenCV installed.",
+      "Real PCA, UMAP and PaCMAP projection tests passed, including reference reuse and immutable output checks."
+    ],
+    "not_yet_verified": [
+      "Browser end-to-end behavior for the new features.",
+      "Real SAM weights or real YOLO training/inference for the new tasks.",
+      "Full backend/frontend/lint/build checks covering the final combined working tree."
+    ]
+  },
+  "development_environment": {
+    "python_environment": "/tmp/granum-evaluation-319ade0",
+    "python_version": "3.12.3",
+    "python_setup": "Editable Granum installation with service/dev/image dependencies; real UMAP, PaCMAP, pycocotools and OpenCV installed.",
+    "frontend": "Dependencies are installed in web/node_modules, including Playwright and Vitest.",
+    "large_model_dependencies": "Torch, Ultralytics and SAM weights were not installed in the evaluation environment at the pause point.",
+    "temporary_environment_warning": "The environment under /tmp may need to be recreated after reboot or cleanup.",
+    "execution_limitation": "Sandbox shell commands failed with bwrap loopback RTM_NEWADDR Operation not permitted. Approved escalated commands were used; reevaluate the environment on resume rather than assuming this persists.",
+    "background_work": "The last known test session finished successfully. No task-owned process is known to remain running."
+  },
+  "review_items_before_claiming_verified": [
+    "Check segmentation metrics for absent/empty ground-truth masks; do not turn invalid annotations into perfect empty-mask matches.",
+    "Check SAM application to semantic/panoptic masks for overlapping class masks and remove stale oriented-box metadata on replacement.",
+    "Check completed SAM jobs and temporary artifacts after a server restart; live recovery and completed recovery differ.",
+    "Check projection polling failures and edits made during a projection before opening the resulting table.",
+    "Check oriented-box geometry after clipping/rotation, normalized export coordinate bounds and duplicate YOLO filename stems.",
+    "Check keypoint fixed-slot creation and semantic flip-index reordering during augmentation.",
+    "Check bitmap editing undo/redo during pointer gestures and large-mask memory behavior in a browser."
+  ],
+  "larger_parity_gaps": [
+    "Hugging Face, Detectron2, Lightning and SuperGradients integrations.",
+    "Plugin SDK, catalogues and managed compute/plugin environments.",
+    "SAML SSO and deployment validation with an identity provider.",
+    "Point-cloud and 3D annotation schemas, import/export, viewing and editing.",
+    "Native semantic segmentation datasets and the remaining training/analysis workflows.",
+    "Remaining projection/3D chart capabilities and complete documented feature audit."
+  ],
+  "resume_sequence": [
+    "Confirm the user has requested resumption. Inspect this log, git status and any intervening edits; preserve the existing uncommitted work.",
+    "Read docs/feature-coverage.json and update SAM's status only to the level justified by the recorded implementation and tests.",
+    "Run lint and focused tests for the latest SAM/prelabel changes, then inspect and fix concrete failures.",
+    "Verify new features in a real browser before broadening the implementation. Existing setup: web/playwright.config.ts, web/e2e/workflows.spec.ts and tools/benchmark_workflows.py.",
+    "The browser fixture starts a Python benchmark server on port 18860. Ensure it uses the evaluation environment's Python, confirm Chromium availability, and add small dedicated fixtures for masks, oriented boxes, calculated columns and projections.",
+    "Resolve the review items, add meaningful behavior tests and run the relevant full suites/build once the combined changes are stable.",
+    "Continue the remaining parity implementation with primary-source API research and keep the coverage inventory honest about unverified external integrations.",
+    "Do not describe this branch as full 3LC parity or production-ready until the outstanding work and verification are actually complete."
+  ],
+  "reference_sources": [
+    "https://docs.3lc.ai/3lc/latest/introduction.html",
+    "https://docs.3lc.ai/3lc/latest/dashboard/virtual-columns/index.html",
+    "https://docs.3lc.ai/3lc/latest/dashboard/workflows/user-defined-workflow.html",
+    "https://docs.3lc.ai/3lc/latest/data-types/embeddings.html",
+    "https://docs.3lc.ai/3lc/latest/python-package/integrations/index.html",
+    "https://docs.3lc.ai/3lc/latest/hub/plugins.html",
+    "https://docs.3lc.ai/3lc/latest/getting-started/deployment-options/default/sso-configuration.html",
+    "https://3lc.ai/platform/",
+    "https://docs.ultralytics.com/models/sam-2/",
+    "https://docs.ultralytics.com/reference/engine/results/"
+  ],
+  "latest_resumed_work": {
+    "report": "docs/3lc-parity-verification-2026-10-19.json",
+    "coverage": "docs/feature-coverage.json",
+    "real_dataset_report": "docs/coco-people-validation-2026-10-19.json",
+    "priority_scope_completed": true,
+    "full_parity_verified": false,
+    "saved_as": "Local uncommitted working tree; no push or deployment."
+  }
+}

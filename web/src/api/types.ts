@@ -25,12 +25,13 @@ export interface ColumnInfo {
   default_visible: boolean;
   number_role: string | null;
   /** "table" columns can be edited; "metrics" never; "session" exist only in the browser. */
-  source?: "table" | "metrics" | "session";
+  source?: "table" | "metrics" | "session" | "virtual";
   /** Run views: this column holds the value of `collected_of` when metrics were collected. */
   collected_of?: string;
   value_map?: ValueMap;
   /** Geometry columns: per-instance property name -> type. */
   instance_properties?: Record<string, string>;
+  pose_categories?: Record<string, { name: string; names: string[]; ambiguous?: boolean }>;
 }
 
 export interface ProjectSummary {
@@ -167,6 +168,7 @@ export interface PreflightReport {
 }
 
 export type TaskId =
+  | "oriented_object_detection"
   | "object_detection" | "instance_segmentation" | "semantic_segmentation"
   | "panoptic_segmentation" | "keypoint_detection" | "classification";
 
@@ -210,7 +212,7 @@ export interface ImportResult {
 
 export interface Job<T> {
   id: string;
-  kind: "preflight" | "import" | "training" | "training-install" | "release" | "embeddings" | "screening" | "prelabel" | "export";
+  kind: "preflight" | "import" | "training" | "training-install" | "release" | "embeddings" | "screening" | "prelabel" | "export" | "projection" | "segmentation";
   status: "running" | "done" | "failed" | "cancelled";
   phase: string;
   done: number;
@@ -234,6 +236,7 @@ export interface ImportSource {
   format?: string;
   /** YOLO only: which split of its data.yaml this source is. */
   yolo_split?: string;
+  yolo_task?: "detect" | "segment" | "pose" | "obb" | null;
 }
 
 export interface BrowseResult {
@@ -402,6 +405,7 @@ export interface LearningSplit {
 }
 
 export interface LearningReport {
+  metric?: "f1" | "accuracy" | "mean_iou";
   url: string;
   name: string;
   good: number;
@@ -581,6 +585,7 @@ export interface QaOverview {
 }
 
 export interface QaImageDetail {
+  pose_categories?: Record<string, { names: string[]; skeleton: [number, number][] }>;
   image: string;
   row: number;
   table: string;
@@ -621,6 +626,7 @@ export interface TrainingResult {
 }
 
 export interface ModelVersion {
+  task?: "detect" | "segment" | "pose" | "obb" | "classify" | "semantic";
   id: string;
   name: string;
   size: string;
@@ -635,6 +641,8 @@ export interface ModelFamily {
   summary: string;
   detail: string;
   supports_closer: boolean;
+  image_sizes?: number[];
+  default_image_size?: number;
   versions: ModelVersion[];
   installed: boolean;
   install_hint: string | null;

@@ -108,6 +108,165 @@ model.train(...)
 Every epoch is logged, and per-box metrics are written from that epoch's weights: predicted boxes
 with `confidence`, `iou` and `matched`, `gt_match` per labelled box, and `tp/fp/fn/precision/recall/f1` per image.
 
+YOLO detection, instance segmentation, pose and oriented boxes are supported. Set
+`task="segment"`, `task="pose"` or `task="obb"` on `export_yolo`; predictions retain
+their masks, keypoints or rotated corners. Matching uses mask IoU, keypoint OKS or
+rotated IoU respectively. Pose predictions expose `keypoint_0_oks`,
+`keypoint_0_confidence`, etc. as numeric instance properties for filtering and charts.
+An unlabelled ground-truth keypoint has a null score. Horizontal pose augmentation
+requires `flip_idx` metadata so left/right landmark names remain correct.
+
+### Hugging Face
+
+Install `granum[huggingface]`. Create a Dataset with explicit sample IDs, then apply
+your tokenizer or image processor while preserving the two `__granum_*` columns:
+
+```python
+from granum.integration.hugging_face import to_dataset, collect_predictions
+from granum.metrics import ClassificationMetricsCollector
+
+dataset = to_dataset(table, columns=["features", "label"])
+dataset = dataset.shuffle(seed=7).select(range(100))
+metrics = collect_predictions(
+    trainer, table, dataset, [ClassificationMetricsCollector(classes=classes)],
+    run=run, split="validation", epoch=1,
+)
+```
+
+The model receives a copy without the identity columns. IDs survive shuffle, filtering
+and subset selection; a Dataset from another Table version is rejected. Default
+collection uses logits. For hidden states or vision outputs, pass
+`prediction_transform=lambda result: Prediction(outputs, {layer_id: embeddings})`.
+The transform receives Hugging Face's complete `PredictionOutput`. Detected geometry
+must use the original image coordinates, and semantic masks must use the original
+resolution. Call collection on every distributed rank; only the world process zero writes.
+
+`GranumTrainer(..., granum_run=run, granum_evaluations={"validation":
+Evaluation(table, dataset, collectors)})` logs aggregate metrics and adds a prediction
+pass after each evaluation. `collect_every` controls the evaluation interval. The Run
+stays open for the caller to finish. This integration was exercised with Transformers
+5.20.1, Datasets 5.1.0 and Accelerate 1.15.0; other supported dependency versions still
+need qualification.
+
+### Lightning
+
+Install `granum[lightning]`. Wrap an evaluation Table view with `IndexedDataset`:
+
+```python
+from granum.integration.lightning import IndexedDataset, Evaluation, GranumCallback
+
+dataset = IndexedDataset(table.with_transform(load_sample_dict))
+callback = GranumCallback(
+    run, validation=[Evaluation(table, collectors, "val")],
+    test=[Evaluation(test_table, test_collectors, "test")],
+)
+trainer = lightning.Trainer(callbacks=[callback], ...)
+```
+
+The transform returns a dict; its collator must preserve the added identity fields.
+Validation/test steps return a logits tensor, `{"logits": tensor}`, or a `Prediction`.
+Use `output_transform(outputs, batch)` for other return formats. Sanity validation is
+skipped. The callback computes metrics against canonical labels, gathers distributed
+metrics, and deduplicates sampler padding only when the repeated metrics agree.
+`close_run=True` opts into managing Run completion/failure. Single-process CPU training,
+test collection, and two-process CPU/Gloo validation with sampler padding have been
+verified with Lightning 2.6.6. GPU and other distributed strategies remain to be qualified.
+
+### Detectron2
+
+Install [Detectron2 for your PyTorch/CUDA environment](https://detectron2.readthedocs.io/en/latest/tutorials/install.html).
+Its native extension requires a C++ compiler. Register a Granum Table and attach an evaluator:
+
+```python
+from granum.integration.detectron2 import register_dataset, GranumEvaluator
+from detectron2.evaluation import inference_on_dataset
+
+register_dataset("granum_validation", table)
+evaluator = GranumEvaluator(table, run=run, task="segment", split="val", epoch=0)
+summary = inference_on_dataset(model, validation_loader, evaluator)
+```
+
+Build `validation_loader` from the registered dataset with Detectron2's data-loader
+utilities. Its mapper must preserve `image_id` and `__granum_table_url`. For bitmap
+annotations set `cfg.INPUT.MASK_FORMAT="bitmask"`. Category IDs are mapped to contiguous
+model classes and mapped back when writing metrics. COCO keypoint coordinates are
+converted to/from Detectron2's half-pixel convention. Detection, masks and keypoints
+are supported; the adapter refuses rotated annotations. `GranumEvaluator` can also be
+returned by a custom `DefaultTrainer.build_evaluator` or combined with `COCOEvaluator`.
+Pass `iteration=lambda: trainer.iter` to record the current training step.
+
+The real Mask R-CNN mapper, one optimization step, inference and shuffled metric joins
+were verified on CPU against Detectron2 revision `1e3e13b`. Multi-GPU collection and
+larger datasets remain to be qualified.
+
+### SuperGradients
+
+SuperGradients 3.7.1 pins NumPy 1.23.0 and older torchmetrics. Use a separate Python
+3.10 environment; the current verification used PyTorch 2.5.1 CPU, torchvision 0.20.1
+and setuptools 66.1.1 (SG imports `pkg_resources`). Install Granum in that environment.
+
+```python
+from granum.integration.super_gradients import (
+    IndexedDataset, identity_collate, Evaluation, GranumCallback,
+)
+
+# load_sample returns (inputs, target), optionally with a third extras dictionary.
+dataset = IndexedDataset(table.with_transform(load_sample))
+loader = torch.utils.data.DataLoader(dataset, batch_size=16, collate_fn=identity_collate)
+callback = GranumCallback(run, validation=[Evaluation(table, collectors, "val")])
+trainer.train(..., valid_loader=loader, training_params={
+    # Include your ordinary SuperGradients training parameters here.
+    "phase_callbacks": [callback],
+})
+```
+
+`IdentityCollate(DetectionCollateFN())` retains source IDs when collating variable-sized
+detection targets. For custom outputs, pass `output_transform=lambda context: ...` on
+the Evaluation; returning `Prediction(outputs, activations)` supports embedding
+collectors. Geometry from an indexed loader must be restored to source coordinates.
+
+For YOLO-NAS detection and pose, an extra canonical prediction pass handles that
+restoration through the model's configured SuperGradients processing pipeline:
+
+```python
+from granum.integration.super_gradients import SuperGradientsPredictor
+from granum.metrics import DetectionMetricsCollector
+
+evaluation = Evaluation(
+    table, [DetectionMetricsCollector("bbs", task="pose", value_map=table.schema["bbs"].value_map)], "val",
+    predictor_factory=lambda model: SuperGradientsPredictor(
+        model, table.schema["bbs"].value_map, task="pose", conf=0.25,
+    ),
+)
+callback = GranumCallback(run, validation=[evaluation], collect_every=2)
+```
+
+Configure `model.set_dataset_processing_params(...)` for the model's input size and
+normalization first. Detection classes map back to Table IDs by name. Pose supports one
+declared object class; provide `pose_label` for a Table with multiple classes. A canonical
+pass uses the evaluation model (including EMA), preserves its training flags and avoids
+fusing a cached copy of its weights. The caller manages Run completion/failure.
+
+Real two-epoch CPU training, shuffled validation/test joins, embedding collection and
+YOLO-NAS detection/pose inference passed with SG 3.7.1. The vision models were randomly
+initialized, so these checks establish integration behavior, not accuracy. GPU, distributed
+callbacks and full native YOLO-NAS training recipes remain to be qualified.
+
+### Semantic masks and embeddings
+
+`SemanticMetricsCollector(value_map, ignore_index=255)` accepts one integer class-ID
+map per image. It records pixel accuracy, mean IoU, per-class intersections/unions and
+lossless predicted-mask overlays. Aggregate intersections and unions across images
+before computing dataset IoU; averaging image IoUs gives a different statistic.
+
+`EmbeddingsMetricsCollector(layer_index)` captures a `Predictor` forward-hook layer.
+Use `reshape="mean"`, `"flatten"` or a pooling callable. `granum.reduction.Reducer`
+supports PCA, UMAP and PaCMAP with two or three components; reuse one fitted reducer to
+compare epochs in one coordinate system. `reducer.save(directory)` persists a model
+without overwriting an existing directory. `Reducer.load(directory)` loads PCA safely;
+UMAP/PaCMAP require `trusted=True` because their serialized backend uses pickle. Only
+load those from a source you trust. Checksums detect corruption, not malicious models.
+
 ### RF-DETR
 
 `granum.integration.rfdetr` provides `load_rfdetr(variant)` and `export_rfdetr_dataset(splits, output)`.

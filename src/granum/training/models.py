@@ -1,4 +1,4 @@
-"""The detectors Granum can train, described for people choosing between them."""
+"""Models and task contracts available in the training dashboard."""
 
 from __future__ import annotations
 
@@ -53,6 +53,30 @@ FAMILIES: list[dict[str, Any]] = [
         ],
     },
 ]
+
+# Task-labelled variants use the same public Ultralytics training API.
+FAMILIES.extend([
+    {"id": "classifier", "name": "Image classification", "maker": "Torchvision", "package": "torchvision",
+     "summary": "One class for each image.", "detail": "Fine-tune an ImageNet-pretrained ResNet-18 on whole-image labels.",
+     "supports_closer": True, "image_sizes": [224, 320, 512], "default_image_size": 224,
+     "versions": [{"id": "resnet18", "name": "ResNet-18", "size": "small", "task": "classify",
+                   "note": "Records per-image loss, confidence and accuracy."}]},
+    {"id": "semantic", "name": "Semantic segmentation", "maker": "Torchvision", "package": "torchvision",
+     "summary": "One class for each pixel.", "detail": "Fine-tune LR-ASPP with an ImageNet-pretrained MobileNetV3 backbone. Unlabelled pixels are ignored.",
+     "supports_closer": True, "image_sizes": [224, 320, 512], "default_image_size": 320,
+     "versions": [{"id": "lraspp-mobilenet-v3", "name": "LR-ASPP MobileNetV3", "size": "small", "task": "semantic",
+                   "note": "Records pixel accuracy, class IoU and prediction masks."}]},
+])
+
+for _task, _suffix, _label in (("segment", "seg", "segmentation"), ("pose", "pose", "keypoints"), ("obb", "obb", "oriented boxes")):
+    for _base in ("yolo26n", "yolo26s", "yolo11n", "yolo11s"):
+        FAMILIES[0]["versions"].append({"id": f"{_base}-{_suffix}.pt", "name": f"{_base.upper()} · {_label}",
+                                       "size": "nano" if _base.endswith("n") else "small", "task": _task,
+                                       "note": f"Learns {_label}; requires matching annotations."})
+
+
+def task_for_version(version: str) -> str:
+    return next((str(v.get("task", "detect")) for f in FAMILIES for v in f["versions"] if v["id"] == version), "detect")
 
 
 def family(family_id: str) -> dict[str, Any]:

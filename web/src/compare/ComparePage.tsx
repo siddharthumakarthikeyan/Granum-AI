@@ -1,3 +1,4 @@
+import { VisionComparison } from "./VisionComparison";
 /** Two runs side by side: what improved, what regressed, and what the comparison is worth.
  *
  * The order is deliberate. Whether the two runs may be compared at all comes first, then
@@ -28,7 +29,7 @@ const fileOf = (path: string) => path.split("/").pop() ?? path;
 const signed = (value: number, digits = 3) => `${value >= 0 ? "+" : ""}${value.toFixed(digits)}`;
 const sentence = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
 
-export function ComparePage({ project, baseline, candidate, split }: {
+function DetectionComparePage({ project, baseline, candidate, split }: {
   project: string;
   baseline?: string;
   candidate?: string;
@@ -479,4 +480,12 @@ function Cost({ report }: { report: ComparisonReport }) {
       )}
     </section>
   );
+}
+
+export function ComparePage(props: { project: string; baseline?: string; candidate?: string; split?: string }) {
+  const runs = useStore(s => s.runs);
+  const newest = [...runs].filter(r => r.status !== "running").sort((a, b) => b.created.localeCompare(a.created));
+  const chosen = runs.find(r => r.url === props.candidate) ?? newest[0];
+  return chosen && ["classify", "semantic"].includes(String(chosen.parameters?.task))
+    ? <VisionComparison {...props} runs={newest} /> : <DetectionComparePage {...props} />;
 }

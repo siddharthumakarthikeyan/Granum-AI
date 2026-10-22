@@ -67,6 +67,35 @@ def test_quarter_turn_swaps_the_frame():
     assert image.size == (50, 100)
 
 
+def test_cropped_oriented_annotations_remain_rectangular_and_inside_the_image():
+    from granum.formats.vision import oriented_corners, polygon_area, polygon_bounds
+
+    corners = oriented_corners(50, 50, 80, 30, np.pi / 4)
+    d = _identity(100, 100)
+    d.matrix[0, 2] = 30  # move a rotated object partly through the right edge
+    [out] = apply_instances([{"vertices": polygon_bounds(corners), "area": 2400,
+                             "coco_extra": json.dumps({"obb": corners})}], d)
+    result = np.asarray(json.loads(out["coco_extra"])["obb"]).reshape(-1, 2)
+    assert (result >= 0).all() and (result <= 100).all()
+    assert np.dot(result[1] - result[0], result[3] - result[0]) == pytest.approx(0, abs=1e-6)
+    assert out["vertices"] == pytest.approx(polygon_bounds(result))
+    assert out["area"] == pytest.approx(polygon_area(result), abs=.01)
+
+
+def test_horizontal_pose_flip_swaps_semantic_slots_and_visibility():
+    d = draw({"flip": {"horizontal": True}}, 100, 50, np.random.default_rng(0), fixed="max")
+    instance = {"vertices": [10, 5, 90, 45],
+                "coco_extra": json.dumps({"keypoints": [12, 10, 2, 80, 11, 1, 0, 0, 0]})}
+    [out] = apply_instances([instance], d, keypoint_flip_indices=[1, 0, 2])
+    assert json.loads(out["coco_extra"])["keypoints"] == [20, 11, 1, 88, 10, 2, 0, 0, 0]
+    for indices in ([0, 0, 2], [0, 1], [1, 2, 0], [True, 0, 2]):
+        with pytest.raises(AugmentError, match="flip_idx"):
+            apply_instances([instance], d, keypoint_flip_indices=indices)
+    vertical = draw({"flip": {"vertical": True}}, 100, 50, np.random.default_rng(0), fixed="max")
+    [out] = apply_instances([instance], vertical, keypoint_flip_indices=[1, 0, 2])
+    assert json.loads(out["coco_extra"])["keypoints"] == [12, 40, 2, 80, 39, 1, 0, 0, 0]
+
+
 def test_boxes_mostly_cut_off_are_dropped_and_masks_clipped():
     d = _identity(100, 100)
     d.matrix = np.array([[2, 0, 0], [0, 2, 0], [0, 0, 1.0]])  # zoom into the top-left quarter
@@ -80,15 +109,22 @@ def test_boxes_mostly_cut_off_are_dropped_and_masks_clipped():
     assert set(zip(mask[0::2], mask[1::2])) == {(80, 80), (100, 80), (100, 100), (80, 100)}
 
 
-def test_keypoints_pushed_out_become_unlabelled_and_rle_masks_are_dropped():
+def test_keypoints_pushed_out_become_unlabelled_and_rle_masks_follow_the_image():
+    from granum.formats.vision import encode_mask, mask_array
+
     d = _identity(100, 100)
     d.matrix = np.array([[1, 0, 60], [0, 1, 0], [0, 0, 1.0]])  # shift right by 60
+    mask = np.zeros((100, 100), dtype=np.uint8)
+    mask[10:30, 10:30] = 1
+    mask[15:20, 15:20] = 0
     [out] = apply_instances([{
         "vertices": [10, 10, 30, 30],
-        "segmentation": json.dumps({"counts": "abc", "size": [100, 100]}),
+        "segmentation": json.dumps(encode_mask(mask)),
         "coco_extra": json.dumps({"keypoints": [15, 15, 2, 50, 15, 2], "num_keypoints": 2}),
     }], d)
-    assert out["segmentation"] is None
+    expected = np.zeros_like(mask)
+    expected[:, 60:] = mask[:, :40]
+    assert np.array_equal(mask_array(out["segmentation"], 100, 100), expected)
     extra = json.loads(out["coco_extra"])
     assert extra["keypoints"] == [75, 15, 2, 0, 0, 0] and extra["num_keypoints"] == 1
 

@@ -11,8 +11,45 @@ full report are stored with the new versions, so how a dataset came to be is alw
 | Source | Dashboard | CLI | Python |
 |---|---|---|---|
 | COCO JSON, one file per set | Yes | `granum import coco` | `Table.from_coco` |
-| YOLO (`data.yaml`) | No | No | `Table.from_yolo_url` |
-| Image folder (class per subfolder) | No | No | `Table.from_image_folder` |
+| YOLO (`data.yaml`): detection, segmentation, pose, OBB | Yes | No | `Table.from_yolo_url(..., task=...)` |
+| Image folder (class per subfolder) | Yes | No | `Table.from_image_folder` |
+| Semantic class-ID/RGB PNG masks (`semantic.json`) | Yes | No | `Table.from_semantic_masks` |
+
+For YOLO files without a declared task, choose the task in the source picker; boxes
+are the default. Pose datasets require `kpt_shape`. Optional `kpt_names`, `flip_idx`,
+`kpt_oks_sigmas` and `skeleton` metadata survive import and export. COCO RLE retains
+exact mask pixels and holes; YOLO polygon export follows pixel contours and is lossy.
+
+## Native semantic PNG masks
+
+Place a `semantic.json` manifest beside the referenced files:
+
+```json
+{
+  "format": "granum-semantic-masks",
+  "version": 1,
+  "ignore_index": 255,
+  "categories": [{"id": 0, "name": "background"}, {"id": 1, "name": "object"}],
+  "images": [{"file_name": "images/sample.png", "mask": "masks/sample.png"}]
+}
+```
+
+Paths are relative to the manifest. Masks must have the same dimensions as their
+images. Indexed/palette PNGs retain their class indices; 16-bit PNGs support class IDs
+through 65535. RGB masks require `color: [r, g, b]` on every category and an
+`ignore_color` when ignored pixels are present. Unknown classes/colors and overlapping
+class regions are rejected. The ignore ID must differ from every class ID.
+
+```python
+table = Table.from_semantic_masks("data/semantic.json", project_name="roads")
+granum.export_semantic_masks(table.latest(), "out/semantic", image_strategy="copy")
+```
+
+The dashboard discovers this manifest in the folder picker. Select **Semantic masks
+(PNG)** when exporting a dataset version. Export uses class-ID PNGs and preserves
+ignore regions; RGB source colors are normalized to IDs. The target SDK export folder
+must be new or empty. Source images, masks and manifests must all be within the service's
+configured data roots when using the dashboard.
 
 ## In the dashboard
 

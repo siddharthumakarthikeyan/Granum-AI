@@ -5,6 +5,11 @@ import type { ObjectEntry } from "../api/types";
 import { CATEGORICAL, OTHER, css } from "../charts/colors";
 
 const METRICS: { key: string; label: string; higherIsBetter: boolean }[] = [
+  { key: "accuracy", label: "Accuracy", higherIsBetter: true },
+  { key: "macro_f1", label: "Macro F1", higherIsBetter: true },
+  { key: "mean_iou", label: "Mean IoU", higherIsBetter: true },
+  { key: "pixel_accuracy", label: "Pixel accuracy", higherIsBetter: true },
+  { key: "train_loss", label: "Training loss", higherIsBetter: false },
   { key: "map50", label: "mAP50", higherIsBetter: true },
   { key: "map50_95", label: "mAP50-95", higherIsBetter: true },
   { key: "recall", label: "Recall", higherIsBetter: true },

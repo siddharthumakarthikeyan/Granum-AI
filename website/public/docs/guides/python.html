@@ -47,7 +47,15 @@
     <div class="doc-sidebar" id="doc-sidebar">
       <nav class="doc-nav" aria-label="Documentation">
 <a class="doc-nav-home" href="/docs">Start here</a>
-<div class="doc-nav-group"><p class="doc-nav-title">Guided aerial-data course</p><ul>
+<details class="doc-nav-group"><summary class="doc-nav-title">Start with Granum</summary><ul>
+<li><a href="/docs/reference/features">Feature availability</a></li>
+<li><a href="/docs/start/install">Install Granum</a></li>
+<li><a href="/docs/start/activate">Alpha access and licences</a></li>
+<li><a href="/docs/start/first-project">Your first project</a></li>
+<li><a href="/docs/start/the-loop">Run the loop once</a></li>
+<li><a href="/docs/start/source">Run from source</a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Guided aerial-data course</summary><ul>
 <li><a href="/docs/course/start">Start the guided course</a></li>
 <li><a href="/docs/course/setup">1. Prepare the workspace</a></li>
 <li><a href="/docs/course/data">2. Understand the sample</a></li>
@@ -61,14 +69,8 @@
 <li><a href="/docs/course/handoff">10. Approve and export an excerpt</a></li>
 <li><a href="/docs/course/backup">11. Back up, restore and share safely</a></li>
 <li><a href="/docs/course/next">12. Move to your own project</a></li>
-</ul></div>
-<div class="doc-nav-group"><p class="doc-nav-title">Getting started</p><ul>
-<li><a href="/docs/start/install">Install Granum</a></li>
-<li><a href="/docs/start/activate">Alpha access and licences</a></li>
-<li><a href="/docs/start/first-project">Your first project</a></li>
-<li><a href="/docs/start/the-loop">Run the loop once</a></li>
-</ul></div>
-<div class="doc-nav-group"><p class="doc-nav-title">Concepts</p><ul>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Concepts</summary><ul>
 <li><a href="/docs/concepts/model">How Granum is organised</a></li>
 <li><a href="/docs/concepts/projects">Projects and project types</a></li>
 <li><a href="/docs/concepts/versions">Versions and lineage</a></li>
@@ -77,44 +79,110 @@
 <li><a href="/docs/concepts/identity">Image identity</a></li>
 <li><a href="/docs/concepts/runs">Runs and metrics</a></li>
 <li><a href="/docs/concepts/evidence">What the evidence is worth</a></li>
-</ul></div>
-<div class="doc-nav-group"><p class="doc-nav-title">Guides</p><ul>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Bring data in</summary><ul>
 <li><a href="/docs/guides/import">Import data</a></li>
 <li><a href="/docs/guides/pull-from-projects">Build from existing projects</a></li>
+<li><a href="/docs/guides/projects">Manage projects</a></li>
+<li><a href="/docs/data/formats">Choose an import format</a></li>
+<li><a href="/docs/data/tabular">Numbers labels and text</a></li>
+<li><a href="/docs/data/images">Images and thumbnails</a></li>
+<li><a href="/docs/data/video">Video frames and sequences<span class="doc-status planned">Not yet included</span></a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Explore and diagnose</summary><ul>
 <li><a href="/docs/guides/browse">Browse images</a></li>
+<li><a href="/docs/explore/workspace">Inspect tables and runs</a></li>
+<li><a href="/docs/explore/charts">Build linked charts</a></li>
+<li><a href="/docs/explore/calculations">Calculate derived columns</a></li>
+<li><a href="/docs/explore/workflows">Save an analysis workflow</a></li>
+<li><a href="/docs/explore/embeddings">Explore embedding space</a></li>
+<li><a href="/docs/explore/trajectories">Follow samples across epochs</a></li>
+<li><a href="/docs/explore/duplicates">Find duplicates leakage and outliers</a></li>
+<li><a href="/docs/explore/health">Check dataset health</a></li>
+<li><a href="/docs/explore/evaluation">Inspect model errors</a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Review and improve</summary><ul>
 <li><a href="/docs/guides/review">Review and verify</a></li>
 <li><a href="/docs/guides/edit">Edit annotations</a></li>
+<li><a href="/docs/data/boxes">Bounding boxes and rotated boxes</a></li>
+<li><a href="/docs/data/masks">Instance and semantic masks</a></li>
+<li><a href="/docs/data/keypoints">Keypoints and pose</a></li>
+<li><a href="/docs/improve/prelabel">Draft labels with a model</a></li>
+<li><a href="/docs/improve/sam">Propose masks with SAM</a></li>
+<li><a href="/docs/improve/weights">Control sample weights</a></li>
 <li><a href="/docs/guides/isolate-remove">Isolate, remove and restore</a></li>
 <li><a href="/docs/guides/dataset-versions">Create a dataset version</a></li>
 <li><a href="/docs/guides/augmentation">Augmentation</a></li>
+<li><a href="/docs/improve/export">Export a dataset version</a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Train and measure</summary><ul>
 <li><a href="/docs/guides/train">Train a model</a></li>
+<li><a href="/docs/measure/tasks">Choose a training task</a></li>
 <li><a href="/docs/guides/runs">Read a run</a></li>
 <li><a href="/docs/guides/learning">Per-image learning</a></li>
 <li><a href="/docs/guides/findings">Work the Findings queue</a></li>
 <li><a href="/docs/guides/compare">Compare two runs</a></li>
-<li><a href="/docs/guides/projects">Manage projects</a></li>
+<li><a href="/docs/measure/metrics">Record per sample metrics</a></li>
+<li><a href="/docs/measure/recipes">Examples and complete workflows</a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Connect your training code</summary><ul>
+<li><a href="/docs/integrations/pytorch">Connect a PyTorch loop</a></li>
+<li><a href="/docs/integrations/ultralytics">Connect YOLO training</a></li>
+<li><a href="/docs/integrations/hugging-face">Connect Hugging Face</a></li>
+<li><a href="/docs/integrations/lightning">Connect Lightning</a></li>
+<li><a href="/docs/integrations/detectron2">Connect Detectron2</a></li>
+<li><a href="/docs/integrations/supergradients">Connect SuperGradients</a></li>
+</ul></details>
+<details class="doc-nav-group" open><summary class="doc-nav-title">Build with Python</summary><ul>
 <li><a href="/docs/guides/python" class="on" aria-current="page">Use Granum from Python</a></li>
+<li><a href="/docs/python/tables">Create and revise tables</a></li>
+<li><a href="/docs/python/schemas">Define column schemas</a></li>
+<li><a href="/docs/python/transforms">Transform samples on read</a></li>
+<li><a href="/docs/python/runs">Manage runs in Python</a></li>
+<li><a href="/docs/python/custom-metrics">Write custom collectors</a></li>
+<li><a href="/docs/python/storage">Storage paths and caches</a></li>
+<li><a href="/docs/python/api">Python API reference</a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Run your workspace</summary><ul>
+<li><a href="/docs/operate/service">Run the Granum service</a></li>
+<li><a href="/docs/operate/configuration">Configure a workspace</a></li>
+<li><a href="/docs/operate/shared">Share a workspace with a team</a></li>
+<li><a href="/docs/operate/cloud">Use cloud storage</a></li>
+<li><a href="/docs/operate/remote">Remote and container environments</a></li>
 <li><a href="/docs/guides/operations">Operate a pilot workspace</a></li>
-</ul></div>
-<div class="doc-nav-group"><p class="doc-nav-title">Reference</p><ul>
+<li><a href="/docs/operate/upgrades">Upgrade and migrate safely</a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Not yet included</summary><ul>
+<li><a href="/docs/planned/advanced-analysis">Advanced analysis extensions<span class="doc-status planned">Not yet included</span></a></li>
+<li><a href="/docs/planned/compute">Managed compute and plugins<span class="doc-status planned">Not yet included</span></a></li>
+<li><a href="/docs/planned/enterprise">Enterprise identity and delivery<span class="doc-status planned">Not yet included</span></a></li>
+<li><a href="/docs/planned/spatial">Point clouds and 3D annotations<span class="doc-status planned">Not yet included</span></a></li>
+<li><a href="/docs/planned/extensions">Custom data and storage extensions<span class="doc-status planned">Not yet included</span></a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Reference</summary><ul>
 <li><a href="/docs/reference/screens">Map of the app</a></li>
 <li><a href="/docs/reference/shortcuts">Keyboard shortcuts</a></li>
 <li><a href="/docs/reference/preflight">Import checks</a></li>
-<li><a href="/docs/reference/models">Models you can train</a></li>
+<li><a href="/docs/reference/models">Models and task support</a></li>
+<li><a href="/docs/reference/cli">Command line reference</a></li>
+<li><a href="/docs/reference/rest">Service API reference</a></li>
+<li><a href="/docs/reference/requirements">Environment and capacity requirements</a></li>
 <li><a href="/docs/reference/files">Files and settings</a></li>
 <li><a href="/docs/reference/limits">Scale and limits</a></li>
+<li><a href="/docs/reference/releases">Builds and release information</a></li>
 <li><a href="/docs/reference/glossary">Glossary</a></li>
-</ul></div>
-<div class="doc-nav-group"><p class="doc-nav-title">Help</p><ul>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Help</summary><ul>
 <li><a href="/docs/help/troubleshooting">Troubleshooting</a></li>
 <li><a href="/docs/help/faq">Frequently asked questions</a></li>
 <li><a href="/docs/help/privacy">Your data and privacy</a></li>
-</ul></div>
+</ul></details>
 </nav>
     </div>
     <main class="doc-main" id="main">
       <article class="doc-article">
-        <nav class="doc-crumb" aria-label="Breadcrumb"><a href="/docs">Documentation</a><span aria-hidden="true">/</span><a href="/docs#guides">Guides</a></nav>
+        <nav class="doc-crumb" aria-label="Breadcrumb"><a href="/docs">Documentation</a><span aria-hidden="true">/</span><a href="/docs#python">Build with Python</a></nav>
+
         <h1>Use Granum from Python</h1>
         <p class="doc-summary">The same objects the app uses, for scripted imports, custom metrics and your own training loop.</p>
         <p>Everything the dashboard does sits on a small Python API, and the app is a client of it like any other.
@@ -138,16 +206,17 @@ latest = table.latest()                                             # newest saf
 </code></pre>
 <h2 id="runs-and-metrics">Runs and metrics</h2>
 <pre><code class="language-python">run = granum.init(&quot;aerial&quot;, &quot;baseline&quot;, parameters={&quot;framework&quot;: &quot;yolo&quot;, &quot;epochs&quot;: 12})
+from granum.metrics import DetectionMetricsCollector
 
 for epoch in range(12):
     ...  # your training loop
     granum.log({&quot;epoch&quot;: epoch, &quot;map50&quot;: score}, run=run)
     granum.collect_metrics(
-        valid, [granum.DetectionMetricsCollector(&quot;bbs&quot;, value_map=valid.schema[&quot;bbs&quot;].value_map)],
+        valid, [DetectionMetricsCollector(&quot;bbs&quot;, value_map=valid.schema[&quot;bbs&quot;].value_map)],
         predictor=my_predictor, constants={&quot;epoch&quot;: epoch}, split=&quot;valid&quot;,
     )
 </code></pre>
-<p><code>collect_metrics</code> writes one metrics table per call, joined to the input table by row position, with the
+<p><code>collect_metrics</code> writes one metrics table per call, joined by the input table reference and sample ID, with the
 predicted boxes and per-image counts the dashboard reads. Anything you collect this way appears in the
 app: the run views, per-image learning and — when the predictions are stored every round — Findings.</p>
 <h2 id="training-and-export">Training and export</h2>
@@ -160,18 +229,18 @@ export_yolo({&quot;train&quot;: train, &quot;val&quot;: valid}, &quot;/tmp/expor
     --family yolo --version yolo26m.pt --epochs 30 --track-learning
 </code></pre>
 <h2 id="the-service-api">The service API</h2>
-<p>The dashboard talks to a local REST service, and so can you — <code>/api/projects</code>, <code>/api/images</code>,
-<code>/api/run/findings</code>, <code>/api/runs/compare</code> and the rest. It listens on <code>127.0.0.1</code> only, checks the <code>Host</code>
-header, and refuses cross-origin writes; it is for local tooling, not a shared backend.</p>
-<div class="admonition note">
-<p class="admonition-title">Where the full API reference lives</p>
-<p>This page is an orientation, not a reference. The complete Python and service documentation ships
-with the source — <code>docs/python-sdk.md</code>, <code>docs/service.md</code> and <code>docs/architecture.md</code> — and every
-public function carries a docstring that explains why it behaves as it does.</p>
-</div>
-        <div class="doc-steps"><a class="doc-step prev" href="/docs/guides/projects"><span>Previous</span>Manage projects</a><a class="doc-step next" href="/docs/guides/operations"><span>Next</span>Operate a pilot workspace</a></div>
+<p>The dashboard talks to the REST service, and so can you — <code>/api/projects</code>, <code>/api/images</code>,
+<code>/api/run/findings</code>, <code>/api/runs/compare</code> and the rest. Default local mode accepts loopback peers and
+checks Host, Origin and paths. <a href="/docs/operate/shared">Shared mode</a> adds authenticated HTTPS and
+workspace-wide roles. Inspect the live request schema at <code>/docs</code> on your running service.</p>
+<h2 id="continue-with-the-sdk">Continue with the SDK</h2>
+<p>Use <a href="/docs/python/tables">tables</a>, <a href="/docs/python/schemas">schemas</a>, <a href="/docs/python/transforms">transforms</a>,
+<a href="/docs/python/runs">runs</a> and <a href="/docs/python/custom-metrics">custom collectors</a> for complete examples.
+The <a href="/docs/python/api">Python API reference</a> and <a href="/docs/reference/rest">service API map</a> are available
+on this site. Framework-specific guides are in <a href="/docs#integrations">Connect your training code</a>.</p>
+        <div class="doc-steps"><a class="doc-step prev" href="/docs/integrations/supergradients"><span>Previous</span>Connect SuperGradients</a><a class="doc-step next" href="/docs/python/tables"><span>Next</span>Create and revise tables</a></div>
       </article>
-      <aside class="doc-toc" aria-label="On this page"><p>On this page</p><ul><li><a href="#tables">Tables</a></li><li><a href="#runs-and-metrics">Runs and metrics</a></li><li><a href="#training-and-export">Training and export</a></li><li><a href="#the-service-api">The service API</a></li></ul></aside>
+      <aside class="doc-toc" aria-label="On this page"><p>On this page</p><ul><li><a href="#tables">Tables</a></li><li><a href="#runs-and-metrics">Runs and metrics</a></li><li><a href="#training-and-export">Training and export</a></li><li><a href="#the-service-api">The service API</a></li><li><a href="#continue-with-the-sdk">Continue with the SDK</a></li></ul></aside>
     </main>
   </div>
 

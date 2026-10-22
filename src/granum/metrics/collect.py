@@ -117,6 +117,8 @@ def collect_metrics(
                     f"expected a dict of column name to list of values"
                 )
             for name, values in result.items():
+                if name == EXAMPLE_ID_COLUMN or name in produced:
+                    raise CollectionError(f"duplicate or reserved metric column: {name}")
                 if len(values) != len(example_ids):
                     raise CollectionError(
                         f"{type(collector).__name__} returned {len(values)} values for "
@@ -142,6 +144,12 @@ def collect_metrics(
             "nothing was collected -- the table is empty, or every row was excluded "
             "by exclude_zero_weights"
         )
+
+    # Embedding and geometry collectors can discover their schema during inference.
+    for collector in collectors:
+        if isinstance(collector, MetricsCollector):
+            schemas.update(collector.column_schemas())
+    schemas.update(column_schemas or {})
 
     run_constants = dict(constants or {})
     if split is not None:

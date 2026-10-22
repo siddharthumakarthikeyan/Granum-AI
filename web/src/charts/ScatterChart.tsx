@@ -10,7 +10,7 @@
 
 import { OrthographicView } from "@deck.gl/core";
 import { DataFilterExtension } from "@deck.gl/extensions";
-import { ScatterplotLayer } from "@deck.gl/layers";
+import { LineLayer, ScatterplotLayer } from "@deck.gl/layers";
 import DeckGL, { type DeckGLRef } from "@deck.gl/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ColumnInfo } from "../api/types";
@@ -29,6 +29,7 @@ import {
   type Frame, type ViewState,
 } from "./projection";
 import type { ScatterSpec, Tool } from "./spec";
+import { trajectoryEdges } from "./trajectories";
 
 const MAX_CATEGORIES = 12;
 
@@ -208,6 +209,8 @@ export function ScatterChart({ spec, width, height, tool }: Props) {
 
   // -- layers ---------------------------------------------------------------
 
+  const edges = useMemo(() => trajectoryEdges(rows, spec), [rows, spec.trajectory]);
+
   const layers = useMemo(() => {
     const points = new ScatterplotLayer({
       id: "points",
@@ -251,8 +254,15 @@ export function ScatterChart({ spec, width, height, tool }: Props) {
       getLineColor: [...SELECTED, 255],
       pickable: false,
     });
-    return [points, ring];
-  }, [n, positions, colors, radii, visibility, selectedIndices, spec.pointSize]);
+    const lines = new LineLayer<[number, number]>({
+      id: `trajectories-${spec.id}`, data: edges.filter(([a, b]) => visibility[a] && visibility[b]),
+      getSourcePosition: ([a]) => [positions[a * 3]!, positions[a * 3 + 1]!, 0],
+      getTargetPosition: ([, b]) => [positions[b * 3]!, positions[b * 3 + 1]!, 0],
+      getColor: ([, b]) => [colors[b * 4]!, colors[b * 4 + 1]!, colors[b * 4 + 2]!, 150],
+      getWidth: 1.5, widthUnits: "pixels", pickable: false,
+    });
+    return [lines, points, ring];
+  }, [n, positions, colors, radii, visibility, selectedIndices, spec.pointSize, spec.id, edges]);
 
   // -- interaction ----------------------------------------------------------
 

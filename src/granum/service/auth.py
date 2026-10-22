@@ -30,7 +30,7 @@ READ_POSTS = {"/api/images/boxes", "/api/augment/examples"}
 ANNOTATE = {"/api/table/commit", "/api/qa/comment", "/api/tags", "/api/views", "/api/qa/release"}
 REVIEW = {"/api/qa/status", "/api/qa/ship", "/api/qa/approve", "/api/reviews", "/api/qa/isolate",
           "/api/qa/return", "/api/datasets/remove", "/api/datasets/restore", "/api/training",
-          "/api/findings/screen", "/api/datasets/prelabel", "/api/embeddings", "/api/datasets/export"}
+          "/api/findings/screen", "/api/datasets/prelabel", "/api/embeddings", "/api/datasets/export", "/api/analysis/project", "/api/annotations/segment"}
 
 
 @dataclass(frozen=True)

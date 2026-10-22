@@ -139,7 +139,7 @@
       var link = document.createElement("a");
       link.href = page.url;
       // The index contains literal code examples too. Never interpret snippets as HTML.
-      [["em", page.section], ["strong", page.title],
+      [["em", page.section + (page.status ? " · " + page.status : "")], ["strong", page.title],
        ["span", terms.length ? excerpt(page, terms) : page.summary]].forEach(function (part) {
         var element = document.createElement(part[0]);
         element.textContent = part[1];

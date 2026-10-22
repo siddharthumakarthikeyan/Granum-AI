@@ -56,6 +56,7 @@ def predictions_for(
     from PIL import Image
 
     from granum.core.url import Url
+    from granum.integration.ultralytics import IntegrationError
 
     arrow = table.to_arrow()
     images = arrow.column("image").to_pylist()
@@ -64,17 +65,36 @@ def predictions_for(
     for start in range(0, len(images), batch):
         rows = list(range(start, min(start + batch, len(images))))
         answers = predictor({"image": [images[row] for row in rows]})
+        if len(answers) != len(rows):
+            raise IntegrationError("model returned a different number of results than input images")
         for row, answer in zip(rows, answers):
             known = sizes[row] or {}
             width, height = float(known.get("width") or 0), float(known.get("height") or 0)
             if not width or not height:
                 with Image.open(Url(images[row]).resolved) as handle:
                     width, height = float(handle.width), float(handle.height)
-            instances = [
-                {"vertices": [float(v) for v in box], "label": int(label), "confidence": float(score)}
-                for box, score, label in zip(answer["boxes"], answer["scores"], answer["labels"])
-                if float(score) >= confidence
-            ]
+            instances = []
+            for at, (box, score, label) in enumerate(zip(answer["boxes"], answer["scores"], answer["labels"])):
+                if float(score) < confidence:
+                    continue
+                instance = {"vertices": [float(v) for v in box], "label": int(label), "confidence": float(score)}
+                if "segmentations" in answer:
+                    instance["segmentation"] = json.dumps(answer["segmentations"][at])
+                extra = {}
+                if "obb" in answer:
+                    import numpy as np
+
+                    extra["obb"] = np.asarray(answer["obb"][at]).reshape(-1).tolist()
+                if "keypoints" in answer:
+                    import numpy as np
+
+                    points = np.asarray(answer["keypoints"][at])
+                    visibility = np.where(points[:, 2] > 0.5, 2, 1) if points.shape[1] == 3 else np.full(len(points), 2)
+                    extra["keypoints"] = np.column_stack((points[:, :2], visibility)).reshape(-1).tolist()
+                    extra["num_keypoints"] = len(points)
+                if extra:
+                    instance["coco_extra"] = json.dumps(extra)
+                instances.append(instance)
             out[row] = {"width": width, "height": height, "instances": instances}
         if on_progress is not None:
             on_progress(rows[-1] + 1, len(images))
