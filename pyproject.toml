@@ -42,6 +42,10 @@ service = ["fastapi>=0.100", "uvicorn>=0.23"]
 desktop = ["pywebview>=5"]
 pandas = ["pandas>=1.5"]
 images = ["pillow>=9"]
+vision = ["pillow>=9", "pycocotools>=2.0.8", "opencv-python-headless>=4.10"]
+reduction = ["umap-learn>=0.5.7", "pacmap>=0.8"]
+huggingface = ["torch>=2.2", "datasets>=2.18", "transformers>=4.40,<6", "accelerate>=0.28"]
+lightning = ["lightning>=2.2,<3"]
 s3 = ["s3fs"]
 gcs = ["gcsfs"]
 azure = ["adlfs"]
@@ -52,7 +56,7 @@ all = ["granum[service,desktop,pandas,images,s3,gcs,azure]"]
 granum = "granum.cli.main:app"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/granum"]
+packages = ["src/granum", "src/granum_compute_sdk"]
 
 # The built dashboard ships inside the package when it has been built
 # (`cd web && npm ci && npm run build` writes src/granum/service/static), so

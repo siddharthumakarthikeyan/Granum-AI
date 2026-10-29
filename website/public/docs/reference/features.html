@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Feature availability · Granum documentation</title>
+  <meta name="description" content="Find every workflow, its current availability and the guide that explains how to use it.">
+  <meta name="theme-color" content="#ffffff">
+  <meta property="og:title" content="Feature availability · Granum documentation">
+  <meta property="og:description" content="Find every workflow, its current availability and the guide that explains how to use it.">
+  <meta property="og:type" content="article">
+  <meta property="og:image" content="/assets/og.jpg">
+  <link rel="canonical" href="https://granum.app/docs/reference/features">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/docs/docs.css">
+  <script>document.documentElement.classList.remove("no-js");</script>
+</head>
+<body class="doc-body">
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header doc-header">
+    <div class="wrap">
+      <a class="brand" href="/" aria-label="Granum home"><img src="/assets/lockup-ink.svg" alt="Granum" width="128" height="32"></a>
+      <span class="doc-badge"><a href="/docs">Docs</a></span>
+      <nav class="nav" id="nav" aria-label="Main">
+        <a href="/#tour">Product</a>
+        <a href="/#plans">Pilots</a>
+        <a href="/docs/help/faq">FAQ</a>
+      </nav>
+      <div class="header-actions">
+        <button class="doc-search-button" type="button" data-search aria-label="Search documentation">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3 3"/></svg>
+          <span>Search</span><kbd>/</kbd>
+        </button>
+        <a class="btn primary small" href="/download">Download</a>
+        <button class="menu-button" type="button" aria-controls="doc-sidebar" aria-expanded="false" aria-label="Menu" data-sidebar-toggle>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="doc-shell">
+    <div class="doc-sidebar" id="doc-sidebar">
+      <nav class="doc-nav" aria-label="Documentation">
+<a class="doc-nav-home" href="/docs">Start here</a>
+<details class="doc-nav-group" open><summary class="doc-nav-title">Start with Granum</summary><ul>
+<li><a href="/docs/reference/features" class="on" aria-current="page">Feature availability</a></li>
+<li><a href="/docs/start/install">Install Granum</a></li>
+<li><a href="/docs/start/activate">Alpha access and licences</a></li>
+<li><a href="/docs/start/first-project">Your first project</a></li>
+<li><a href="/docs/start/the-loop">Run the loop once</a></li>
+<li><a href="/docs/start/source">Run from source</a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Guided aerial-data course</summary><ul>
+<li><a href="/docs/course/start">Start the guided course</a></li>
+<li><a href="/docs/course/setup">1. Prepare the workspace</a></li>
+<li><a href="/docs/course/data">2. Understand the sample</a></li>
+<li><a href="/docs/course/import">3. Import with preflight</a></li>
+<li><a href="/docs/course/explore">4. Explore before changing labels</a></li>
+<li><a href="/docs/course/baseline">5. Freeze an exploratory baseline</a></li>
+<li><a href="/docs/course/review">6. Review, edit and recover</a></li>
+<li><a href="/docs/course/train">7. Train the first model</a></li>
+<li><a href="/docs/course/results">8. Read the model evidence</a></li>
+<li><a href="/docs/course/compare">9. Make a controlled comparison</a></li>
+<li><a href="/docs/course/handoff">10. Approve and export an excerpt</a></li>
+<li><a href="/docs/course/backup">11. Back up, restore and share safely</a></li>
+<li><a href="/docs/course/next">12. Move to your own project</a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Concepts</summary><ul>
+<li><a href="/docs/concepts/model">How Granum is organised</a></li>
+<li><a href="/docs/concepts/projects">Projects and project types</a></li>
+<li><a href="/docs/concepts/versions">Versions and lineage</a></li>
+<li><a href="/docs/concepts/dataset-versions">Dataset versions</a></li>
+<li><a href="/docs/concepts/verification">Verification and decisions</a></li>
+<li><a href="/docs/concepts/identity">Image identity</a></li>
+<li><a href="/docs/concepts/runs">Runs and metrics</a></li>
+<li><a href="/docs/concepts/evidence">What the evidence is worth</a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Bring data in</summary><ul>
+<li><a href="/docs/guides/import">Import data</a></li>
+<li><a href="/docs/guides/pull-from-projects">Build from existing projects</a></li>
+<li><a href="/docs/guides/projects">Manage projects</a></li>
+<li><a href="/docs/data/formats">Choose an import format</a></li>
+<li><a href="/docs/data/tabular">Numbers labels and text</a></li>
+<li><a href="/docs/data/images">Images and thumbnails</a></li>
+<li><a href="/docs/data/video">Video frames and sequences<span class="doc-status planned">Not yet included</span></a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Explore and diagnose</summary><ul>
+<li><a href="/docs/guides/browse">Browse images</a></li>
+<li><a href="/docs/explore/workspace">Inspect tables and runs</a></li>
+<li><a href="/docs/explore/charts">Build linked charts</a></li>
+<li><a href="/docs/explore/calculations">Calculate derived columns</a></li>
+<li><a href="/docs/explore/workflows">Save an analysis workflow</a></li>
+<li><a href="/docs/explore/embeddings">Explore embedding space</a></li>
+<li><a href="/docs/explore/trajectories">Follow samples across epochs</a></li>
+<li><a href="/docs/explore/duplicates">Find duplicates leakage and outliers</a></li>
+<li><a href="/docs/explore/health">Check dataset health</a></li>
+<li><a href="/docs/explore/evaluation">Inspect model errors</a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Review and improve</summary><ul>
+<li><a href="/docs/guides/review">Review and verify</a></li>
+<li><a href="/docs/guides/edit">Edit annotations</a></li>
+<li><a href="/docs/data/boxes">Bounding boxes and rotated boxes</a></li>
+<li><a href="/docs/data/masks">Instance and semantic masks</a></li>
+<li><a href="/docs/data/keypoints">Keypoints and pose</a></li>
+<li><a href="/docs/improve/prelabel">Draft labels with a model</a></li>
+<li><a href="/docs/improve/sam">Propose masks with SAM</a></li>
+<li><a href="/docs/improve/weights">Control sample weights</a></li>
+<li><a href="/docs/guides/isolate-remove">Isolate, remove and restore</a></li>
+<li><a href="/docs/guides/dataset-versions">Create a dataset version</a></li>
+<li><a href="/docs/guides/augmentation">Augmentation</a></li>
+<li><a href="/docs/improve/export">Export a dataset version</a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Train and measure</summary><ul>
+<li><a href="/docs/guides/train">Train a model</a></li>
+<li><a href="/docs/measure/tasks">Choose a training task</a></li>
+<li><a href="/docs/guides/runs">Read a run</a></li>
+<li><a href="/docs/guides/learning">Per-image learning</a></li>
+<li><a href="/docs/guides/findings">Work the Findings queue</a></li>
+<li><a href="/docs/guides/compare">Compare two runs</a></li>
+<li><a href="/docs/measure/metrics">Record per sample metrics</a></li>
+<li><a href="/docs/measure/recipes">Examples and complete workflows</a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Connect your training code</summary><ul>
+<li><a href="/docs/integrations/pytorch">Connect a PyTorch loop</a></li>
+<li><a href="/docs/integrations/ultralytics">Connect YOLO training</a></li>
+<li><a href="/docs/integrations/hugging-face">Connect Hugging Face</a></li>
+<li><a href="/docs/integrations/lightning">Connect Lightning</a></li>
+<li><a href="/docs/integrations/detectron2">Connect Detectron2</a></li>
+<li><a href="/docs/integrations/supergradients">Connect SuperGradients</a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Build with Python</summary><ul>
+<li><a href="/docs/guides/python">Use Granum from Python</a></li>
+<li><a href="/docs/python/tables">Create and revise tables</a></li>
+<li><a href="/docs/python/schemas">Define column schemas</a></li>
+<li><a href="/docs/python/transforms">Transform samples on read</a></li>
+<li><a href="/docs/python/runs">Manage runs in Python</a></li>
+<li><a href="/docs/python/custom-metrics">Write custom collectors</a></li>
+<li><a href="/docs/python/storage">Storage paths and caches</a></li>
+<li><a href="/docs/python/api">Python API reference</a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Run your workspace</summary><ul>
+<li><a href="/docs/operate/service">Run the Granum service</a></li>
+<li><a href="/docs/operate/configuration">Configure a workspace</a></li>
+<li><a href="/docs/operate/shared">Share a workspace with a team</a></li>
+<li><a href="/docs/operate/cloud">Use cloud storage</a></li>
+<li><a href="/docs/operate/remote">Remote and container environments</a></li>
+<li><a href="/docs/guides/operations">Operate a pilot workspace</a></li>
+<li><a href="/docs/operate/upgrades">Upgrade and migrate safely</a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Not yet included</summary><ul>
+<li><a href="/docs/planned/advanced-analysis">Advanced analysis extensions<span class="doc-status planned">Not yet included</span></a></li>
+<li><a href="/docs/planned/compute">Managed compute and plugins<span class="doc-status planned">Not yet included</span></a></li>
+<li><a href="/docs/planned/enterprise">Enterprise identity and delivery<span class="doc-status planned">Not yet included</span></a></li>
+<li><a href="/docs/planned/spatial">Point clouds and 3D annotations<span class="doc-status planned">Not yet included</span></a></li>
+<li><a href="/docs/planned/extensions">Custom data and storage extensions<span class="doc-status planned">Not yet included</span></a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Reference</summary><ul>
+<li><a href="/docs/reference/screens">Map of the app</a></li>
+<li><a href="/docs/reference/shortcuts">Keyboard shortcuts</a></li>
+<li><a href="/docs/reference/preflight">Import checks</a></li>
+<li><a href="/docs/reference/models">Models and task support</a></li>
+<li><a href="/docs/reference/cli">Command line reference</a></li>
+<li><a href="/docs/reference/rest">Service API reference</a></li>
+<li><a href="/docs/reference/requirements">Environment and capacity requirements</a></li>
+<li><a href="/docs/reference/files">Files and settings</a></li>
+<li><a href="/docs/reference/limits">Scale and limits</a></li>
+<li><a href="/docs/reference/releases">Builds and release information</a></li>
+<li><a href="/docs/reference/glossary">Glossary</a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Help</summary><ul>
+<li><a href="/docs/help/troubleshooting">Troubleshooting</a></li>
+<li><a href="/docs/help/faq">Frequently asked questions</a></li>
+<li><a href="/docs/help/privacy">Your data and privacy</a></li>
+</ul></details>
+</nav>
+    </div>
+    <main class="doc-main" id="main">
+      <article class="doc-article">
+        <nav class="doc-crumb" aria-label="Breadcrumb"><a href="/docs">Documentation</a><span aria-hidden="true">/</span><a href="/docs#start">Start with Granum</a></nav>
+
+        <h1>Feature availability</h1>
+        <p class="doc-summary">Find every workflow, its current availability and the guide that explains how to use it.</p>
+        <p>Use this index to find a capability before choosing a workflow. These statuses describe the <strong>current
+development source</strong>, reviewed on 19 October 2026. A downloaded installer can contain an earlier
+revision; compare <code>granum build-info</code> with the build supplied to you.</p>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Available</strong></td>
+<td>The named workflow is implemented. Its guide states dependencies and limits.</td>
+</tr>
+<tr>
+<td><strong>Partially included</strong></td>
+<td>A useful part works; the missing part is explicitly identified in the guide.</td>
+</tr>
+<tr>
+<td><strong>Not yet included</strong></td>
+<td>A reserved feature section. There is no supported Granum workflow for it yet.</td>
+</tr>
+</tbody>
+</table>
+<p>A status is specific to the capability in its row. For example, displaying a three-dimensional scatter
+plot does not provide point-cloud annotation, and importing semantic masks does not provide a dashboard
+semantic trainer. Optional dependencies and workspace permissions still apply to available features.</p>
+<h2 id="follow-the-complete-workflow">Follow the complete workflow</h2>
+<p>Start with <a href="/docs/start/install">installation</a>, then follow the <a href="/docs/course/start">guided course</a>.
+For your own data, move through <a href="/docs/guides/import">import</a>, <a href="/docs/explore/workspace">inspection</a>,
+<a href="/docs/guides/review">review</a>, <a href="/docs/guides/dataset-versions">dataset versions</a>,
+<a href="/docs/guides/train">training</a>, <a href="/docs/guides/compare">comparison</a> and <a href="/docs/improve/export">export</a>.
+Python users can enter the same workflow through <a href="/docs/python/tables">tables</a> and
+<a href="/docs/measure/metrics">per-sample metrics</a>.</p>
+<p>The feature groups below link to working instructions or to a reserved section labelled <strong>Not yet
+included</strong>. Reserved sections describe scope without inventing commands, configuration or release dates.</p><h2 id="setup-and-access">Setup and access</h2><table><thead><tr><th>Capability</th><th>Status</th><th>Scope</th></tr></thead><tbody><tr><td><a href="/docs/start/install">Desktop installation</a></td><td><span class="doc-status available">Available</span></td><td>Windows and Linux artifact workflows; verify the exact supplied build.</td></tr><tr><td><a href="/docs/start/source">Python source installation</a></td><td><span class="doc-status available">Available</span></td><td>Isolated Python environment, bundled dashboard and local service.</td></tr><tr><td><a href="/docs/course/start">First project and guided course</a></td><td><span class="doc-status available">Available</span></td><td>A real sample through import, review, training, comparison and handoff.</td></tr><tr><td><a href="/docs/concepts/model">Projects datasets tables and runs</a></td><td><span class="doc-status available">Available</span></td><td>Granum objects, their relationships and the improvement loop.</td></tr><tr><td><a href="/docs/help/privacy">Components and data privacy</a></td><td><span class="doc-status available">Available</span></td><td>Local defaults and explicit storage, service and integration boundaries.</td></tr><tr><td><a href="/docs/operate/configuration">Configuration and environment variables</a></td><td><span class="doc-status available">Available</span></td><td>Resolved settings, precedence, roots and service options.</td></tr><tr><td><a href="/docs/operate/shared">Shared workspace roles</a></td><td><span class="doc-status available">Available</span></td><td>Authenticated HTTPS and viewer, annotator, reviewer and administrator roles.</td></tr><tr><td><a href="/docs/planned/enterprise#organisation-accounts-and-api-keys">Managed accounts workspaces and API keys</a></td><td><span class="doc-status planned">Not yet included</span></td><td>Organisation membership, invitations, scoped keys and service accounts are not yet included.</td></tr><tr><td><a href="/docs/planned/enterprise#single-sign-on">Single sign on and Azure Entra ID</a></td><td><span class="doc-status planned">Not yet included</span></td><td>SAML/OIDC setup and identity-provider lifecycle are not yet included.</td></tr><tr><td><a href="/docs/planned/enterprise#access-isolation">Per-project permissions and tenant isolation</a></td><td><span class="doc-status planned">Not yet included</span></td><td>Current shared roles apply to the whole workspace.</td></tr><tr><td><a href="/docs/start/activate">Alpha access and licensing</a></td><td><span class="doc-status available">Available</span></td><td>Current unrestricted alpha; legacy licence mechanisms are described separately.</td></tr><tr><td><a href="/docs/planned/enterprise#enterprise-deployment-lifecycle">Enterprise control plane and offline entitlements</a></td><td><span class="doc-status planned">Not yet included</span></td><td>No qualified managed enterprise lifecycle is included.</td></tr><tr><td><a href="/docs/reference/requirements">System requirements and GPU acceleration</a></td><td><span class="doc-status partial">Partially included</span></td><td>Workflow dependencies are documented; a certified platform matrix is not yet included.</td></tr></tbody></table><h2 id="data-and-versions">Data and versions</h2><table><thead><tr><th>Capability</th><th>Status</th><th>Scope</th></tr></thead><tbody><tr><td><a href="/docs/python/tables#create-and-load">Create and load typed tables</a></td><td><span class="doc-status available">Available</span></td><td>Dictionary, pandas, CSV, Parquet and supported vision constructors.</td></tr><tr><td><a href="/docs/python/storage#object-layout">Project layout and file locations</a></td><td><span class="doc-status available">Available</span></td><td>Object directories, metadata and persisted Parquet data.</td></tr><tr><td><a href="/docs/guides/import">Import preflight and reports</a></td><td><span class="doc-status available">Available</span></td><td>Inspect source, media, class and split issues before committing an import.</td></tr><tr><td><a href="/docs/data/formats">Dataset format exchange</a></td><td><span class="doc-status partial">Partially included</span></td><td>Known COCO, YOLO, semantic and exchange layouts; variants require task-specific checks.</td></tr><tr><td><a href="/docs/guides/pull-from-projects">Pull data from other projects</a></td><td><span class="doc-status available">Available</span></td><td>Reuse selected source data with preflight and class choices.</td></tr><tr><td><a href="/docs/python/schemas">Schemas and categorical value maps</a></td><td><span class="doc-status available">Available</span></td><td>Scalar types, labels, metadata and declared geometry properties.</td></tr><tr><td><a href="/docs/python/tables#read-samples-and-bulk-data">Row and sample access</a></td><td><span class="doc-status available">Available</span></td><td>Schema-aware sample reads and Arrow, pandas or dictionary access.</td></tr><tr><td><a href="/docs/python/tables#read-samples-and-bulk-data">Bulk data access</a></td><td><span class="doc-status partial">Partially included</span></td><td>Bulk reads can materialise data; external chunked-array storage is not yet included.</td></tr><tr><td><a href="/docs/python/tables#write-rows-and-batches">Table and metrics writers</a></td><td><span class="doc-status available">Available</span></td><td>Incremental input with in-memory accumulation and explicit finalisation.</td></tr><tr><td><a href="/docs/python/transforms">Sample transforms</a></td><td><span class="doc-status available">Available</span></td><td>Read-time TableView preprocessing without modifying source revisions.</td></tr><tr><td><a href="/docs/python/tables#make-revisions">Edits revisions and lineage</a></td><td><span class="doc-status available">Available</span></td><td>New revisions for changes, parent history and explicit branch selection.</td></tr><tr><td><a href="/docs/python/tables#subsets-and-new-data">Subset creation and seeded sampling</a></td><td><span class="doc-status available">Available</span></td><td>Persisted filters and probabilistic subsets with a seed.</td></tr><tr><td><a href="/docs/python/tables#subsets-and-new-data">Append data to a lineage</a></td><td><span class="doc-status available">Available</span></td><td>Concatenate compatible tables while recording parents; inspect class and identity compatibility.</td></tr><tr><td><a href="/docs/guides/dataset-versions">Dataset versions and split selection</a></td><td><span class="doc-status available">Available</span></td><td>Freeze selected sets for reproducible training.</td></tr><tr><td><a href="/docs/guides/operations#approval-is-an-explicit-gate">Approval and exact review evidence</a></td><td><span class="doc-status available">Available</span></td><td>Approve frozen contents with matching human-review evidence.</td></tr><tr><td><a href="/docs/python/storage#row-caches-and-indexing">Parquet row cache</a></td><td><span class="doc-status partial">Partially included</span></td><td>Persisted cache is required; automatic cacheless reconstruction is not yet included.</td></tr><tr><td><a href="/docs/data/images">Image thumbnails and media references</a></td><td><span class="doc-status available">Available</span></td><td>URL-backed images, browsing and CLI thumbnail generation.</td></tr><tr><td><a href="/docs/data/video">Video frames and sequences</a></td><td><span class="doc-status planned">Not yet included</span></td><td>Use externally extracted images until dedicated ingestion and timeline workflows exist.</td></tr><tr><td><a href="/docs/planned/extensions#custom-sample-types">Custom external and inline sample types</a></td><td><span class="doc-status planned">Not yet included</span></td><td>Public sample-type registry and serialisation contracts are not yet included.</td></tr><tr><td><a href="/docs/planned/extensions#bulk-array-and-geometry-storage">External arrays and chunked geometry</a></td><td><span class="doc-status planned">Not yet included</span></td><td>Managed external bulk storage is not yet included.</td></tr><tr><td><a href="/docs/planned/extensions#import-and-export-plugins">Arbitrary PyTorch Dataset conversion</a></td><td><span class="doc-status planned">Not yet included</span></td><td>Use explicit typed rows or TableWriter today.</td></tr></tbody></table><h2 id="vision-data">Vision data</h2><table><thead><tr><th>Capability</th><th>Status</th><th>Scope</th></tr></thead><tbody><tr><td><a href="/docs/guides/edit">Whole-image classification labels</a></td><td><span class="doc-status available">Available</span></td><td>Store and edit a class for each image.</td></tr><tr><td><a href="/docs/data/boxes#ordinary-detection-boxes">Axis-aligned bounding boxes</a></td><td><span class="doc-status available">Available</span></td><td>Pixel geometry, editing, COCO/YOLO exchange and detection utilities.</td></tr><tr><td><a href="/docs/data/boxes#oriented-boxes">Oriented bounding boxes</a></td><td><span class="doc-status available">Available</span></td><td>Rotated editing, YOLO OBB exchange and rotated IoU.</td></tr><tr><td><a href="/docs/data/masks">Instance masks and polygons</a></td><td><span class="doc-status available">Available</span></td><td>COCO polygons/RLE, YOLO polygons and editable masks.</td></tr><tr><td><a href="/docs/data/masks#import-masks">Semantic class-ID masks</a></td><td><span class="doc-status available">Available</span></td><td>Lossless PNG manifests, class IDs and ignore handling.</td></tr><tr><td><a href="/docs/data/masks#correct-a-mask">Pixel painting and erasing</a></td><td><span class="doc-status available">Available</span></td><td>Edit bitmap masks and preserve semantic class exclusivity.</td></tr><tr><td><a href="/docs/data/keypoints">Keypoints pose and visibility</a></td><td><span class="doc-status available">Available</span></td><td>COCO/YOLO pose, landmark editing and task-specific metrics.</td></tr><tr><td><a href="/docs/data/keypoints#analyse-individual-landmarks">Landmark analysis and filtering</a></td><td><span class="doc-status partial">Partially included</span></td><td>Numeric landmark properties; universal mixed-layout name display is not yet included.</td></tr><tr><td><a href="/docs/guides/edit#crowd-and-ignore-regions">Crowd and ignored annotations</a></td><td><span class="doc-status available">Available</span></td><td>Explicit annotation semantics and task-aware scoring.</td></tr><tr><td><a href="/docs/python/schemas#declare-categories-and-geometry">Typed object properties</a></td><td><span class="doc-status available">Available</span></td><td>Declare confidence, provenance and other supported instance fields.</td></tr><tr><td><a href="/docs/python/custom-metrics#collect-embeddings">Embedding columns and collection</a></td><td><span class="doc-status available">Available</span></td><td>Fixed-width model activations with explicit pooling and identity.</td></tr><tr><td><a href="/docs/python/schemas#core-schema-families">Video URL storage</a></td><td><span class="doc-status partial">Partially included</span></td><td>Reference storage exists; playback and extraction workflows are not yet included.</td></tr><tr><td><a href="/docs/planned/spatial#spatial-data-types">Point clouds meshes and 3D annotation</a></td><td><span class="doc-status planned">Not yet included</span></td><td>Spatial types, point/cuboid editing and geometric operations are not yet included.</td></tr><tr><td><a href="/docs/planned/spatial#sensor-datasets">PandaSet and synchronised sensors</a></td><td><span class="doc-status planned">Not yet included</span></td><td>Camera/LiDAR sequencing and calibration workflows are not yet included.</td></tr><tr><td><a href="/docs/measure/tasks#not-yet-included">Complete panoptic workflow</a></td><td><span class="doc-status partial">Partially included</span></td><td>Task metadata exists; a complete panoptic trainer and workflow are not yet included.</td></tr></tbody></table><h2 id="exploration">Exploration</h2><table><thead><tr><th>Capability</th><th>Status</th><th>Scope</th></tr></thead><tbody><tr><td><a href="/docs/explore/workspace">Linked rows filters and charts</a></td><td><span class="doc-status available">Available</span></td><td>Investigate a table or run and inspect the selected samples.</td></tr><tr><td><a href="/docs/explore/workspace#read-the-rows">Sorting hiding copying and column layout</a></td><td><span class="doc-status available">Available</span></td><td>Rows-panel controls with stable source identity.</td></tr><tr><td><a href="/docs/explore/workspace#narrow-the-evidence">Numeric categorical and object filters</a></td><td><span class="doc-status available">Available</span></td><td>Range/value filters, object scope and selected counts.</td></tr><tr><td><a href="/docs/guides/browse">Image grid and object patches</a></td><td><span class="doc-status available">Available</span></td><td>Browse whole images or object crops with context.</td></tr><tr><td><a href="/docs/explore/charts#create-a-chart">Scatter and image charts</a></td><td><span class="doc-status available">Available</span></td><td>Axes, colour, sizing, image labels and overlays.</td></tr><tr><td><a href="/docs/explore/charts#select-and-inspect">Linked selection tools</a></td><td><span class="doc-status available">Available</span></td><td>Rectangle, lasso, polygon and brush inspection.</td></tr><tr><td><a href="/docs/explore/charts#work-in-three-dimensions">Three-dimensional scatter</a></td><td><span class="doc-status available">Available</span></td><td>Orbitable numeric plots with projected-centre selection at all depths.</td></tr><tr><td><a href="/docs/planned/advanced-analysis#sampling-and-selection">Persisted 3D volume selection</a></td><td><span class="doc-status planned">Not yet included</span></td><td>Current selection is screen-space, not a saved spatial volume.</td></tr><tr><td><a href="/docs/explore/calculations">Calculated columns</a></td><td><span class="doc-status partial">Partially included</span></td><td>Implemented arithmetic, numeric/grouped/ordered operations; the wider operator catalogue remains reserved.</td></tr><tr><td><a href="/docs/guides/browse">Column summaries and pinned statistics</a></td><td><span class="doc-status available">Available</span></td><td>Fields/Stats summaries and Python table summaries.</td></tr><tr><td><a href="/docs/explore/workflows">Saved and portable analysis workflows</a></td><td><span class="doc-status available">Available</span></td><td>Save/apply view recipes and import/export validated JSON.</td></tr><tr><td><a href="/docs/explore/embeddings#create-a-projection">PCA projection</a></td><td><span class="doc-status available">Available</span></td><td>Project typed vectors into two or three dimensions.</td></tr><tr><td><a href="/docs/explore/embeddings#create-a-projection">UMAP and PaCMAP projection</a></td><td><span class="doc-status available">Available</span></td><td>Optional reduction dependencies and finite vector inputs required.</td></tr><tr><td><a href="/docs/explore/embeddings#reuse-a-coordinate-system">Shared fitted projection coordinates</a></td><td><span class="doc-status available">Available</span></td><td>Reuse fitted coordinates across compatible tables or epochs.</td></tr><tr><td><a href="/docs/explore/trajectories">Epoch trajectories and vector travel</a></td><td><span class="doc-status partial">Partially included</span></td><td>Linked paths and explicit vector calculations; general N-column wizard not yet included.</td></tr><tr><td><a href="/docs/planned/advanced-analysis#additional-plot-and-view-types">N-component and parallel-coordinate plots</a></td><td><span class="doc-status planned">Not yet included</span></td><td>Dedicated component-comparison charts are not yet included.</td></tr><tr><td><a href="/docs/planned/advanced-analysis#additional-plot-and-view-types">Reduced aggregate tables and charts</a></td><td><span class="doc-status planned">Not yet included</span></td><td>Use explicit Python aggregation; dedicated reduced views are not yet included.</td></tr><tr><td><a href="/docs/planned/advanced-analysis#additional-plot-and-view-types">Arbitrary multi-table and multi-run views</a></td><td><span class="doc-status planned">Not yet included</span></td><td>Use the supported run-comparison and dataset workflows today.</td></tr><tr><td><a href="/docs/planned/advanced-analysis#additional-calculation-operators">Additional array text time and geometry operators</a></td><td><span class="doc-status planned">Not yet included</span></td><td>Reserved operator families beyond the documented Calculate menu.</td></tr><tr><td><a href="/docs/planned/advanced-analysis#retrieval-and-cross-table-analysis">Retrieval and question/chunk analysis</a></td><td><span class="doc-status planned">Not yet included</span></td><td>Semantic links, before/after retrieval and general foreign-table operations are not yet included.</td></tr></tbody></table><h2 id="review-and-curation">Review and curation</h2><table><thead><tr><th>Capability</th><th>Status</th><th>Scope</th></tr></thead><tbody><tr><td><a href="/docs/guides/review">Human review and comments</a></td><td><span class="doc-status available">Available</span></td><td>Verify, request rework and retain review decisions.</td></tr><tr><td><a href="/docs/guides/edit">Annotation correction and classes</a></td><td><span class="doc-status available">Available</span></td><td>Task-aware editing, typed properties and new revisions.</td></tr><tr><td><a href="/docs/guides/operations#browser-recovery-and-stale-saves">Browser edit recovery</a></td><td><span class="doc-status available">Available</span></td><td>Acknowledged local drafts, stale-base detection and explicit reconciliation.</td></tr><tr><td><a href="/docs/guides/isolate-remove">Isolation removal and restoration</a></td><td><span class="doc-status available">Available</span></td><td>Recoverable decisions with original revisions retained.</td></tr><tr><td><a href="/docs/explore/duplicates">Duplicates and split leakage</a></td><td><span class="doc-status available">Available</span></td><td>Neighbour evidence plus available augmentation/source provenance.</td></tr><tr><td><a href="/docs/explore/duplicates#find-neighbours-of-one-image">Similar-image search and uniqueness</a></td><td><span class="doc-status available">Available</span></td><td>Find neighbours, filter the result and rank unusual images.</td></tr><tr><td><a href="/docs/explore/health">Dataset health checks</a></td><td><span class="doc-status available">Available</span></td><td>Readiness summary with links to underlying evidence.</td></tr><tr><td><a href="/docs/improve/prelabel">Model pre-labelling</a></td><td><span class="doc-status available">Available</span></td><td>Draft compatible annotations in new versions for human review.</td></tr><tr><td><a href="/docs/improve/sam">Interactive SAM mask proposals</a></td><td><span class="doc-status partial">Partially included</span></td><td>Prompted image-level proposals; larger model/device qualification remains open.</td></tr><tr><td><a href="/docs/improve/weights">Sample weights and samplers</a></td><td><span class="doc-status available">Available</span></td><td>Weighted, random, sequential and repeat sampling with explicit zero-weight handling.</td></tr><tr><td><a href="/docs/planned/advanced-analysis#sampling-and-selection">Optimised weighted coreset selection</a></td><td><span class="doc-status planned">Not yet included</span></td><td>Weight-aware sampling exists; optimised coreset tooling is not yet included.</td></tr><tr><td><a href="/docs/guides/augmentation">Versioned augmentation</a></td><td><span class="doc-status available">Available</span></td><td>Geometry-aware dataset recipes with explicit split and pose constraints.</td></tr><tr><td><a href="/docs/improve/export">Dataset export and media strategies</a></td><td><span class="doc-status available">Available</span></td><td>Supported task/layout export with copied, linked or labels-only media choices.</td></tr></tbody></table><h2 id="training-and-metrics">Training and metrics</h2><table><thead><tr><th>Capability</th><th>Status</th><th>Scope</th></tr></thead><tbody><tr><td><a href="/docs/python/runs">Run creation parameters and constants</a></td><td><span class="doc-status available">Available</span></td><td>Experiment identity, lifecycle, aggregate history and input versions.</td></tr><tr><td><a href="/docs/measure/metrics">Per-sample metric collection</a></td><td><span class="doc-status available">Available</span></td><td>Canonical joins, split/epoch context and typed collector output.</td></tr><tr><td><a href="/docs/python/custom-metrics">Custom predictors and collectors</a></td><td><span class="doc-status available">Available</span></td><td>Functional or subclass collectors with one output per sample.</td></tr><tr><td><a href="/docs/python/custom-metrics#aggregate-without-losing-meaning">Metric aggregators</a></td><td><span class="doc-status available">Available</span></td><td>Mean, sum, minimum, maximum and explicit aggregation semantics.</td></tr><tr><td><a href="/docs/guides/train">Dashboard detection training</a></td><td><span class="doc-status available">Available</span></td><td>YOLO, RT-DETR and RF-DETR using named dataset versions.</td></tr><tr><td><a href="/docs/measure/tasks">Mask pose and OBB training</a></td><td><span class="doc-status available">Available</span></td><td>Compatible YOLO task variants with task-aware metrics.</td></tr><tr><td><a href="/docs/measure/tasks">Dashboard classification training</a></td><td><span class="doc-status partial">Partially included</span></td><td>New ResNet-18 development path; broader workflow qualification remains open.</td></tr><tr><td><a href="/docs/measure/tasks">Dashboard semantic training</a></td><td><span class="doc-status partial">Partially included</span></td><td>New LR-ASPP development path; broader workflow qualification remains open.</td></tr><tr><td><a href="/docs/explore/evaluation">Confusion class metrics and thresholds</a></td><td><span class="doc-status partial">Partially included</span></td><td>Detection-focused views plus task-specific stored metrics; view coverage varies by task.</td></tr><tr><td><a href="/docs/guides/findings">Model-assisted label findings</a></td><td><span class="doc-status available">Available</span></td><td>Evidence-ranked review from supported checks or repeated predictions.</td></tr><tr><td><a href="/docs/guides/learning">Learning dynamics and forgetting</a></td><td><span class="doc-status available">Available</span></td><td>Inspect recorded sample observations across epochs.</td></tr><tr><td><a href="/docs/guides/compare">Run comparison and reports</a></td><td><span class="doc-status available">Available</span></td><td>Compatibility checks, sample differences, slices and exported evidence.</td></tr><tr><td><a href="/docs/guides/runs">Checkpoint and model results</a></td><td><span class="doc-status available">Available</span></td><td>Inspect run outputs with their exact recipe and data context.</td></tr><tr><td><a href="/docs/measure/recipes">End-to-end examples</a></td><td><span class="doc-status partial">Partially included</span></td><td>Existing Python examples and aerial course; specialised recipes have explicit reserved entries.</td></tr><tr><td><a href="/docs/planned/compute#hyperparameter-jobs">Managed hyperparameter sweeps</a></td><td><span class="doc-status planned">Not yet included</span></td><td>Parameters can be logged; scheduling/search is not yet included.</td></tr><tr><td><a href="/docs/planned/compute#automatic-labelling-pipelines">Automated active labelling</a></td><td><span class="doc-status planned">Not yet included</span></td><td>Manual pre-label/review/retrain loop exists; unattended orchestration does not.</td></tr><tr><td><a href="/docs/planned/compute#automatic-labelling-pipelines">Batch SAM and instance-embedding pipelines</a></td><td><span class="doc-status planned">Not yet included</span></td><td>Interactive proposals and generic embedding collectors are the current paths.</td></tr></tbody></table><h2 id="framework-integrations">Framework integrations</h2><table><thead><tr><th>Capability</th><th>Status</th><th>Scope</th></tr></thead><tbody><tr><td><a href="/docs/integrations/pytorch">PyTorch</a></td><td><span class="doc-status available">Available</span></td><td>Table views, samplers, predictors and explicit metric passes.</td></tr><tr><td><a href="/docs/integrations/ultralytics">Ultralytics YOLO</a></td><td><span class="doc-status partial">Partially included</span></td><td>Detection/mask/pose/OBB callbacks; dedicated YOLO classification is not yet included.</td></tr><tr><td><a href="/docs/integrations/ultralytics#current-boundary">Legacy standalone YOLOv5 adapter</a></td><td><span class="doc-status planned">Not yet included</span></td><td>The independent legacy repository adapter is not yet included.</td></tr><tr><td><a href="/docs/integrations/hugging-face">Hugging Face Trainer and Datasets</a></td><td><span class="doc-status available">Available</span></td><td>Indexed predictions, callbacks and configurable embeddings/output adaptation.</td></tr><tr><td><a href="/docs/integrations/lightning">Lightning</a></td><td><span class="doc-status available">Available</span></td><td>Indexed validation/test collection including tested CPU/Gloo behaviour.</td></tr><tr><td><a href="/docs/integrations/detectron2">Detectron2</a></td><td><span class="doc-status partial">Partially included</span></td><td>Detection/mask/keypoint integration; rotated and specialised semantic/panoptic paths remain reserved.</td></tr><tr><td><a href="/docs/integrations/supergradients">SuperGradients and YOLO-NAS</a></td><td><span class="doc-status partial">Partially included</span></td><td>Indexed callbacks and canonical predictors; full native recipes and wider qualification remain open.</td></tr><tr><td><a href="/docs/reference/models">RF-DETR</a></td><td><span class="doc-status available">Available</span></td><td>Built-in detector family and integration used by the supervised trainer.</td></tr></tbody></table><h2 id="operations-and-extensions">Operations and extensions</h2><table><thead><tr><th>Capability</th><th>Status</th><th>Scope</th></tr></thead><tbody><tr><td><a href="/docs/operate/service">Object service and jobs</a></td><td><span class="doc-status available">Available</span></td><td>Local dashboard/API service with supervised job status and recovery.</td></tr><tr><td><a href="/docs/operate/service#discover-projects">Discovery and indexing</a></td><td><span class="doc-status available">Available</span></td><td>Watch/scan controls and explicit reindexing of configured records.</td></tr><tr><td><a href="/docs/reference/rest">REST API and live OpenAPI schema</a></td><td><span class="doc-status available">Available</span></td><td>Current endpoint families and installed-build request schemas.</td></tr><tr><td><a href="/docs/reference/cli">CLI</a></td><td><span class="doc-status available">Available</span></td><td>Launch, config, import, thumbnails, access, integrity and backup commands.</td></tr><tr><td><a href="/docs/python/storage#urls-and-aliases">URLs and aliases</a></td><td><span class="doc-status available">Available</span></td><td>Logical roots and fsspec-backed locations with per-process resolution.</td></tr><tr><td><a href="/docs/operate/cloud">S3 Google Cloud Storage and Azure</a></td><td><span class="doc-status partial">Partially included</span></td><td>Optional storage backends; distributed writer coordination remains unsupported.</td></tr><tr><td><a href="/docs/planned/enterprise#signed-media-delivery">Signed browser-direct media URLs</a></td><td><span class="doc-status planned">Not yet included</span></td><td>Provider-direct delivery with scoped URLs is not yet included.</td></tr><tr><td><a href="/docs/operate/remote">Remote environments</a></td><td><span class="doc-status partial">Partially included</span></td><td>Manual service/SDK building blocks; turnkey remote lifecycle is not yet included.</td></tr><tr><td><a href="/docs/operate/remote#docker-and-kubernetes">Docker and Kubernetes deployment</a></td><td><span class="doc-status planned">Not yet included</span></td><td>Qualified images, Compose/Helm/operator workflows are not yet included.</td></tr><tr><td><a href="/docs/operate/remote#hosted-notebooks">Colab and SageMaker setup</a></td><td><span class="doc-status planned">Not yet included</span></td><td>Turnkey notebook connection and persistence guides are not yet included.</td></tr><tr><td><a href="/docs/guides/operations#media-integrity-and-portable-backup">Integrity backup and restore</a></td><td><span class="doc-status available">Available</span></td><td>Checksummed supported local resources with explicit relocation/restore limits.</td></tr><tr><td><a href="/docs/guides/operations#handle-an-audit-failure-without-duplicating-work">Shared mutation audit and recovery</a></td><td><span class="doc-status available">Available</span></td><td>Request/completion records and handling of committed writes with logging failures.</td></tr><tr><td><a href="/docs/operate/upgrades">Upgrade and migration</a></td><td><span class="doc-status partial">Partially included</span></td><td>Restore rehearsal; universal schema and other-product migration are not yet included.</td></tr><tr><td><a href="/docs/reference/releases">Release notes and compatibility archive</a></td><td><span class="doc-status partial">Partially included</span></td><td>Build provenance guidance; curated historical release archive is not yet included.</td></tr><tr><td><a href="/docs/planned/compute#compute-service">Managed compute service</a></td><td><span class="doc-status planned">Not yet included</span></td><td>Worker fleets, scheduling and managed resource assignment are not yet included.</td></tr><tr><td><a href="/docs/planned/compute#plugin-sdk-and-catalogue">Plugin SDK catalogue and lifecycle</a></td><td><span class="doc-status planned">Not yet included</span></td><td>Public authoring, catalogues, install/update/remove and plugin health are not yet included.</td></tr><tr><td><a href="/docs/planned/extensions#url-adapters-and-discovery">Custom URL adapters and discovery hooks</a></td><td><span class="doc-status planned">Not yet included</span></td><td>Public adapter capabilities, precedence and scan-root hooks are not yet included.</td></tr><tr><td><a href="/docs/planned/extensions#import-and-export-plugins">Import/export plugin registry</a></td><td><span class="doc-status planned">Not yet included</span></td><td>Known formats are supported; a public third-party registry is not yet included.</td></tr><tr><td><a href="/docs/reference/shortcuts">Keyboard shortcuts and preferences</a></td><td><span class="doc-status available">Available</span></td><td>Editor, review, viewer and documentation controls.</td></tr><tr><td><a href="/docs/help/troubleshooting">Troubleshooting FAQ and glossary</a></td><td><span class="doc-status available">Available</span></td><td>Diagnosis, recovery and terminology for the supported workflows.</td></tr><tr><td><a href="/docs/python/api">Python API reference</a></td><td><span class="doc-status available">Available</span></td><td>Public Granum objects, table/run methods, collectors, configuration and integration entry points.</td></tr></tbody></table>
+        <div class="doc-steps"><a class="doc-step prev" href="/docs"><span>Previous</span>Granum documentation</a><a class="doc-step next" href="/docs/start/install"><span>Next</span>Install Granum</a></div>
+      </article>
+      <aside class="doc-toc" aria-label="On this page"><p>On this page</p><ul><li><a href="#follow-the-complete-workflow">Follow the complete workflow</a></li><li><a href="#setup-and-access">Setup and access</a></li><li><a href="#data-and-versions">Data and versions</a></li><li><a href="#vision-data">Vision data</a></li><li><a href="#exploration">Exploration</a></li><li><a href="#review-and-curation">Review and curation</a></li><li><a href="#training-and-metrics">Training and metrics</a></li><li><a href="#framework-integrations">Framework integrations</a></li><li><a href="#operations-and-extensions">Operations and extensions</a></li></ul></aside>
+    </main>
+  </div>
+
+  <footer class="doc-footer">
+    <div class="wrap">
+    <p>© Granum. Local-first data workflows.</p>
+      <p><a href="/">Product</a><a href="/download">Download</a><a href="/privacy">Privacy</a><a href="/docs/help/troubleshooting">Support</a></p>
+    </div>
+  </footer>
+
+  <div class="doc-search" data-search-panel hidden>
+    <div class="doc-search-box" role="dialog" aria-modal="true" aria-label="Search documentation">
+    <input type="search" aria-label="Search documentation" aria-controls="doc-search-results" placeholder="Search the documentation" autocomplete="off" spellcheck="false" data-search-input>
+    <ul id="doc-search-results" aria-label="Search results" aria-live="polite" data-search-results></ul>
+      <p class="doc-search-hint"><kbd>↑</kbd><kbd>↓</kbd> to move · <kbd>Enter</kbd> to open · <kbd>Esc</kbd> to close</p>
+    </div>
+  </div>
+
+  <script src="/docs/docs.js" defer></script>
+</body>
+</html>

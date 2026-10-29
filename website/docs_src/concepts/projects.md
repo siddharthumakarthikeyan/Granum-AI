@@ -15,8 +15,9 @@ summary: What a project holds, how its type changes the tools, and how to organi
 └── imports/…json                    every import's preflight report and choices
 ```
 
-Everything about a project is inside its folder, in plain files. Copying the folder copies the work;
-deleting it deletes the work. Nothing is in a database you cannot read.
+Project records live in plain files under this folder. Referenced images and model resources can live
+elsewhere, so copying only this directory is not necessarily a portable backup. Use
+[backup and restore](/docs/course/backup) to include supported referenced resources.
 
 ## Project types
 
@@ -25,9 +26,10 @@ When you create a project you say what its labels are for. You can choose severa
 | Type | What it means | Editor tools |
 |---|---|---|
 | **Object detection** | Boxes around objects | Box |
-| **Instance segmentation** | A mask per object | Polygon (and Box) |
-| **Semantic segmentation** | A class per pixel, no instances | Polygon |
-| **Panoptic segmentation** | Things and stuff together | Polygon |
+| **Oriented object detection** | Rotated rectangles around objects | Oriented box |
+| **Instance segmentation** | A mask per object | Polygon, Paint, Erase |
+| **Semantic segmentation** | A class per pixel, no instances | Polygon, Paint, Erase |
+| **Panoptic segmentation** | Things and stuff together | Mask editing; complete training workflow not yet included |
 | **Keypoint detection** | Points on each object | Keypoint, Box |
 | **Classification** | One label for the whole image | Image label only |
 
@@ -36,11 +38,11 @@ versions, and used in three places: the editor offers the tools that fit, the im
 the annotations do not match the type you chose (masks declared but none present, for example), and the
 train dialog warns when you ask to train boxes on a project whose labels are not boxes.
 
-!!! note "What the importer currently reads"
-    The COCO importer reads boxes. Masks, keypoints and other COCO fields ride along as properties on
-    each object and are preserved on export, and the editor can draw and change them, but the checks,
-    metrics and training in Granum today are box-based. Choosing a segmentation or keypoint type sets up
-    the right tools; it does not yet give you a segmentation evaluator.
+!!! note "Match the task across the workflow"
+    Import, annotation tools, model variants and scoring must agree on the task. Granum has task-aware
+    mask, pose and oriented-box paths, plus newly implemented classification and semantic trainers.
+    Some specialised views and broader qualification remain incomplete. Check
+    [training tasks](/docs/measure/tasks) and [feature availability](/docs/reference/features).
 
 ## Several projects
 

@@ -4,6 +4,7 @@ import type { TaskId } from "../api/types";
 
 export const TASKS: { id: TaskId; label: string }[] = [
   { id: "object_detection", label: "Object detection" },
+  { id: "oriented_object_detection", label: "Oriented object detection" },
   { id: "instance_segmentation", label: "Instance segmentation" },
   { id: "semantic_segmentation", label: "Semantic segmentation" },
   { id: "panoptic_segmentation", label: "Panoptic segmentation" },
@@ -36,6 +37,7 @@ export function taskWarning(task: TaskId, counts: Record<string, number> | undef
   }
   if (task === "panoptic_segmentation" && !counts.panoptic) return `${name}: the annotation files have no panoptic segments.`;
   if (task === "keypoint_detection" && !counts.keypoints) return `${name}: the annotation files have no keypoints.`;
+  if (task === "oriented_object_detection" && !counts.oriented_boxes) return `${name}: the annotation files have no oriented corners.`;
   if (task === "classification" && counts.labelled_images && (counts.full_image ?? 0) < 0.9 * counts.labelled_images) {
     return `${name}: most images have boxes around objects, not one label for the whole image.`;
   }

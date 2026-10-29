@@ -49,11 +49,11 @@ work still materialize data and need their own memory planning; the service is n
   checksummed project backup/restore. No distributed-writer guarantee for cloud stores or NFS.
 - **Recovery:** primary editor drafts are in the same browser profile. Clearing browser data, storage
   failure or using another device can lose access to them. Stale drafts require export/reconciliation.
-- **One training job at a time** per machine.
-- **Boxes.** The importer reads COCO boxes; masks, keypoints and other fields are preserved and editable,
-  but the checks, metrics, findings and training are box-based.
-- **Detection only, for training.** Classification data can be held and reviewed; training it is not in
-  the dashboard.
+- **Model jobs:** conflicting training/inference jobs cannot use the same worker at once.
+- **Vision tasks:** masks, pose and oriented boxes have task-aware import, editing, export and model
+  paths. New classification and semantic trainers still need broader workflow qualification; see
+  [training tasks](/docs/measure/tasks). Specialised evaluation/Findings views vary by task.
+- **Panoptic training:** not yet included as a complete workflow.
 - **No video.** Frames imported as images work; there is no timeline, no tracking, no propagation.
 - **Windows and Linux.** No macOS build today.
 

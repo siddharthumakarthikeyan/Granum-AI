@@ -4,10 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Runs and metrics · Granum documentation</title>
-  <meta name="description" content="What a training run records, what a round is, and why Granum scores every model the same way.">
+  <meta name="description" content="What a run records, how sample observations connect to inputs, and when experiment scores can be compared.">
   <meta name="theme-color" content="#ffffff">
   <meta property="og:title" content="Runs and metrics · Granum documentation">
-  <meta property="og:description" content="What a training run records, what a round is, and why Granum scores every model the same way.">
+  <meta property="og:description" content="What a run records, how sample observations connect to inputs, and when experiment scores can be compared.">
   <meta property="og:type" content="article">
   <meta property="og:image" content="/assets/og.jpg">
   <link rel="canonical" href="https://granum.app/docs/concepts/runs">
@@ -47,7 +47,15 @@
     <div class="doc-sidebar" id="doc-sidebar">
       <nav class="doc-nav" aria-label="Documentation">
 <a class="doc-nav-home" href="/docs">Start here</a>
-<div class="doc-nav-group"><p class="doc-nav-title">Guided aerial-data course</p><ul>
+<details class="doc-nav-group"><summary class="doc-nav-title">Start with Granum</summary><ul>
+<li><a href="/docs/reference/features">Feature availability</a></li>
+<li><a href="/docs/start/install">Install Granum</a></li>
+<li><a href="/docs/start/activate">Alpha access and licences</a></li>
+<li><a href="/docs/start/first-project">Your first project</a></li>
+<li><a href="/docs/start/the-loop">Run the loop once</a></li>
+<li><a href="/docs/start/source">Run from source</a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Guided aerial-data course</summary><ul>
 <li><a href="/docs/course/start">Start the guided course</a></li>
 <li><a href="/docs/course/setup">1. Prepare the workspace</a></li>
 <li><a href="/docs/course/data">2. Understand the sample</a></li>
@@ -61,14 +69,8 @@
 <li><a href="/docs/course/handoff">10. Approve and export an excerpt</a></li>
 <li><a href="/docs/course/backup">11. Back up, restore and share safely</a></li>
 <li><a href="/docs/course/next">12. Move to your own project</a></li>
-</ul></div>
-<div class="doc-nav-group"><p class="doc-nav-title">Getting started</p><ul>
-<li><a href="/docs/start/install">Install Granum</a></li>
-<li><a href="/docs/start/activate">Alpha access and licences</a></li>
-<li><a href="/docs/start/first-project">Your first project</a></li>
-<li><a href="/docs/start/the-loop">Run the loop once</a></li>
-</ul></div>
-<div class="doc-nav-group"><p class="doc-nav-title">Concepts</p><ul>
+</ul></details>
+<details class="doc-nav-group" open><summary class="doc-nav-title">Concepts</summary><ul>
 <li><a href="/docs/concepts/model">How Granum is organised</a></li>
 <li><a href="/docs/concepts/projects">Projects and project types</a></li>
 <li><a href="/docs/concepts/versions">Versions and lineage</a></li>
@@ -77,74 +79,142 @@
 <li><a href="/docs/concepts/identity">Image identity</a></li>
 <li><a href="/docs/concepts/runs" class="on" aria-current="page">Runs and metrics</a></li>
 <li><a href="/docs/concepts/evidence">What the evidence is worth</a></li>
-</ul></div>
-<div class="doc-nav-group"><p class="doc-nav-title">Guides</p><ul>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Bring data in</summary><ul>
 <li><a href="/docs/guides/import">Import data</a></li>
 <li><a href="/docs/guides/pull-from-projects">Build from existing projects</a></li>
+<li><a href="/docs/guides/projects">Manage projects</a></li>
+<li><a href="/docs/data/formats">Choose an import format</a></li>
+<li><a href="/docs/data/tabular">Numbers labels and text</a></li>
+<li><a href="/docs/data/images">Images and thumbnails</a></li>
+<li><a href="/docs/data/video">Video frames and sequences<span class="doc-status planned">Not yet included</span></a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Explore and diagnose</summary><ul>
 <li><a href="/docs/guides/browse">Browse images</a></li>
+<li><a href="/docs/explore/workspace">Inspect tables and runs</a></li>
+<li><a href="/docs/explore/charts">Build linked charts</a></li>
+<li><a href="/docs/explore/calculations">Calculate derived columns</a></li>
+<li><a href="/docs/explore/workflows">Save an analysis workflow</a></li>
+<li><a href="/docs/explore/embeddings">Explore embedding space</a></li>
+<li><a href="/docs/explore/trajectories">Follow samples across epochs</a></li>
+<li><a href="/docs/explore/duplicates">Find duplicates leakage and outliers</a></li>
+<li><a href="/docs/explore/health">Check dataset health</a></li>
+<li><a href="/docs/explore/evaluation">Inspect model errors</a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Review and improve</summary><ul>
 <li><a href="/docs/guides/review">Review and verify</a></li>
 <li><a href="/docs/guides/edit">Edit annotations</a></li>
+<li><a href="/docs/data/boxes">Bounding boxes and rotated boxes</a></li>
+<li><a href="/docs/data/masks">Instance and semantic masks</a></li>
+<li><a href="/docs/data/keypoints">Keypoints and pose</a></li>
+<li><a href="/docs/improve/prelabel">Draft labels with a model</a></li>
+<li><a href="/docs/improve/sam">Propose masks with SAM</a></li>
+<li><a href="/docs/improve/weights">Control sample weights</a></li>
 <li><a href="/docs/guides/isolate-remove">Isolate, remove and restore</a></li>
 <li><a href="/docs/guides/dataset-versions">Create a dataset version</a></li>
 <li><a href="/docs/guides/augmentation">Augmentation</a></li>
+<li><a href="/docs/improve/export">Export a dataset version</a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Train and measure</summary><ul>
 <li><a href="/docs/guides/train">Train a model</a></li>
+<li><a href="/docs/measure/tasks">Choose a training task</a></li>
 <li><a href="/docs/guides/runs">Read a run</a></li>
 <li><a href="/docs/guides/learning">Per-image learning</a></li>
 <li><a href="/docs/guides/findings">Work the Findings queue</a></li>
 <li><a href="/docs/guides/compare">Compare two runs</a></li>
-<li><a href="/docs/guides/projects">Manage projects</a></li>
+<li><a href="/docs/measure/metrics">Record per sample metrics</a></li>
+<li><a href="/docs/measure/recipes">Examples and complete workflows</a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Connect your training code</summary><ul>
+<li><a href="/docs/integrations/pytorch">Connect a PyTorch loop</a></li>
+<li><a href="/docs/integrations/ultralytics">Connect YOLO training</a></li>
+<li><a href="/docs/integrations/hugging-face">Connect Hugging Face</a></li>
+<li><a href="/docs/integrations/lightning">Connect Lightning</a></li>
+<li><a href="/docs/integrations/detectron2">Connect Detectron2</a></li>
+<li><a href="/docs/integrations/supergradients">Connect SuperGradients</a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Build with Python</summary><ul>
 <li><a href="/docs/guides/python">Use Granum from Python</a></li>
+<li><a href="/docs/python/tables">Create and revise tables</a></li>
+<li><a href="/docs/python/schemas">Define column schemas</a></li>
+<li><a href="/docs/python/transforms">Transform samples on read</a></li>
+<li><a href="/docs/python/runs">Manage runs in Python</a></li>
+<li><a href="/docs/python/custom-metrics">Write custom collectors</a></li>
+<li><a href="/docs/python/storage">Storage paths and caches</a></li>
+<li><a href="/docs/python/api">Python API reference</a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Run your workspace</summary><ul>
+<li><a href="/docs/operate/service">Run the Granum service</a></li>
+<li><a href="/docs/operate/configuration">Configure a workspace</a></li>
+<li><a href="/docs/operate/shared">Share a workspace with a team</a></li>
+<li><a href="/docs/operate/cloud">Use cloud storage</a></li>
+<li><a href="/docs/operate/remote">Remote and container environments</a></li>
 <li><a href="/docs/guides/operations">Operate a pilot workspace</a></li>
-</ul></div>
-<div class="doc-nav-group"><p class="doc-nav-title">Reference</p><ul>
+<li><a href="/docs/operate/upgrades">Upgrade and migrate safely</a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Not yet included</summary><ul>
+<li><a href="/docs/planned/advanced-analysis">Advanced analysis extensions<span class="doc-status planned">Not yet included</span></a></li>
+<li><a href="/docs/planned/compute">Managed compute and plugins<span class="doc-status planned">Not yet included</span></a></li>
+<li><a href="/docs/planned/enterprise">Enterprise identity and delivery<span class="doc-status planned">Not yet included</span></a></li>
+<li><a href="/docs/planned/spatial">Point clouds and 3D annotations<span class="doc-status planned">Not yet included</span></a></li>
+<li><a href="/docs/planned/extensions">Custom data and storage extensions<span class="doc-status planned">Not yet included</span></a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Reference</summary><ul>
 <li><a href="/docs/reference/screens">Map of the app</a></li>
 <li><a href="/docs/reference/shortcuts">Keyboard shortcuts</a></li>
 <li><a href="/docs/reference/preflight">Import checks</a></li>
-<li><a href="/docs/reference/models">Models you can train</a></li>
+<li><a href="/docs/reference/models">Models and task support</a></li>
+<li><a href="/docs/reference/cli">Command line reference</a></li>
+<li><a href="/docs/reference/rest">Service API reference</a></li>
+<li><a href="/docs/reference/requirements">Environment and capacity requirements</a></li>
 <li><a href="/docs/reference/files">Files and settings</a></li>
 <li><a href="/docs/reference/limits">Scale and limits</a></li>
+<li><a href="/docs/reference/releases">Builds and release information</a></li>
 <li><a href="/docs/reference/glossary">Glossary</a></li>
-</ul></div>
-<div class="doc-nav-group"><p class="doc-nav-title">Help</p><ul>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Help</summary><ul>
 <li><a href="/docs/help/troubleshooting">Troubleshooting</a></li>
 <li><a href="/docs/help/faq">Frequently asked questions</a></li>
 <li><a href="/docs/help/privacy">Your data and privacy</a></li>
-</ul></div>
+</ul></details>
 </nav>
     </div>
     <main class="doc-main" id="main">
       <article class="doc-article">
         <nav class="doc-crumb" aria-label="Breadcrumb"><a href="/docs">Documentation</a><span aria-hidden="true">/</span><a href="/docs#concepts">Concepts</a></nav>
+
         <h1>Runs and metrics</h1>
-        <p class="doc-summary">What a training run records, what a round is, and why Granum scores every model the same way.</p>
-        <p>A <strong>run</strong> is one training job. It records three things.</p>
+        <p class="doc-summary">What a run records, how sample observations connect to inputs, and when experiment scores can be compared.</p>
+        <p>A <strong>run</strong> records an experiment, training job or analysis process. A training run brings together the
+recipe, aggregate measurements and sample observations.</p>
 <h2 id="the-recipe">The recipe</h2>
 <p>Model family and weights, image size, batch size, epochs, seed, and the exact URL of every set it used —
 train, validation and, if you chose one, test. Two runs can only be compared when this matches in the
 ways that matter, so it is recorded rather than remembered.</p>
 <h2 id="scores-per-round">Scores per round</h2>
-<p>At the end of each round (an epoch) Granum logs the trainer's own metrics: mAP50, mAP50-95, precision,
-recall, and the loss terms. These drive the chart on the Runs screen and the progress card while
-training.</p>
+<p>At the end of each round (an epoch), Granum logs the applicable task's measurements. Detection runs can
+record average precision, precision, recall and losses; classification uses accuracy and loss, while
+semantic segmentation includes pixel accuracy and mean class IoU. These drive task-appropriate charts.</p>
 <h2 id="per-image-results">Per-image results</h2>
-<p>This is the part that makes Granum more than a training launcher. At the end of the rounds it collects on,
-Granum runs the model over each set and stores, per image: how many labels it found, how many it missed,
+<p>For detection, at the end of the rounds it collects on, Granum stores per image how many labels it found, how many it missed,
 how many boxes it predicted with nothing to match, the per-image precision, recall and F1 — and, for the
 rounds that keep boxes, every predicted box with its confidence and which label it matched.</p>
-<p>With <strong>Record per-sample metrics and predictions every epoch</strong> on, that happens every round for every
-set, which is what makes <a href="/docs/guides/learning">per-image learning</a> and <a href="/docs/guides/findings">Findings</a>
-possible. Without it, boxes are kept for the middle and final rounds only.</p>
+<p>With <strong>Record per-sample metrics and predictions every epoch</strong> on, supported training paths collect
+repeated training/validation observations for <a href="/docs/guides/learning">learning</a> and
+<a href="/docs/guides/findings">Findings</a>. A held-out test set stays separate from routine collection.
+Collection frequency and retained outputs depend on the integration and task; inspect the run's
+recorded tables rather than assuming all epochs contain predictions.</p>
 <p>The cost is disk, and it scales with how many boxes your images hold. On a dense aerial set — 11,335
 training and 547 validation images, 55 boxes an image — a round with boxes stored is about 15 MB, so a
 12-round run tracking every round is roughly 180 MB. On ordinary datasets with a handful of objects per
 image it is a small fraction of that.</p>
-<h2 id="one-scorer-so-runs-compare">One scorer, so runs compare</h2>
+<h2 id="comparable-scoring-within-a-task">Comparable scoring within a task</h2>
 <p>YOLO, RT-DETR and RF-DETR each report validation numbers computed with their own confidence thresholds,
 matching rules and averaging. Those numbers do not compare with each other — a fact that has cost many
 teams a wrong conclusion.</p>
 <p>So after training, Granum scores the finished model itself, with its own matching rules, at a fixed
 operating point, on the current labels of the validation set. That figure — recorded as the run's final
-score, and the one the comparison uses — is computed identically for every model family and every run:</p>
+score — follows the common detection policy for compatible detector runs:</p>
 <ul>
 <li><strong>mAP50</strong>: mean over classes of average precision at IoU 0.5, COCO-style 101-point interpolation.</li>
 <li><strong>Precision, recall and F1</strong>: over all boxes at confidence 0.25 and above.</li>
@@ -152,6 +222,9 @@ score, and the one the comparison uses — is computed identically for every mod
 </ul>
 <p>Because predictions below a floor confidence are dropped, this mAP can read slightly lower than a
 framework's own figure. It is consistent, which is what a comparison needs.</p>
+<p>Mask, pose and oriented-box tasks use their own similarity measures. Classification accuracy and
+semantic IoU are different quantities from detection mAP. Compare only compatible tasks, datasets,
+class maps and scoring settings; see <a href="/docs/guides/compare">comparison checks</a>.</p>
 <h2 id="rounds-epochs-and-observations">Rounds, epochs and "observations"</h2>
 <p>Granum says <em>round</em> in the interface where the literature says <em>epoch</em>; they are the same thing. A round
 the model was <em>observed</em> in is one where per-image metrics were collected. A run can have 60 epochs but
@@ -164,7 +237,7 @@ validation score and then report validation score, you are reporting a number yo
 column exists so you have one you did not.</p>
         <div class="doc-steps"><a class="doc-step prev" href="/docs/concepts/identity"><span>Previous</span>Image identity</a><a class="doc-step next" href="/docs/concepts/evidence"><span>Next</span>What the evidence is worth</a></div>
       </article>
-      <aside class="doc-toc" aria-label="On this page"><p>On this page</p><ul><li><a href="#the-recipe">The recipe</a></li><li><a href="#scores-per-round">Scores per round</a></li><li><a href="#per-image-results">Per-image results</a></li><li><a href="#one-scorer-so-runs-compare">One scorer, so runs compare</a></li><li><a href="#rounds-epochs-and-observations">Rounds, epochs and &quot;observations&quot;</a></li><li><a href="#a-held-out-test-set">A held-out test set</a></li></ul></aside>
+      <aside class="doc-toc" aria-label="On this page"><p>On this page</p><ul><li><a href="#the-recipe">The recipe</a></li><li><a href="#scores-per-round">Scores per round</a></li><li><a href="#per-image-results">Per-image results</a></li><li><a href="#comparable-scoring-within-a-task">Comparable scoring within a task</a></li><li><a href="#rounds-epochs-and-observations">Rounds, epochs and &quot;observations&quot;</a></li><li><a href="#a-held-out-test-set">A held-out test set</a></li></ul></aside>
     </main>
   </div>
 

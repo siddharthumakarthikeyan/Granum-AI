@@ -4,10 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Granum documentation</title>
-  <meta name="description" content="Learn Granum end to end with a real dataset, actual screenshots and videos, then use the task guides and reference for daily work.">
+  <meta name="description" content="Import data, inspect samples, improve labels, train models and compare results. Find guides, Python references and feature availability in one place.">
   <meta name="theme-color" content="#ffffff">
   <meta property="og:title" content="Granum documentation">
-  <meta property="og:description" content="Learn Granum end to end with a real dataset, actual screenshots and videos, then use the task guides and reference for daily work.">
+  <meta property="og:description" content="Import data, inspect samples, improve labels, train models and compare results. Find guides, Python references and feature availability in one place.">
   <meta property="og:type" content="article">
   <meta property="og:image" content="/assets/og.jpg">
   <link rel="canonical" href="https://granum.app/docs">
@@ -47,7 +47,15 @@
     <div class="doc-sidebar" id="doc-sidebar">
       <nav class="doc-nav" aria-label="Documentation">
 <a class="doc-nav-home on" href="/docs">Start here</a>
-<div class="doc-nav-group"><p class="doc-nav-title">Guided aerial-data course</p><ul>
+<details class="doc-nav-group" open><summary class="doc-nav-title">Start with Granum</summary><ul>
+<li><a href="/docs/reference/features">Feature availability</a></li>
+<li><a href="/docs/start/install">Install Granum</a></li>
+<li><a href="/docs/start/activate">Alpha access and licences</a></li>
+<li><a href="/docs/start/first-project">Your first project</a></li>
+<li><a href="/docs/start/the-loop">Run the loop once</a></li>
+<li><a href="/docs/start/source">Run from source</a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Guided aerial-data course</summary><ul>
 <li><a href="/docs/course/start">Start the guided course</a></li>
 <li><a href="/docs/course/setup">1. Prepare the workspace</a></li>
 <li><a href="/docs/course/data">2. Understand the sample</a></li>
@@ -61,14 +69,8 @@
 <li><a href="/docs/course/handoff">10. Approve and export an excerpt</a></li>
 <li><a href="/docs/course/backup">11. Back up, restore and share safely</a></li>
 <li><a href="/docs/course/next">12. Move to your own project</a></li>
-</ul></div>
-<div class="doc-nav-group"><p class="doc-nav-title">Getting started</p><ul>
-<li><a href="/docs/start/install">Install Granum</a></li>
-<li><a href="/docs/start/activate">Alpha access and licences</a></li>
-<li><a href="/docs/start/first-project">Your first project</a></li>
-<li><a href="/docs/start/the-loop">Run the loop once</a></li>
-</ul></div>
-<div class="doc-nav-group"><p class="doc-nav-title">Concepts</p><ul>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Concepts</summary><ul>
 <li><a href="/docs/concepts/model">How Granum is organised</a></li>
 <li><a href="/docs/concepts/projects">Projects and project types</a></li>
 <li><a href="/docs/concepts/versions">Versions and lineage</a></li>
@@ -77,49 +79,125 @@
 <li><a href="/docs/concepts/identity">Image identity</a></li>
 <li><a href="/docs/concepts/runs">Runs and metrics</a></li>
 <li><a href="/docs/concepts/evidence">What the evidence is worth</a></li>
-</ul></div>
-<div class="doc-nav-group"><p class="doc-nav-title">Guides</p><ul>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Bring data in</summary><ul>
 <li><a href="/docs/guides/import">Import data</a></li>
 <li><a href="/docs/guides/pull-from-projects">Build from existing projects</a></li>
+<li><a href="/docs/guides/projects">Manage projects</a></li>
+<li><a href="/docs/data/formats">Choose an import format</a></li>
+<li><a href="/docs/data/tabular">Numbers labels and text</a></li>
+<li><a href="/docs/data/images">Images and thumbnails</a></li>
+<li><a href="/docs/data/video">Video frames and sequences<span class="doc-status planned">Not yet included</span></a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Explore and diagnose</summary><ul>
 <li><a href="/docs/guides/browse">Browse images</a></li>
+<li><a href="/docs/explore/workspace">Inspect tables and runs</a></li>
+<li><a href="/docs/explore/charts">Build linked charts</a></li>
+<li><a href="/docs/explore/calculations">Calculate derived columns</a></li>
+<li><a href="/docs/explore/workflows">Save an analysis workflow</a></li>
+<li><a href="/docs/explore/embeddings">Explore embedding space</a></li>
+<li><a href="/docs/explore/trajectories">Follow samples across epochs</a></li>
+<li><a href="/docs/explore/duplicates">Find duplicates leakage and outliers</a></li>
+<li><a href="/docs/explore/health">Check dataset health</a></li>
+<li><a href="/docs/explore/evaluation">Inspect model errors</a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Review and improve</summary><ul>
 <li><a href="/docs/guides/review">Review and verify</a></li>
 <li><a href="/docs/guides/edit">Edit annotations</a></li>
+<li><a href="/docs/data/boxes">Bounding boxes and rotated boxes</a></li>
+<li><a href="/docs/data/masks">Instance and semantic masks</a></li>
+<li><a href="/docs/data/keypoints">Keypoints and pose</a></li>
+<li><a href="/docs/improve/prelabel">Draft labels with a model</a></li>
+<li><a href="/docs/improve/sam">Propose masks with SAM</a></li>
+<li><a href="/docs/improve/weights">Control sample weights</a></li>
 <li><a href="/docs/guides/isolate-remove">Isolate, remove and restore</a></li>
 <li><a href="/docs/guides/dataset-versions">Create a dataset version</a></li>
 <li><a href="/docs/guides/augmentation">Augmentation</a></li>
+<li><a href="/docs/improve/export">Export a dataset version</a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Train and measure</summary><ul>
 <li><a href="/docs/guides/train">Train a model</a></li>
+<li><a href="/docs/measure/tasks">Choose a training task</a></li>
 <li><a href="/docs/guides/runs">Read a run</a></li>
 <li><a href="/docs/guides/learning">Per-image learning</a></li>
 <li><a href="/docs/guides/findings">Work the Findings queue</a></li>
 <li><a href="/docs/guides/compare">Compare two runs</a></li>
-<li><a href="/docs/guides/projects">Manage projects</a></li>
+<li><a href="/docs/measure/metrics">Record per sample metrics</a></li>
+<li><a href="/docs/measure/recipes">Examples and complete workflows</a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Connect your training code</summary><ul>
+<li><a href="/docs/integrations/pytorch">Connect a PyTorch loop</a></li>
+<li><a href="/docs/integrations/ultralytics">Connect YOLO training</a></li>
+<li><a href="/docs/integrations/hugging-face">Connect Hugging Face</a></li>
+<li><a href="/docs/integrations/lightning">Connect Lightning</a></li>
+<li><a href="/docs/integrations/detectron2">Connect Detectron2</a></li>
+<li><a href="/docs/integrations/supergradients">Connect SuperGradients</a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Build with Python</summary><ul>
 <li><a href="/docs/guides/python">Use Granum from Python</a></li>
+<li><a href="/docs/python/tables">Create and revise tables</a></li>
+<li><a href="/docs/python/schemas">Define column schemas</a></li>
+<li><a href="/docs/python/transforms">Transform samples on read</a></li>
+<li><a href="/docs/python/runs">Manage runs in Python</a></li>
+<li><a href="/docs/python/custom-metrics">Write custom collectors</a></li>
+<li><a href="/docs/python/storage">Storage paths and caches</a></li>
+<li><a href="/docs/python/api">Python API reference</a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Run your workspace</summary><ul>
+<li><a href="/docs/operate/service">Run the Granum service</a></li>
+<li><a href="/docs/operate/configuration">Configure a workspace</a></li>
+<li><a href="/docs/operate/shared">Share a workspace with a team</a></li>
+<li><a href="/docs/operate/cloud">Use cloud storage</a></li>
+<li><a href="/docs/operate/remote">Remote and container environments</a></li>
 <li><a href="/docs/guides/operations">Operate a pilot workspace</a></li>
-</ul></div>
-<div class="doc-nav-group"><p class="doc-nav-title">Reference</p><ul>
+<li><a href="/docs/operate/upgrades">Upgrade and migrate safely</a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Not yet included</summary><ul>
+<li><a href="/docs/planned/advanced-analysis">Advanced analysis extensions<span class="doc-status planned">Not yet included</span></a></li>
+<li><a href="/docs/planned/compute">Managed compute and plugins<span class="doc-status planned">Not yet included</span></a></li>
+<li><a href="/docs/planned/enterprise">Enterprise identity and delivery<span class="doc-status planned">Not yet included</span></a></li>
+<li><a href="/docs/planned/spatial">Point clouds and 3D annotations<span class="doc-status planned">Not yet included</span></a></li>
+<li><a href="/docs/planned/extensions">Custom data and storage extensions<span class="doc-status planned">Not yet included</span></a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Reference</summary><ul>
 <li><a href="/docs/reference/screens">Map of the app</a></li>
 <li><a href="/docs/reference/shortcuts">Keyboard shortcuts</a></li>
 <li><a href="/docs/reference/preflight">Import checks</a></li>
-<li><a href="/docs/reference/models">Models you can train</a></li>
+<li><a href="/docs/reference/models">Models and task support</a></li>
+<li><a href="/docs/reference/cli">Command line reference</a></li>
+<li><a href="/docs/reference/rest">Service API reference</a></li>
+<li><a href="/docs/reference/requirements">Environment and capacity requirements</a></li>
 <li><a href="/docs/reference/files">Files and settings</a></li>
 <li><a href="/docs/reference/limits">Scale and limits</a></li>
+<li><a href="/docs/reference/releases">Builds and release information</a></li>
 <li><a href="/docs/reference/glossary">Glossary</a></li>
-</ul></div>
-<div class="doc-nav-group"><p class="doc-nav-title">Help</p><ul>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Help</summary><ul>
 <li><a href="/docs/help/troubleshooting">Troubleshooting</a></li>
 <li><a href="/docs/help/faq">Frequently asked questions</a></li>
 <li><a href="/docs/help/privacy">Your data and privacy</a></li>
-</ul></div>
+</ul></details>
 </nav>
     </div>
     <main class="doc-main" id="main">
       <article class="doc-article">
         <nav class="doc-crumb" aria-label="Breadcrumb"><a href="/docs">Documentation</a></nav>
+
         <h1>Granum documentation</h1>
-        <p class="doc-summary">Learn Granum end to end with a real dataset, actual screenshots and videos, then use the task guides and reference for daily work.</p>
+        <p class="doc-summary">Import data, inspect samples, improve labels, train models and compare results. Find guides, Python references and feature availability in one place.</p>
         <p>Granum connects images, annotations, human review and model measurements. The documentation starts
 with a real small dataset and explains not only <strong>what to click</strong>, but <strong>why</strong>, <strong>what to look for</strong>,
 <strong>what the result means</strong> and <strong>when not to trust a conclusion</strong>.</p>
+<h2 id="choose-your-starting-point">Choose your starting point</h2>
+<div class="doc-cards">
+<a class="doc-card" href="/docs/reference/features"><strong>Find a feature</strong><span>Available capabilities, partial support and clearly marked space for what comes next.</span></a>
+<a class="doc-card" href="/docs/explore/workspace"><strong>Work in the dashboard</strong><span>Follow a metric to the samples behind it, then review, edit and measure again.</span></a>
+<a class="doc-card" href="/docs/guides/python"><strong>Connect your code</strong><span>Bring existing tables, models and training loops into the same workflow.</span></a>
+</div>
+
+<p>These guides cover the current development workspace. Check <a href="/docs/reference/features">feature availability</a>
+against your installed build before following a newly added workflow. <strong>Not yet included</strong> means the
+feature has a reserved place in the documentation and is not currently available.</p>
 <div class="course-intro">
 <p class="course-eyebrow">New to Granum? Start here.</p>
 <p><strong>One real dataset. The complete workflow.</strong></p>
@@ -172,14 +250,18 @@ integrations have separate access/network boundaries; see <a href="/docs/help/pr
 <p><strong>Guided aerial-data course</strong> is the beginner path. It introduces the concepts, follows exact actions
 and gives checkpoints. It records two genuinely weak GPU runs and approves only two inspected images;
 it does not pretend that a successful workflow creates a production model or a fully reviewed sample.</p>
-<p><strong>Getting started</strong> is the short installation and orientation reference. The complete hands-on lessons
+<p><strong>Start with Granum</strong> is the short installation and orientation reference. The complete hands-on lessons
 live in the course so there is one coherent first-use path rather than competing quick starts.</p>
 <p><strong>Concepts</strong> explains the model behind the product — what a set is, what a version is, what makes a
 dataset version different from the images you are looking at, and how Granum keeps a metric attached to
 the image it was measured on. These pages are short and worth reading once; they save you from guessing
 later.</p>
-<p><strong>Guides</strong> are task pages: one job each, in the order the work usually happens. Each says what the screen
-does, what to do, what gets written, and where the honest limits are.</p>
+<p><strong>Bring data in</strong>, <strong>Explore and diagnose</strong>, <strong>Review and improve</strong>, and <strong>Train and measure</strong> follow
+the working loop. Each guide explains its inputs, actions, saved result and current limits.</p>
+<p><strong>Connect your training code</strong> covers framework adapters. <strong>Build with Python</strong> contains table, schema,
+transform, run and collector guides. <strong>Run your workspace</strong> covers configuration, sharing and operations.</p>
+<p><strong>Not yet included</strong> reserves a visible place for planned capabilities. The feature index also marks
+partial support so that a working component is not confused with an entire completed workflow.</p>
 <p><strong>Reference</strong> is for looking things up: every screen, every keyboard shortcut, every import check, the
 models you can train, where files live on disk, what scales and what does not.</p>
 <p><strong>Help</strong> covers what to do when something is wrong, the questions people ask most, and exactly what
@@ -190,16 +272,23 @@ leaves your machine.</p>
 <p>The course assumes no previous Granum experience. It explains boxes, splits and common metrics
   before using them. Videos are silent, captioned and accompanied by transcripts; screenshots open
   at full size. Every lesson separates an observed result from what it does not prove.</p><div class="doc-sections">
+<section class="doc-section"><h2 id="start">Start with Granum</h2><p class="doc-section-blurb">Install, understand the workflow, and check which capabilities are included in your build.</p><ul><li><a href="/docs/reference/features">Feature availability</a><span>Find every workflow, its current availability and the guide that explains how to use it.</span></li><li><a href="/docs/start/install">Install Granum</a><span>Check build provenance, install the platform artifact, verify the running service, and understand optional training dependencies.</span></li><li><a href="/docs/start/activate">Alpha access and licences</a><span>The current unrestricted alpha, written usage permission, and manually agreed pilots.</span></li><li><a href="/docs/start/first-project">Your first project</a><span>Choose the guided real-data course, the generated shapes example or your own data, and understand what the import creates.</span></li><li><a href="/docs/start/the-loop">Run the loop once</a><span>A concise map of the workflow, with links to the complete real-data course and the evidence each stage should preserve.</span></li><li><a href="/docs/start/source">Run from source</a><span>Set up the Python package and dashboard in an isolated development environment.</span></li></ul></section>
 <section class="doc-section"><h2 id="course">Guided aerial-data course</h2><p class="doc-section-blurb">Start with a real sample. Every lesson explains the action, its evidence and its limits, with actual screenshots and captioned recordings.</p><ul><li><a href="/docs/course/start">Start the guided course</a><span>Learn Granum on a real aerial dataset: import, inspect, review, train, compare, approve, export and restore, with recorded examples.</span></li><li><a href="/docs/course/setup">1. Prepare the workspace</a><span>Check the installed build, download and verify the real sample, and separate source data, project records and backups.</span></li><li><a href="/docs/course/data">2. Understand the sample</a><span>Learn images, boxes, classes and splits, then examine the real taxonomy and duplicated-holdout problems in the supplied export.</span></li><li><a href="/docs/course/import">3. Import with preflight</a><span>Import both splits, read the real findings, choose duplicate-class and ignore-region handling, and verify the written result.</span></li><li><a href="/docs/course/explore">4. Explore before changing labels</a><span>Use the gallery, statistics, object patches, fields and Health to form testable questions rather than automatic cleanup rules.</span></li><li><a href="/docs/course/baseline">5. Freeze an exploratory baseline</a><span>Preserve the full 120-image input before editing, and see why an immutable version is not the same thing as an approved release.</span></li><li><a href="/docs/course/review">6. Review, edit and recover</a><span>Inspect two real images, practise recovery without leaving a false label, and separate annotation saves from human review decisions.</span></li><li><a href="/docs/course/train">7. Train the first model</a><span>Train a deliberately small YOLO baseline on the frozen 96/24 input, understand the recipe, and check that the run really finished.</span></li><li><a href="/docs/course/results">8. Read the model evidence</a><span>Interpret runs, sample dynamics, evaluation objects and findings using the actual weak baseline, including its zero operating-point scores.</span></li><li><a href="/docs/course/compare">9. Make a controlled comparison</a><span>Change the training schedule from three to twelve epochs on the same frozen data, then inspect compatibility, actual deltas and uncertainty.</span></li><li><a href="/docs/course/handoff">10. Approve and export an excerpt</a><span>Approve exactly the two inspected images and export a portable COCO copy, without calling the remaining sample reviewed or the model ready.</span></li><li><a href="/docs/course/backup">11. Back up, restore and share safely</a><span>Stop writers, verify media, create a portable project snapshot and inspect a separate restored workspace before trusting the backup.</span></li><li><a href="/docs/course/next">12. Move to your own project</a><span>Turn the course into a repeatable team practice with a labelling policy, independent evaluation data, review criteria and rollout evidence.</span></li></ul></section>
-<section class="doc-section"><h2 id="start">Getting started</h2><p class="doc-section-blurb">Check alpha access, install a qualified build, and run the loop on a small dataset.</p><ul><li><a href="/docs/start/install">Install Granum</a><span>Check build provenance, install the platform artifact, verify the running service, and understand optional training dependencies.</span></li><li><a href="/docs/start/activate">Alpha access and licences</a><span>The current unrestricted alpha, written usage permission, and manually agreed pilots.</span></li><li><a href="/docs/start/first-project">Your first project</a><span>Choose the guided real-data course, the generated shapes example or your own data, and understand what the import creates.</span></li><li><a href="/docs/start/the-loop">Run the loop once</a><span>A concise map of the workflow, with links to the complete real-data course and the evidence each stage should preserve.</span></li></ul></section>
-<section class="doc-section"><h2 id="concepts">Concepts</h2><p class="doc-section-blurb">The ideas the product is built on. Read these once and the rest of the app explains itself.</p><ul><li><a href="/docs/concepts/model">How Granum is organised</a><span>Five ideas — project, dataset, set, version, run — and how they fit together.</span></li><li><a href="/docs/concepts/projects">Projects and project types</a><span>What a project holds, how its type changes the tools, and how to organise several.</span></li><li><a href="/docs/concepts/versions">Versions and lineage</a><span>Why every change writes a new version, what that costs, and how to read the history.</span></li><li><a href="/docs/concepts/dataset-versions">Dataset versions</a><span>The frozen, named datasets that training uses — why they exist and what goes into one.</span></li><li><a href="/docs/concepts/verification">Verification and decisions</a><span>The two kinds of judgement Granum records — is this image checked, and is this label right — and who made them.</span></li><li><a href="/docs/concepts/identity">Image identity</a><span>Why a metric stays attached to the image it was measured on, and the one rule that keeps it true.</span></li><li><a href="/docs/concepts/runs">Runs and metrics</a><span>What a training run records, what a round is, and why Granum scores every model the same way.</span></li><li><a href="/docs/concepts/evidence">What the evidence is worth</a><span>How Granum turns a model&#x27;s behaviour into candidates for review — and where it refuses to draw conclusions.</span></li></ul></section>
-<section class="doc-section"><h2 id="guides">Guides</h2><p class="doc-section-blurb">Step-by-step for each job: bring data in, make it right, freeze it, train on it, judge the result.</p><ul><li><a href="/docs/guides/import">Import data</a><span>Preflight checks, what each finding means, re-cutting splits, and adding data to a project.</span></li><li><a href="/docs/guides/pull-from-projects">Build from existing projects</a><span>Pick classes out of projects you already have and make a new dataset from them.</span></li><li><a href="/docs/guides/browse">Browse images</a><span>Filters, ordering, annotations, and the full-screen viewer with per-class isolation.</span></li><li><a href="/docs/guides/review">Review and verify</a><span>Work through a dataset image by image or in bulk, with comments, rework and a progress bar.</span></li><li><a href="/docs/guides/edit">Edit annotations</a><span>Draw, move, relabel and delete boxes, masks and keypoints — and what each save writes.</span></li><li><a href="/docs/guides/isolate-remove">Isolate, remove and restore</a><span>Set images aside, take them out of a set, and put them back.</span></li><li><a href="/docs/guides/dataset-versions">Create a dataset version</a><span>Freeze what you agreed on into the named dataset that training uses.</span></li><li><a href="/docs/guides/augmentation">Augmentation</a><span>Generate augmented copies into a dataset version, and see exactly what the model will see.</span></li><li><a href="/docs/guides/train">Train a model</a><span>Choose data, model and schedule; watch the run; know what it is doing to your machine.</span></li><li><a href="/docs/guides/runs">Read a run</a><span>Scores per round, the framework-neutral final score, and where each number comes from.</span></li><li><a href="/docs/guides/learning">Per-image learning</a><span>Which images the model learned early, late, unstably or never — and what to do with each group.</span></li><li><a href="/docs/guides/findings">Work the Findings queue</a><span>A ranked list of labels worth checking, the evidence for each, and a decision you record.</span></li><li><a href="/docs/guides/compare">Compare two runs</a><span>Improved, regressed, unchanged and unmatched images — and what the comparison is worth.</span></li><li><a href="/docs/guides/projects">Manage projects</a><span>Rename, delete, back up and move projects; keep several without losing track.</span></li><li><a href="/docs/guides/python">Use Granum from Python</a><span>The same objects the app uses, for scripted imports, custom metrics and your own training loop.</span></li><li><a href="/docs/guides/operations">Operate a pilot workspace</a><span>Approval, browser recovery, authenticated shared access, audit failures, integrity checks, portable backups and safe upgrade rehearsal.</span></li></ul></section>
-<section class="doc-section"><h2 id="reference">Reference</h2><p class="doc-section-blurb">Look things up: every screen, every key, every check, every file.</p><ul><li><a href="/docs/reference/screens">Map of the app</a><span>Every screen, what it is for, and what its controls do.</span></li><li><a href="/docs/reference/shortcuts">Keyboard shortcuts</a><span>Every key, by screen.</span></li><li><a href="/docs/reference/preflight">Import checks</a><span>Every preflight check, what it means, and which option to choose.</span></li><li><a href="/docs/reference/models">Models you can train</a><span>YOLO, RT-DETR and RF-DETR — sizes, hardware and when each is the right choice.</span></li><li><a href="/docs/reference/files">Files and settings</a><span>Where everything lives on disk, every setting, and the command line.</span></li><li><a href="/docs/reference/limits">Scale and limits</a><span>Measured local workflows, enforced view budgets, and unqualified deployment limits.</span></li><li><a href="/docs/reference/glossary">Glossary</a><span>The words this product uses, and exactly what each one means.</span></li></ul></section>
+<section class="doc-section"><h2 id="concepts">Concepts</h2><p class="doc-section-blurb">The ideas the product is built on. Read these once and the rest of the app explains itself.</p><ul><li><a href="/docs/concepts/model">How Granum is organised</a><span>Five ideas — project, dataset, set, version, run — and how they fit together.</span></li><li><a href="/docs/concepts/projects">Projects and project types</a><span>What a project holds, how its type changes the tools, and how to organise several.</span></li><li><a href="/docs/concepts/versions">Versions and lineage</a><span>Why every change writes a new version, what that costs, and how to read the history.</span></li><li><a href="/docs/concepts/dataset-versions">Dataset versions</a><span>The frozen, named datasets that training uses — why they exist and what goes into one.</span></li><li><a href="/docs/concepts/verification">Verification and decisions</a><span>The two kinds of judgement Granum records — is this image checked, and is this label right — and who made them.</span></li><li><a href="/docs/concepts/identity">Image identity</a><span>Why a metric stays attached to the image it was measured on, and the one rule that keeps it true.</span></li><li><a href="/docs/concepts/runs">Runs and metrics</a><span>What a run records, how sample observations connect to inputs, and when experiment scores can be compared.</span></li><li><a href="/docs/concepts/evidence">What the evidence is worth</a><span>How Granum turns a model&#x27;s behaviour into candidates for review — and where it refuses to draw conclusions.</span></li></ul></section>
+<section class="doc-section"><h2 id="guides">Bring data in</h2><p class="doc-section-blurb">Import, check and organise datasets while preserving their identity and history.</p><ul><li><a href="/docs/guides/import">Import data</a><span>Preflight checks, what each finding means, re-cutting splits, and adding data to a project.</span></li><li><a href="/docs/guides/pull-from-projects">Build from existing projects</a><span>Pick classes out of projects you already have and make a new dataset from them.</span></li><li><a href="/docs/guides/projects">Manage projects</a><span>Rename, delete, back up and move projects; keep several without losing track.</span></li><li><a href="/docs/data/formats">Choose an import format</a><span>Select the right input layout, preserve annotation meaning and verify the imported result.</span></li><li><a href="/docs/data/tabular">Numbers labels and text</a><span>Represent tabular samples with explicit types and use them in filters, charts and model metrics.</span></li><li><a href="/docs/data/images">Images and thumbnails</a><span>Reference image files, browse original media and create thumbnails without changing source pixels.</span></li><li><a href="/docs/data/video">Video frames and sequences</a><span class="doc-status planned">Not yet included</span><span>Reserved video ingestion workflows and the supported route for externally extracted images.</span></li></ul></section>
+<section class="doc-section"><h2 id="explore">Explore and diagnose</h2><p class="doc-section-blurb">Move from a distribution or model error to the individual samples behind it.</p><ul><li><a href="/docs/guides/browse">Browse images</a><span>Filters, ordering, annotations, and the full-screen viewer with per-class isolation.</span></li><li><a href="/docs/explore/workspace">Inspect tables and runs</a><span>Use linked rows, filters and charts to investigate the samples behind your data and metrics.</span></li><li><a href="/docs/explore/charts">Build linked charts</a><span>Plot metrics, inspect images and select observations in two or three dimensions.</span></li><li><a href="/docs/explore/calculations">Calculate derived columns</a><span>Create numeric, grouped and ordered measurements without changing the source table.</span></li><li><a href="/docs/explore/workflows">Save an analysis workflow</a><span>Reuse calculations, charts, filters and layout settings across compatible tables and runs.</span></li><li><a href="/docs/explore/embeddings">Explore embedding space</a><span>Collect feature vectors and project them into a shared two- or three-dimensional coordinate system.</span></li><li><a href="/docs/explore/trajectories">Follow samples across epochs</a><span>Connect repeated observations and measure changes without losing sample identity.</span></li><li><a href="/docs/explore/duplicates">Find duplicates leakage and outliers</a><span>Review near-identical pictures, split leakage and unusual samples before trusting an evaluation.</span></li><li><a href="/docs/explore/health">Check dataset health</a><span>Combine import, duplication, annotation and review evidence before creating a training version.</span></li><li><a href="/docs/explore/evaluation">Inspect model errors</a><span>Read confusion, per-class results, operating thresholds and the individual objects behind each metric.</span></li></ul></section>
+<section class="doc-section"><h2 id="improve">Review and improve</h2><p class="doc-section-blurb">Correct labels, review model suggestions, balance samples, and save reproducible dataset versions.</p><ul><li><a href="/docs/guides/review">Review and verify</a><span>Work through a dataset image by image or in bulk, with comments, rework and a progress bar.</span></li><li><a href="/docs/guides/edit">Edit annotations</a><span>Draw, move, relabel and delete boxes, masks and keypoints — and what each save writes.</span></li><li><a href="/docs/data/boxes">Bounding boxes and rotated boxes</a><span>Import, edit and measure ordinary detection boxes and oriented object annotations.</span></li><li><a href="/docs/data/masks">Instance and semantic masks</a><span>Import mask labels, correct pixels and choose an export that preserves the information you need.</span></li><li><a href="/docs/data/keypoints">Keypoints and pose</a><span>Preserve landmark order, visibility and identity through import, editing, augmentation and evaluation.</span></li><li><a href="/docs/improve/prelabel">Draft labels with a model</a><span>Generate annotation suggestions, preserve their provenance and review them before approving a dataset.</span></li><li><a href="/docs/improve/sam">Propose masks with SAM</a><span>Guide segmentation with points or an object box, then inspect and apply the proposed mask.</span></li><li><a href="/docs/improve/weights">Control sample weights</a><span>Exclude or emphasise training samples while preserving the underlying dataset and evaluation rules.</span></li><li><a href="/docs/guides/isolate-remove">Isolate, remove and restore</a><span>Set images aside, take them out of a set, and put them back.</span></li><li><a href="/docs/guides/dataset-versions">Create a dataset version</a><span>Freeze what you agreed on into the named dataset that training uses.</span></li><li><a href="/docs/guides/augmentation">Augmentation</a><span>Generate augmented copies into a dataset version, and see exactly what the model will see.</span></li><li><a href="/docs/improve/export">Export a dataset version</a><span>Choose a target annotation format and media strategy, then verify the exported data.</span></li></ul></section>
+<section class="doc-section"><h2 id="measure">Train and measure</h2><p class="doc-section-blurb">Record experiments, inspect sample behaviour and compare a candidate against a baseline.</p><ul><li><a href="/docs/guides/train">Train a model</a><span>Choose a dataset version and matching model task, record sample measurements, and inspect the completed run.</span></li><li><a href="/docs/measure/tasks">Choose a training task</a><span>Match dataset labels, model families and evaluation metrics before starting a training job.</span></li><li><a href="/docs/guides/runs">Read a run</a><span>Scores per round, the framework-neutral final score, and where each number comes from.</span></li><li><a href="/docs/guides/learning">Per-image learning</a><span>Which images the model learned early, late, unstably or never — and what to do with each group.</span></li><li><a href="/docs/guides/findings">Work the Findings queue</a><span>A ranked list of labels worth checking, the evidence for each, and a decision you record.</span></li><li><a href="/docs/guides/compare">Compare two runs</a><span>Improved, regressed, unchanged and unmatched images — and what the comparison is worth.</span></li><li><a href="/docs/measure/metrics">Record per sample metrics</a><span>Link model measurements to exact input samples, splits and epochs so errors remain inspectable.</span></li><li><a href="/docs/measure/recipes">Examples and complete workflows</a><span>Choose a runnable Granum example or find the reserved place for a future model and dataset recipe.</span></li></ul></section>
+<section class="doc-section"><h2 id="integrations">Connect your training code</h2><p class="doc-section-blurb">Use Granum with your model framework and keep predictions linked to the correct source samples.</p><ul><li><a href="/docs/integrations/pytorch">Connect a PyTorch loop</a><span>Use table views, weighted samplers and explicit metric passes with an existing PyTorch model.</span></li><li><a href="/docs/integrations/ultralytics">Connect YOLO training</a><span>Collect predictions and per-sample metrics from Ultralytics detection, mask, pose and rotated-box runs.</span></li><li><a href="/docs/integrations/hugging-face">Connect Hugging Face</a><span>Preserve sample identity through Datasets and collect Trainer predictions or hidden-state embeddings.</span></li><li><a href="/docs/integrations/lightning">Connect Lightning</a><span>Record validation and test outputs from Lightning while preserving source sample identities.</span></li><li><a href="/docs/integrations/detectron2">Connect Detectron2</a><span>Register Granum tables and collect detection, instance-mask or keypoint predictions with a Detectron2 evaluator.</span></li><li><a href="/docs/integrations/supergradients">Connect SuperGradients</a><span>Collect indexed evaluation results and canonical YOLO-NAS detection or pose predictions.</span></li></ul></section>
+<section class="doc-section"><h2 id="python">Build with Python</h2><p class="doc-section-blurb">Create typed tables, transform samples, collect metrics and extend your own workflow.</p><ul><li><a href="/docs/guides/python">Use Granum from Python</a><span>The same objects the app uses, for scripted imports, custom metrics and your own training loop.</span></li><li><a href="/docs/python/tables">Create and revise tables</a><span>Construct datasets, read rows and bulk data, and keep subsets and edits as traceable revisions.</span></li><li><a href="/docs/python/schemas">Define column schemas</a><span>Give values their types, display meaning and edit rules before storing them in a table.</span></li><li><a href="/docs/python/transforms">Transform samples on read</a><span>Use different training and evaluation views while keeping one immutable source table.</span></li><li><a href="/docs/python/runs">Manage runs in Python</a><span>Record parameters, aggregate metrics and sample observations with explicit experiment lifecycle.</span></li><li><a href="/docs/python/custom-metrics">Write custom collectors</a><span>Record your own measurements or embeddings with a consistent per-sample output contract.</span></li><li><a href="/docs/python/storage">Storage paths and caches</a><span>Understand object directories, URL aliases, cloud access, row caches and saved projections.</span></li><li><a href="/docs/python/api">Python API reference</a><span>Find Granum public objects, constructors, metrics, configuration and integration entry points.</span></li></ul></section>
+<section class="doc-section"><h2 id="operate">Run your workspace</h2><p class="doc-section-blurb">Configure the service, share access, preserve data and understand deployment boundaries.</p><ul><li><a href="/docs/operate/service">Run the Granum service</a><span>Serve the dashboard, discover projects and inspect background jobs from one workspace service.</span></li><li><a href="/docs/operate/configuration">Configure a workspace</a><span>Resolve settings, environment variables, data roots and service options in a predictable order.</span></li><li><a href="/docs/operate/shared">Share a workspace with a team</a><span>Provision authenticated HTTPS access and understand the workspace-wide roles.</span></li><li><a href="/docs/operate/cloud">Use cloud storage</a><span>Access S3, Google Cloud Storage or Azure-backed data while keeping credentials and concurrency boundaries explicit.</span></li><li><a href="/docs/operate/remote">Remote and container environments</a><span>Plan remote data access and find the current boundary for notebooks, containers and managed training.</span></li><li><a href="/docs/guides/operations">Operate a pilot workspace</a><span>Approval, browser recovery, authenticated shared access, audit failures, integrity checks, portable backups and safe upgrade rehearsal.</span></li><li><a href="/docs/operate/upgrades">Upgrade and migrate safely</a><span>Keep a recoverable workspace while changing Granum builds, dependencies or storage locations.</span></li></ul></section>
+<section class="doc-section"><h2 id="planned">Not yet included</h2><p class="doc-section-blurb">Reserved guides for planned capabilities. Each section explains its intended scope and the current alternative.</p><ul><li><a href="/docs/planned/advanced-analysis">Advanced analysis extensions</a><span class="doc-status planned">Not yet included</span><span>Reserved space for additional operators, derived views, component plots and retrieval analysis.</span></li><li><a href="/docs/planned/compute">Managed compute and plugins</a><span class="doc-status planned">Not yet included</span><span>Reserved space for a compute service, plugin catalogue and automated model workflows.</span></li><li><a href="/docs/planned/enterprise">Enterprise identity and delivery</a><span class="doc-status planned">Not yet included</span><span>Reserved enterprise account, SSO, access-isolation and media-delivery capabilities.</span></li><li><a href="/docs/planned/spatial">Point clouds and 3D annotations</a><span class="doc-status planned">Not yet included</span><span>Reserved ingestion, visualisation and editing for spatial datasets and synchronised sensors.</span></li><li><a href="/docs/planned/extensions">Custom data and storage extensions</a><span class="doc-status planned">Not yet included</span><span>Reserved public extension contracts for sample types, bulk arrays, URL adapters and discovery.</span></li></ul></section>
+<section class="doc-section"><h2 id="reference">Reference</h2><p class="doc-section-blurb">Look things up: every screen, every key, every check, every file.</p><ul><li><a href="/docs/reference/screens">Map of the app</a><span>Every screen, what it is for, and what its controls do.</span></li><li><a href="/docs/reference/shortcuts">Keyboard shortcuts</a><span>Every key, by screen.</span></li><li><a href="/docs/reference/preflight">Import checks</a><span>Every preflight check, what it means, and which option to choose.</span></li><li><a href="/docs/reference/models">Models and task support</a><span>Choose among the model families exposed by the current training catalogue and check their task requirements.</span></li><li><a href="/docs/reference/cli">Command line reference</a><span>Look up the current command groups for launching, importing, configuring and protecting a workspace.</span></li><li><a href="/docs/reference/rest">Service API reference</a><span>Find endpoint families, inspect the live schema and handle jobs, access errors and conflicting revisions.</span></li><li><a href="/docs/reference/requirements">Environment and capacity requirements</a><span>Separate core application needs, browser graphics and optional model-framework dependencies.</span></li><li><a href="/docs/reference/files">Files and settings</a><span>Where everything lives on disk, every setting, and the command line.</span></li><li><a href="/docs/reference/limits">Scale and limits</a><span>Measured local workflows, enforced view budgets, and unqualified deployment limits.</span></li><li><a href="/docs/reference/releases">Builds and release information</a><span>Identify the build you are using and distinguish development documentation from qualified desktop artifacts.</span></li><li><a href="/docs/reference/glossary">Glossary</a><span>The words this product uses, and exactly what each one means.</span></li></ul></section>
 <section class="doc-section"><h2 id="help">Help</h2><p class="doc-section-blurb">When something is wrong, or you want to know how Granum handles your data.</p><ul><li><a href="/docs/help/troubleshooting">Troubleshooting</a><span>The service, the window, training, imports and licences, when they do not behave.</span></li><li><a href="/docs/help/faq">Frequently asked questions</a><span>Short answers about data, teams, formats, models and cost.</span></li><li><a href="/docs/help/privacy">Your data and privacy</a><span>What stays on your computer, what leaves it, and when.</span></li></ul></section>
 </div>
-        <div class="doc-steps"><a class="doc-step next" href="/docs/course/start"><span>Next</span>Start the guided course</a></div>
+        <div class="doc-steps"><a class="doc-step next" href="/docs/reference/features"><span>Next</span>Feature availability</a></div>
       </article>
-      <aside class="doc-toc" aria-label="On this page"><p>On this page</p><ul><li><a href="#start-with-one-of-these">Start with one of these</a></li><li><a href="#how-this-documentation-is-organised">How this documentation is organised</a></li><li><a href="#course">Guided aerial-data course</a></li><li><a href="#start">Getting started</a></li><li><a href="#concepts">Concepts</a></li><li><a href="#guides">Guides</a></li><li><a href="#reference">Reference</a></li><li><a href="#help">Help</a></li></ul></aside>
+      <aside class="doc-toc" aria-label="On this page"><p>On this page</p><ul><li><a href="#choose-your-starting-point">Choose your starting point</a></li><li><a href="#start-with-one-of-these">Start with one of these</a></li><li><a href="#how-this-documentation-is-organised">How this documentation is organised</a></li><li><a href="#start">Start with Granum</a></li><li><a href="#course">Guided aerial-data course</a></li><li><a href="#concepts">Concepts</a></li><li><a href="#guides">Bring data in</a></li><li><a href="#explore">Explore and diagnose</a></li><li><a href="#improve">Review and improve</a></li><li><a href="#measure">Train and measure</a></li><li><a href="#integrations">Connect your training code</a></li><li><a href="#python">Build with Python</a></li><li><a href="#operate">Run your workspace</a></li><li><a href="#planned">Not yet included</a></li><li><a href="#reference">Reference</a></li><li><a href="#help">Help</a></li></ul></aside>
     </main>
   </div>
 

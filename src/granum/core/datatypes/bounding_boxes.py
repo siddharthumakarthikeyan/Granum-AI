@@ -145,6 +145,7 @@ def match_boxes(
     *,
     iou_threshold: float = 0.5,
     class_aware: bool = True,
+    similarity: np.ndarray | None = None,
 ) -> MatchResult:
     """Greedy COCO-style matching of predictions to ground truth.
 
@@ -157,7 +158,9 @@ def match_boxes(
     pred_labels = np.asarray(pred_labels).reshape(-1)
     scores = np.ones(len(pred_boxes)) if pred_scores is None else np.asarray(pred_scores, dtype=np.float64)
 
-    iou = box_iou(pred_boxes, gt_boxes)
+    iou = box_iou(pred_boxes, gt_boxes) if similarity is None else np.asarray(similarity, dtype=float)
+    if iou.shape != (len(pred_boxes), len(gt_boxes)) or not np.isfinite(iou).all():
+        raise ValueError("similarity must be a finite prediction x ground-truth matrix")
     if class_aware and iou.size:
         iou = np.where(pred_labels[:, None] == gt_labels[None, :], iou, 0.0)
 

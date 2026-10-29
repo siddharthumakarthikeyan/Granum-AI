@@ -183,8 +183,8 @@ def test_yolo_rejects_segmentation_labels(yolo):
 
 
 def test_unsupported_task_is_explicit(yolo):
-    with pytest.raises(TableError, match="not supported yet"):
-        Table.from_yolo_url(yolo, "train", task="segment")
+    with pytest.raises(TableError, match="not supported"):
+        Table.from_yolo_url(yolo, "train", task="unknown")
 
 
 def test_coco_empty_segmentation_is_stored_once_and_exported_back(tmp_path, isolated_project):

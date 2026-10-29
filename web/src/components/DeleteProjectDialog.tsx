@@ -4,6 +4,7 @@ import { useState } from "react";
 import { api } from "../api/client";
 import type { ProjectSummary } from "../api/types";
 import { navigate } from "../router";
+import { forgetProject } from "../shell/preferences";
 import { useStore } from "../store/store";
 import { Modal } from "./Modal";
 import { plural } from "./ui";
@@ -20,6 +21,7 @@ export function DeleteProjectDialog({ project, onClose }: { project: ProjectSumm
     setError(null);
     try {
       await api.deleteProject(project.name, typed);
+      forgetProject(project.name);
       if (useStore.getState().project === project.name) {
         useStore.setState({ project: null, loadedProject: null, tables: [], runs: [], imports: [], lineageEdges: [] });
       }

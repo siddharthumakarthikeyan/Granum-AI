@@ -1,0 +1,132 @@
+{
+  "reference": "https://docs.3lc.ai/3lc/latest/",
+  "reviewed": "2026-10-19",
+  "scope": "Documented shipping capabilities. Roadmap announcements are excluded. Implementation and end-to-end verification are tracked separately. This inventory is not a percentage-complete metric or a claim of full feature equivalence.",
+  "verification_report": "docs/3lc-parity-verification-2026-10-19.json",
+  "capabilities": [
+    {
+      "id": "dataset-versions",
+      "status": "existing",
+      "evidence": "tests/test_table.py"
+    },
+    {
+      "id": "sample-metrics",
+      "status": "existing",
+      "evidence": "tests/test_collect.py"
+    },
+    {
+      "id": "review-and-weights",
+      "status": "existing",
+      "evidence": "tests/test_reviews.py"
+    },
+    {
+      "id": "detection-training",
+      "status": "existing",
+      "evidence": "tests/test_trainers.py; tools/run_coco_people.py; six real GPU COCO runs on three paired seeds, with independent official COCO AP and immutable selection/evaluation tables.",
+      "remaining": "The tested error-guided selection recipe lowered mean AP by 2.66 points. Better accuracy is not established."
+    },
+    {
+      "id": "virtual-columns",
+      "status": "implemented",
+      "evidence": "web/src/analysis/analysis.test.ts; web/e2e/parity.spec.ts",
+      "remaining": "Audit the full operator catalogue against 3LC."
+    },
+    {
+      "id": "portable-analysis-workflows",
+      "status": "implemented",
+      "evidence": "web/src/analysis/analysis.test.ts; web/e2e/parity.spec.ts",
+      "remaining": "Broad recipe compatibility review."
+    },
+    {
+      "id": "embedding-reduction-and-trajectories",
+      "status": "implemented",
+      "evidence": "tests/test_reduction.py; web/src/charts/spatial.test.ts; web/e2e/parity.spec.ts. Real COCO ResNet 512-D features: PCA fitted on 200 training images and reused for 80 test images; saved coordinates and canonical image identity preserved. Earlier SDK UMAP/PaCMAP and browser saved-reducer reuse checks retained.",
+      "remaining": "Large-run performance and managed nonlinear reducer browser qualification. Vector width is checked; embedding model/preprocessing identity is not automatically enforced."
+    },
+    {
+      "id": "three-dimensional-charts",
+      "status": "implemented",
+      "evidence": "web/src/charts/spatial.test.ts; web/e2e/parity.spec.ts",
+      "remaining": "Broader browser/device coverage. Selection uses projected centres at all depths; it is not a persisted 3D volume filter."
+    },
+    {
+      "id": "oriented-boxes",
+      "status": "implemented",
+      "evidence": "tests/test_vision_metrics.py; tests/test_augment.py; tests/test_vision_formats.py; web/src/images/masks.test.ts; web/e2e/parity.spec.ts; CPU YOLO11n-OBB one-epoch training smoke.",
+      "remaining": "Customer dataset qualification. Editor rotation/resizing and augmented enclosing rectangles are constrained to image bounds; YOLO export rejects out-of-range coordinates."
+    },
+    {
+      "id": "segmentation-import-export",
+      "status": "implemented",
+      "evidence": "tests/test_vision_formats.py; tests/test_semantic.py; web/e2e/parity.spec.ts native semantic PNG browser import/export/reimport",
+      "remaining": "Wider external dataset compatibility."
+    },
+    {
+      "id": "pixel-mask-editing",
+      "status": "implemented",
+      "evidence": "web/src/images/masks.test.ts; web/src/images/semanticEditing.test.ts; web/e2e/parity.spec.ts. Semantic exclusivity covers polygon creation, vertex edits, movement, relabeling and SAM application; undo restores prior masks.",
+      "remaining": "Large-image memory and broader device qualification."
+    },
+    {
+      "id": "pose-import-export-and-metrics",
+      "status": "implemented",
+      "evidence": "tests/test_vision_formats.py; tests/test_vision_metrics.py; tests/test_augment.py; web/src/analysis/landmarks.test.ts; web/e2e/parity.spec.ts; real COCO 80-image GPU pose inference (50.34 keypoint AP). Class-specific landmark names and ambiguous layouts are handled.",
+      "remaining": "Augmentation requires declared flip_idx. Wider multi-class pose datasets and GPU training qualification remain."
+    },
+    {
+      "id": "multitask-training-and-predictions",
+      "status": "implemented",
+      "evidence": "tests/test_training_tasks.py; tests/test_task_comparison.py; dashboard/CLI classification and semantic training, byte-identity split preflight, best-checkpoint test scoring, task-specific comparisons and per-epoch sample viewers. Real COCO GPU classification/semantic training and detection/mask/pose qualification recorded in docs/coco-people-validation-2026-10-19.json.",
+      "remaining": "Current native backbones are ResNet18 and LR-ASPP MobileNetV3; broader models/distributed strategies, real OBB dataset qualification and improved detection training recipes remain. This is not full parity or a general accuracy claim."
+    },
+    {
+      "id": "sam-assisted-segmentation",
+      "status": "implemented",
+      "evidence": "tests/test_sam.py; web/e2e/parity.spec.ts verifies browser-reload prompt/proposal restoration without applying edits. Real GPU MobileSAM and SAM 2.1 tiny each evaluated on ten COCO oracle-box prompts. Earlier actual API-to-worker execution was qualified on CPU.",
+      "remaining": "Small/base models and service-restart recovery. Reload recovery requires the same retained service job. Browser model responses are deterministic fixtures; direct GPU inference is separate evidence."
+    },
+    {
+      "id": "hugging-face-integration",
+      "status": "implemented",
+      "evidence": "tests/test_framework_integrations.py: real Trainer prediction, embeddings, shuffled/subset identity and training callbacks",
+      "remaining": "Distributed Trainer, larger datasets, supported-version matrix and task-specific vision processor examples."
+    },
+    {
+      "id": "detectron2-integration",
+      "status": "implemented",
+      "evidence": "tests/test_detectron_integration.py: real catalogue/mapper, class and keypoint mapping, Mask R-CNN optimization and inference",
+      "remaining": "Distributed and GPU training; semantic/panoptic-specific adapters and embedding hooks."
+    },
+    {
+      "id": "lightning-integration",
+      "status": "implemented",
+      "evidence": "tests/test_framework_integrations.py: real fit/test; two-process CPU/Gloo validation deduplicates sampler padding and writes once",
+      "remaining": "GPU and additional distributed strategies. Reference note: 3LC's 3.x migration guide removes the former Lightning decorator while its integration index still lists Lightning."
+    },
+    {
+      "id": "supergradients-integration",
+      "status": "implemented",
+      "evidence": "tests/test_super_gradients_integration.py: real two-epoch Trainer fit, shuffled validation/test joins, embedding collection, native variable-target collation, actual YOLO-NAS-S detection and YOLO-NAS-pose-N prediction pipelines.",
+      "remaining": "Separate Python 3.10 environment required for verified SuperGradients 3.7.1 dependencies. Distributed and GPU qualification, full native YOLO-NAS training recipes and ready-made Table detection/pose transforms remain. Vision checks use random weights, not accuracy benchmarks."
+    },
+    {
+      "id": "compute-plugin-sdk-and-catalogues",
+      "status": "planned"
+    },
+    {
+      "id": "enterprise-saml-sso",
+      "status": "planned"
+    },
+    {
+      "id": "point-clouds-and-3d-annotations",
+      "status": "planned"
+    },
+    {
+      "id": "retrieval-and-foreign-table-virtual-operations",
+      "status": "planned",
+      "evidence": "3LC virtual-column catalogue includes question/chunk links, semantic-match counts, retrieval distances, foreign-table row operations and selection relationships.",
+      "remaining": "Data contracts, retrieval analysis and complete operator-by-operator comparison."
+    }
+  ],
+  "real_dataset_report": "docs/coco-people-validation-2026-10-19.json"
+}

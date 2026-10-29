@@ -11,8 +11,8 @@ boxes through their corners, mask polygons point by point (then clipped to the f
 keypoints point by point (those pushed out of the frame become unlabelled). A box whose
 visible part falls under :data:`MIN_VISIBLE` of its transformed size is dropped, as a
 crop that leaves a sliver of an object would teach the model a wrong box.
-Run-length masks cannot be transformed here; under a geometric change they are dropped
-and counted.
+Run-length masks use nearest-neighbour resampling to preserve class pixels and holes.
+Horizontal flips also reorder named keypoints when the dataset declares flip indices.
 
 Colour changes (hue, saturation, brightness, exposure, gamma, grayscale), blur, noise,
 cutout and grid mask change pixels only.
@@ -194,6 +194,7 @@ class Draw:
     gridmask_size: int = 0
     gridmask_ratio: float = 0.0
     gridmask_seed: int = 0
+    horizontal_flip: bool = False
 
 
 def _uniform(rng: np.random.Generator, setting: dict[str, float]) -> float:
@@ -318,7 +319,8 @@ def draw(recipe: dict[str, Any], width: int, height: int, rng: np.random.Generat
         geometric = True
 
     flip = recipe.get("flip", {})
-    if flip.get("horizontal") and chance() < 0.5:
+    horizontal_flip = bool(flip.get("horizontal") and chance() < 0.5)
+    if horizontal_flip:
         then(np.array([[-1, 0, w], [0, 1, 0], [0, 0, 1.0]]))
     if flip.get("vertical") and chance() < 0.5:
         then(np.array([[1, 0, 0], [0, -1, h], [0, 0, 1.0]]))
@@ -380,7 +382,7 @@ def draw(recipe: dict[str, Any], width: int, height: int, rng: np.random.Generat
         if zoom != 1.0:
             then(back @ np.array([[zoom, 0, 0], [0, zoom, 0], [0, 0, 1.0]]) @ to_center)
 
-    out = Draw(matrix=m, size=(round(w), round(h)), geometric=geometric)
+    out = Draw(matrix=m, size=(round(w), round(h)), geometric=geometric, horizontal_flip=horizontal_flip)
     if "grayscale" in recipe:
         out.grayscale = bool(fixed) or bool(rng.random() * 100 < recipe["grayscale"]["percent"])
     for name in ("hue", "saturation", "brightness", "exposure"):
@@ -542,11 +544,14 @@ class LabelStats:
     dropped_masks: int = 0
 
 
-def apply_instances(instances: list[dict[str, Any]], d: Draw, stats: LabelStats | None = None) -> list[dict[str, Any]]:
+def apply_instances(instances: list[dict[str, Any]], d: Draw, stats: LabelStats | None = None,
+                    *, keypoint_flip_indices: list[int] | None = None) -> list[dict[str, Any]]:
     """Instances (vertices, and optional segmentation / coco_extra JSON) mapped through the draw."""
     if not d.geometric:
         return [dict(i) for i in instances]
     width, height = d.size
+    from granum.formats.vision import encode_mask, mask_array, minimum_rectangle, polygon_area
+
     m = d.matrix
     out = []
     for instance in instances:
@@ -556,6 +561,8 @@ def apply_instances(instances: list[dict[str, Any]], d: Draw, stats: LabelStats 
         full = (corners[:, 0].min(), corners[:, 1].min(), corners[:, 0].max(), corners[:, 1].max())
 
         polygons: list[list[float]] | None = None
+        bitmap_box = None
+        bitmap_area = None
         segmentation = instance.get("segmentation")
         if isinstance(segmentation, str) and segmentation:
             try:
@@ -572,12 +579,29 @@ def apply_instances(instances: list[dict[str, Any]], d: Draw, stats: LabelStats 
                     if len(clipped) >= 3:
                         polygons.append([round(v, 2) for p in clipped for v in p])
                 instance["segmentation"] = json.dumps(polygons) if polygons else None
-            elif parsed is not None:
-                instance["segmentation"] = None  # a run-length mask cannot follow the transform
-                if stats:
-                    stats.dropped_masks += 1
+            elif isinstance(parsed, dict):
+                from PIL import Image
 
-        if polygons:
+                if not isinstance(parsed.get("size"), list) or len(parsed["size"]) != 2:
+                    raise AugmentError("bitmap annotation has no valid dimensions")
+                source_height, source_width = parsed["size"]
+                pixels = mask_array(parsed, source_width, source_height)
+                inverse = np.linalg.inv(m)
+                transformed = Image.fromarray(pixels).transform((width, height), Image.Transform.AFFINE, tuple(inverse[:2].ravel()), resample=Image.Resampling.NEAREST, fillcolor=0)
+                bitmap = np.asarray(transformed)
+                ys, xs = np.nonzero(bitmap)
+                if not len(xs):
+                    if stats:
+                        stats.dropped_boxes += 1
+                        stats.dropped_masks += 1
+                    continue
+                bitmap_box = (int(xs.min()), int(ys.min()), int(xs.max()) + 1, int(ys.max()) + 1)
+                bitmap_area = int(bitmap.sum())
+                instance["segmentation"] = json.dumps(encode_mask(bitmap))
+
+        if bitmap_box is not None:
+            box = bitmap_box
+        elif polygons:
             xs = [v for p in polygons for v in p[0::2]]
             ys = [v for p in polygons for v in p[1::2]]
             box = (min(xs), min(ys), max(xs), max(ys))
@@ -597,6 +621,19 @@ def apply_instances(instances: list[dict[str, Any]], d: Draw, stats: LabelStats 
                 parsed_extra = json.loads(extra)
             except ValueError:
                 parsed_extra = None
+            if isinstance(parsed_extra, dict) and isinstance(parsed_extra.get("obb"), list):
+                mapped = _map(np.asarray(parsed_extra["obb"], dtype=float).reshape(-1, 2), m)
+                clipped = _clip_polygon([(float(x), float(y)) for x, y in mapped], width, height)
+                if len(clipped) < 3 or polygon_area(clipped) <= 0:
+                    if stats:
+                        stats.dropped_boxes += 1
+                    continue
+                parsed_extra["obb"] = minimum_rectangle(clipped, bounds=(width, height))
+                corners = np.asarray(parsed_extra["obb"]).reshape(-1, 2)
+                instance["vertices"] = [float(corners[:, 0].min()), float(corners[:, 1].min()),
+                                        float(corners[:, 0].max()), float(corners[:, 1].max())]
+                visible = polygon_area(corners)
+                instance["coco_extra"] = json.dumps(parsed_extra)
             if isinstance(parsed_extra, dict) and isinstance(parsed_extra.get("keypoints"), list):
                 points = [float(v) for v in parsed_extra["keypoints"]]
                 moved = []
@@ -607,13 +644,21 @@ def apply_instances(instances: list[dict[str, Any]], d: Draw, stats: LabelStats 
                         continue
                     (px, py), = _map(np.array([[x, y]]), m)
                     moved += [round(float(px), 2), round(float(py), 2), int(v)] if 0 <= px <= width and 0 <= py <= height else [0, 0, 0]
+                if d.horizontal_flip and keypoint_flip_indices is not None:
+                    count = len(moved) // 3
+                    if (len(keypoint_flip_indices) != count or
+                        any(type(i) is not int for i in keypoint_flip_indices) or
+                        sorted(keypoint_flip_indices) != list(range(count)) or
+                        any(keypoint_flip_indices[keypoint_flip_indices[i]] != i for i in range(count))):
+                        raise AugmentError("keypoint flip_idx must be an involutive permutation of the keypoints")
+                    moved = [value for i in keypoint_flip_indices for value in moved[i * 3:i * 3 + 3]]
                 parsed_extra["keypoints"] = moved
                 if "num_keypoints" in parsed_extra:
                     parsed_extra["num_keypoints"] = sum(1 for k in range(2, len(moved), 3) if moved[k] > 0)
                 instance["coco_extra"] = json.dumps(parsed_extra)
 
         if "area" in instance:
-            instance["area"] = round(sum(_polygon_area(p) for p in polygons), 2) if polygons else round(visible, 2)
+            instance["area"] = bitmap_area if bitmap_area is not None else round(sum(_polygon_area(p) for p in polygons), 2) if polygons else round(visible, 2)
         out.append(instance)
     return out
 
@@ -660,8 +705,12 @@ def write_augmented_set(
     augmented, dropped boxes, dropped masks.
     """
     from granum.core.curation import RELEASE_OP, image_column
+    from granum.formats._common import root_producer
 
     column = box_column(source)
+    origin = root_producer(source, "from_coco")
+    pose = origin.get("yolo") or (origin.get("top_level") or {}).get("granum_yolo") or {}
+    flip_indices = pose.get("flip_idx")
     image_col = image_column(source)
     arrow = source.to_arrow()
     images = arrow.column(image_col).to_pylist()
@@ -676,6 +725,12 @@ def write_augmented_set(
         originals = originals.append_column(AUGMENTED_FROM, pa.nulls(originals.num_rows, pa.string()))
     records = originals.to_pylist()
     copies = int(recipe["copies"])
+    if column and recipe.get("flip", {}).get("horizontal") and not flip_indices:
+        from granum.formats.vision import extra_of
+
+        if any(extra_of(instance).get("keypoints") for record in records
+               for instance in (record.get(column) or {}).get("instances", [])):
+            raise AugmentError("horizontal pose augmentation needs flip_idx metadata to preserve left/right keypoint names")
 
     folder = augmented_folder(source, release_id)
     target = _unique_url(folder, source.base_name)
@@ -718,7 +773,8 @@ def write_augmented_set(
         if column and geometry is not None:
             local_stats = LabelStats()
             row[column] = {**geometry, "width": float(d.size[0]), "height": float(d.size[1]),
-                           "instances": apply_instances(geometry.get("instances") or [], d, local_stats)}
+                           "instances": apply_instances(geometry.get("instances") or [], d, local_stats,
+                                                        keypoint_flip_indices=flip_indices)}
             stats.dropped_boxes += local_stats.dropped_boxes
             stats.dropped_masks += local_stats.dropped_masks
         if "content_hash" in row:

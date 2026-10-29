@@ -211,6 +211,7 @@ export function StatStrip({ items }: { items: { label: string; value: ReactNode;
 
 const RUN_STATUS: Record<string, { label: string; tone: string }> = {
   running: { label: "Running", tone: "run" },
+  completed: { label: "Completed", tone: "pass" },
   finished: { label: "Finished", tone: "pass" },
   cancelled: { label: "Cancelled", tone: "muted" },
   failed: { label: "Failed", tone: "block" },

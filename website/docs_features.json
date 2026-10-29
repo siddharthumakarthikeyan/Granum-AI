@@ -1,0 +1,1030 @@
+{
+  "reviewed": "2026-10-19",
+  "scope": "Current development source; not an installer qualification or equivalence claim. Update a capability only after reviewing its implementation and guide.",
+  "features": [
+    {
+      "id": "local-install",
+      "title": "Desktop installation",
+      "area": "Setup and access",
+      "status": "available",
+      "doc": "/docs/start/install",
+      "scope": "Windows and Linux artifact workflows; verify the exact supplied build."
+    },
+    {
+      "id": "source-install",
+      "title": "Python source installation",
+      "area": "Setup and access",
+      "status": "available",
+      "doc": "/docs/start/source",
+      "scope": "Isolated Python environment, bundled dashboard and local service."
+    },
+    {
+      "id": "first-project",
+      "title": "First project and guided course",
+      "area": "Setup and access",
+      "status": "available",
+      "doc": "/docs/course/start",
+      "scope": "A real sample through import, review, training, comparison and handoff."
+    },
+    {
+      "id": "architecture",
+      "title": "Projects datasets tables and runs",
+      "area": "Setup and access",
+      "status": "available",
+      "doc": "/docs/concepts/model",
+      "scope": "Granum objects, their relationships and the improvement loop."
+    },
+    {
+      "id": "privacy",
+      "title": "Components and data privacy",
+      "area": "Setup and access",
+      "status": "available",
+      "doc": "/docs/help/privacy",
+      "scope": "Local defaults and explicit storage, service and integration boundaries."
+    },
+    {
+      "id": "configuration",
+      "title": "Configuration and environment variables",
+      "area": "Setup and access",
+      "status": "available",
+      "doc": "/docs/operate/configuration",
+      "scope": "Resolved settings, precedence, roots and service options."
+    },
+    {
+      "id": "shared-access",
+      "title": "Shared workspace roles",
+      "area": "Setup and access",
+      "status": "available",
+      "doc": "/docs/operate/shared",
+      "scope": "Authenticated HTTPS and viewer, annotator, reviewer and administrator roles."
+    },
+    {
+      "id": "managed-accounts",
+      "title": "Managed accounts workspaces and API keys",
+      "area": "Setup and access",
+      "status": "planned",
+      "doc": "/docs/planned/enterprise#organisation-accounts-and-api-keys",
+      "scope": "Organisation membership, invitations, scoped keys and service accounts are not yet included."
+    },
+    {
+      "id": "sso",
+      "title": "Single sign on and Azure Entra ID",
+      "area": "Setup and access",
+      "status": "planned",
+      "doc": "/docs/planned/enterprise#single-sign-on",
+      "scope": "SAML/OIDC setup and identity-provider lifecycle are not yet included."
+    },
+    {
+      "id": "project-permissions",
+      "title": "Per-project permissions and tenant isolation",
+      "area": "Setup and access",
+      "status": "planned",
+      "doc": "/docs/planned/enterprise#access-isolation",
+      "scope": "Current shared roles apply to the whole workspace."
+    },
+    {
+      "id": "licensing",
+      "title": "Alpha access and licensing",
+      "area": "Setup and access",
+      "status": "available",
+      "doc": "/docs/start/activate",
+      "scope": "Current unrestricted alpha; legacy licence mechanisms are described separately."
+    },
+    {
+      "id": "enterprise-control",
+      "title": "Enterprise control plane and offline entitlements",
+      "area": "Setup and access",
+      "status": "planned",
+      "doc": "/docs/planned/enterprise#enterprise-deployment-lifecycle",
+      "scope": "No qualified managed enterprise lifecycle is included."
+    },
+    {
+      "id": "requirements",
+      "title": "System requirements and GPU acceleration",
+      "area": "Setup and access",
+      "status": "partial",
+      "doc": "/docs/reference/requirements",
+      "scope": "Workflow dependencies are documented; a certified platform matrix is not yet included."
+    },
+    {
+      "id": "table-create",
+      "title": "Create and load typed tables",
+      "area": "Data and versions",
+      "status": "available",
+      "doc": "/docs/python/tables#create-and-load",
+      "scope": "Dictionary, pandas, CSV, Parquet and supported vision constructors."
+    },
+    {
+      "id": "project-layout",
+      "title": "Project layout and file locations",
+      "area": "Data and versions",
+      "status": "available",
+      "doc": "/docs/python/storage#object-layout",
+      "scope": "Object directories, metadata and persisted Parquet data."
+    },
+    {
+      "id": "preflight",
+      "title": "Import preflight and reports",
+      "area": "Data and versions",
+      "status": "available",
+      "doc": "/docs/guides/import",
+      "scope": "Inspect source, media, class and split issues before committing an import."
+    },
+    {
+      "id": "formats",
+      "title": "Dataset format exchange",
+      "area": "Data and versions",
+      "status": "partial",
+      "doc": "/docs/data/formats",
+      "scope": "Known COCO, YOLO, semantic and exchange layouts; variants require task-specific checks."
+    },
+    {
+      "id": "pull-projects",
+      "title": "Pull data from other projects",
+      "area": "Data and versions",
+      "status": "available",
+      "doc": "/docs/guides/pull-from-projects",
+      "scope": "Reuse selected source data with preflight and class choices."
+    },
+    {
+      "id": "schemas",
+      "title": "Schemas and categorical value maps",
+      "area": "Data and versions",
+      "status": "available",
+      "doc": "/docs/python/schemas",
+      "scope": "Scalar types, labels, metadata and declared geometry properties."
+    },
+    {
+      "id": "rows",
+      "title": "Row and sample access",
+      "area": "Data and versions",
+      "status": "available",
+      "doc": "/docs/python/tables#read-samples-and-bulk-data",
+      "scope": "Schema-aware sample reads and Arrow, pandas or dictionary access."
+    },
+    {
+      "id": "bulk-read",
+      "title": "Bulk data access",
+      "area": "Data and versions",
+      "status": "partial",
+      "doc": "/docs/python/tables#read-samples-and-bulk-data",
+      "scope": "Bulk reads can materialise data; external chunked-array storage is not yet included."
+    },
+    {
+      "id": "writers",
+      "title": "Table and metrics writers",
+      "area": "Data and versions",
+      "status": "available",
+      "doc": "/docs/python/tables#write-rows-and-batches",
+      "scope": "Incremental input with in-memory accumulation and explicit finalisation."
+    },
+    {
+      "id": "transforms",
+      "title": "Sample transforms",
+      "area": "Data and versions",
+      "status": "available",
+      "doc": "/docs/python/transforms",
+      "scope": "Read-time TableView preprocessing without modifying source revisions."
+    },
+    {
+      "id": "revisions",
+      "title": "Edits revisions and lineage",
+      "area": "Data and versions",
+      "status": "available",
+      "doc": "/docs/python/tables#make-revisions",
+      "scope": "New revisions for changes, parent history and explicit branch selection."
+    },
+    {
+      "id": "subsets",
+      "title": "Subset creation and seeded sampling",
+      "area": "Data and versions",
+      "status": "available",
+      "doc": "/docs/python/tables#subsets-and-new-data",
+      "scope": "Persisted filters and probabilistic subsets with a seed."
+    },
+    {
+      "id": "append",
+      "title": "Append data to a lineage",
+      "area": "Data and versions",
+      "status": "available",
+      "doc": "/docs/python/tables#subsets-and-new-data",
+      "scope": "Concatenate compatible tables while recording parents; inspect class and identity compatibility."
+    },
+    {
+      "id": "version-splits",
+      "title": "Dataset versions and split selection",
+      "area": "Data and versions",
+      "status": "available",
+      "doc": "/docs/guides/dataset-versions",
+      "scope": "Freeze selected sets for reproducible training."
+    },
+    {
+      "id": "review-approval",
+      "title": "Approval and exact review evidence",
+      "area": "Data and versions",
+      "status": "available",
+      "doc": "/docs/guides/operations#approval-is-an-explicit-gate",
+      "scope": "Approve frozen contents with matching human-review evidence."
+    },
+    {
+      "id": "row-cache",
+      "title": "Parquet row cache",
+      "area": "Data and versions",
+      "status": "partial",
+      "doc": "/docs/python/storage#row-caches-and-indexing",
+      "scope": "Persisted cache is required; automatic cacheless reconstruction is not yet included."
+    },
+    {
+      "id": "image-thumbnails",
+      "title": "Image thumbnails and media references",
+      "area": "Data and versions",
+      "status": "available",
+      "doc": "/docs/data/images",
+      "scope": "URL-backed images, browsing and CLI thumbnail generation."
+    },
+    {
+      "id": "video",
+      "title": "Video frames and sequences",
+      "area": "Data and versions",
+      "status": "planned",
+      "doc": "/docs/data/video",
+      "scope": "Use externally extracted images until dedicated ingestion and timeline workflows exist."
+    },
+    {
+      "id": "custom-samples",
+      "title": "Custom external and inline sample types",
+      "area": "Data and versions",
+      "status": "planned",
+      "doc": "/docs/planned/extensions#custom-sample-types",
+      "scope": "Public sample-type registry and serialisation contracts are not yet included."
+    },
+    {
+      "id": "bulk-arrays",
+      "title": "External arrays and chunked geometry",
+      "area": "Data and versions",
+      "status": "planned",
+      "doc": "/docs/planned/extensions#bulk-array-and-geometry-storage",
+      "scope": "Managed external bulk storage is not yet included."
+    },
+    {
+      "id": "arbitrary-dataset",
+      "title": "Arbitrary PyTorch Dataset conversion",
+      "area": "Data and versions",
+      "status": "planned",
+      "doc": "/docs/planned/extensions#import-and-export-plugins",
+      "scope": "Use explicit typed rows or TableWriter today."
+    },
+    {
+      "id": "image-labels",
+      "title": "Whole-image classification labels",
+      "area": "Vision data",
+      "status": "available",
+      "doc": "/docs/guides/edit",
+      "scope": "Store and edit a class for each image."
+    },
+    {
+      "id": "boxes",
+      "title": "Axis-aligned bounding boxes",
+      "area": "Vision data",
+      "status": "available",
+      "doc": "/docs/data/boxes#ordinary-detection-boxes",
+      "scope": "Pixel geometry, editing, COCO/YOLO exchange and detection utilities."
+    },
+    {
+      "id": "obb",
+      "title": "Oriented bounding boxes",
+      "area": "Vision data",
+      "status": "available",
+      "doc": "/docs/data/boxes#oriented-boxes",
+      "scope": "Rotated editing, YOLO OBB exchange and rotated IoU."
+    },
+    {
+      "id": "instance-masks",
+      "title": "Instance masks and polygons",
+      "area": "Vision data",
+      "status": "available",
+      "doc": "/docs/data/masks",
+      "scope": "COCO polygons/RLE, YOLO polygons and editable masks."
+    },
+    {
+      "id": "semantic-masks",
+      "title": "Semantic class-ID masks",
+      "area": "Vision data",
+      "status": "available",
+      "doc": "/docs/data/masks#import-masks",
+      "scope": "Lossless PNG manifests, class IDs and ignore handling."
+    },
+    {
+      "id": "pixel-editing",
+      "title": "Pixel painting and erasing",
+      "area": "Vision data",
+      "status": "available",
+      "doc": "/docs/data/masks#correct-a-mask",
+      "scope": "Edit bitmap masks and preserve semantic class exclusivity."
+    },
+    {
+      "id": "keypoints",
+      "title": "Keypoints pose and visibility",
+      "area": "Vision data",
+      "status": "available",
+      "doc": "/docs/data/keypoints",
+      "scope": "COCO/YOLO pose, landmark editing and task-specific metrics."
+    },
+    {
+      "id": "landmarks",
+      "title": "Landmark analysis and filtering",
+      "area": "Vision data",
+      "status": "partial",
+      "doc": "/docs/data/keypoints#analyse-individual-landmarks",
+      "scope": "Numeric landmark properties; universal mixed-layout name display is not yet included."
+    },
+    {
+      "id": "crowd",
+      "title": "Crowd and ignored annotations",
+      "area": "Vision data",
+      "status": "available",
+      "doc": "/docs/guides/edit#crowd-and-ignore-regions",
+      "scope": "Explicit annotation semantics and task-aware scoring."
+    },
+    {
+      "id": "instance-properties",
+      "title": "Typed object properties",
+      "area": "Vision data",
+      "status": "available",
+      "doc": "/docs/python/schemas#declare-categories-and-geometry",
+      "scope": "Declare confidence, provenance and other supported instance fields."
+    },
+    {
+      "id": "embeddings",
+      "title": "Embedding columns and collection",
+      "area": "Vision data",
+      "status": "available",
+      "doc": "/docs/python/custom-metrics#collect-embeddings",
+      "scope": "Fixed-width model activations with explicit pooling and identity."
+    },
+    {
+      "id": "video-reference",
+      "title": "Video URL storage",
+      "area": "Vision data",
+      "status": "partial",
+      "doc": "/docs/python/schemas#core-schema-families",
+      "scope": "Reference storage exists; playback and extraction workflows are not yet included."
+    },
+    {
+      "id": "point-clouds",
+      "title": "Point clouds meshes and 3D annotation",
+      "area": "Vision data",
+      "status": "planned",
+      "doc": "/docs/planned/spatial#spatial-data-types",
+      "scope": "Spatial types, point/cuboid editing and geometric operations are not yet included."
+    },
+    {
+      "id": "sensors",
+      "title": "PandaSet and synchronised sensors",
+      "area": "Vision data",
+      "status": "planned",
+      "doc": "/docs/planned/spatial#sensor-datasets",
+      "scope": "Camera/LiDAR sequencing and calibration workflows are not yet included."
+    },
+    {
+      "id": "panoptic",
+      "title": "Complete panoptic workflow",
+      "area": "Vision data",
+      "status": "partial",
+      "doc": "/docs/measure/tasks#not-yet-included",
+      "scope": "Task metadata exists; a complete panoptic trainer and workflow are not yet included."
+    },
+    {
+      "id": "workspace",
+      "title": "Linked rows filters and charts",
+      "area": "Exploration",
+      "status": "available",
+      "doc": "/docs/explore/workspace",
+      "scope": "Investigate a table or run and inspect the selected samples."
+    },
+    {
+      "id": "row-controls",
+      "title": "Sorting hiding copying and column layout",
+      "area": "Exploration",
+      "status": "available",
+      "doc": "/docs/explore/workspace#read-the-rows",
+      "scope": "Rows-panel controls with stable source identity."
+    },
+    {
+      "id": "filters",
+      "title": "Numeric categorical and object filters",
+      "area": "Exploration",
+      "status": "available",
+      "doc": "/docs/explore/workspace#narrow-the-evidence",
+      "scope": "Range/value filters, object scope and selected counts."
+    },
+    {
+      "id": "image-gallery",
+      "title": "Image grid and object patches",
+      "area": "Exploration",
+      "status": "available",
+      "doc": "/docs/guides/browse",
+      "scope": "Browse whole images or object crops with context."
+    },
+    {
+      "id": "charts",
+      "title": "Scatter and image charts",
+      "area": "Exploration",
+      "status": "available",
+      "doc": "/docs/explore/charts#create-a-chart",
+      "scope": "Axes, colour, sizing, image labels and overlays."
+    },
+    {
+      "id": "chart-selection",
+      "title": "Linked selection tools",
+      "area": "Exploration",
+      "status": "available",
+      "doc": "/docs/explore/charts#select-and-inspect",
+      "scope": "Rectangle, lasso, polygon and brush inspection."
+    },
+    {
+      "id": "scatter-3d",
+      "title": "Three-dimensional scatter",
+      "area": "Exploration",
+      "status": "available",
+      "doc": "/docs/explore/charts#work-in-three-dimensions",
+      "scope": "Orbitable numeric plots with projected-centre selection at all depths."
+    },
+    {
+      "id": "volume-selection",
+      "title": "Persisted 3D volume selection",
+      "area": "Exploration",
+      "status": "planned",
+      "doc": "/docs/planned/advanced-analysis#sampling-and-selection",
+      "scope": "Current selection is screen-space, not a saved spatial volume."
+    },
+    {
+      "id": "calculated-columns",
+      "title": "Calculated columns",
+      "area": "Exploration",
+      "status": "partial",
+      "doc": "/docs/explore/calculations",
+      "scope": "Implemented arithmetic, numeric/grouped/ordered operations; the wider operator catalogue remains reserved."
+    },
+    {
+      "id": "aggregates",
+      "title": "Column summaries and pinned statistics",
+      "area": "Exploration",
+      "status": "available",
+      "doc": "/docs/guides/browse",
+      "scope": "Fields/Stats summaries and Python table summaries."
+    },
+    {
+      "id": "workflow",
+      "title": "Saved and portable analysis workflows",
+      "area": "Exploration",
+      "status": "available",
+      "doc": "/docs/explore/workflows",
+      "scope": "Save/apply view recipes and import/export validated JSON."
+    },
+    {
+      "id": "pca",
+      "title": "PCA projection",
+      "area": "Exploration",
+      "status": "available",
+      "doc": "/docs/explore/embeddings#create-a-projection",
+      "scope": "Project typed vectors into two or three dimensions."
+    },
+    {
+      "id": "nonlinear",
+      "title": "UMAP and PaCMAP projection",
+      "area": "Exploration",
+      "status": "available",
+      "doc": "/docs/explore/embeddings#create-a-projection",
+      "scope": "Optional reduction dependencies and finite vector inputs required."
+    },
+    {
+      "id": "saved-reducers",
+      "title": "Shared fitted projection coordinates",
+      "area": "Exploration",
+      "status": "available",
+      "doc": "/docs/explore/embeddings#reuse-a-coordinate-system",
+      "scope": "Reuse fitted coordinates across compatible tables or epochs."
+    },
+    {
+      "id": "trajectories",
+      "title": "Epoch trajectories and vector travel",
+      "area": "Exploration",
+      "status": "partial",
+      "doc": "/docs/explore/trajectories",
+      "scope": "Linked paths and explicit vector calculations; general N-column wizard not yet included."
+    },
+    {
+      "id": "component-plot",
+      "title": "N-component and parallel-coordinate plots",
+      "area": "Exploration",
+      "status": "planned",
+      "doc": "/docs/planned/advanced-analysis#additional-plot-and-view-types",
+      "scope": "Dedicated component-comparison charts are not yet included."
+    },
+    {
+      "id": "reduced-tables",
+      "title": "Reduced aggregate tables and charts",
+      "area": "Exploration",
+      "status": "planned",
+      "doc": "/docs/planned/advanced-analysis#additional-plot-and-view-types",
+      "scope": "Use explicit Python aggregation; dedicated reduced views are not yet included."
+    },
+    {
+      "id": "multi-views",
+      "title": "Arbitrary multi-table and multi-run views",
+      "area": "Exploration",
+      "status": "planned",
+      "doc": "/docs/planned/advanced-analysis#additional-plot-and-view-types",
+      "scope": "Use the supported run-comparison and dataset workflows today."
+    },
+    {
+      "id": "advanced-operators",
+      "title": "Additional array text time and geometry operators",
+      "area": "Exploration",
+      "status": "planned",
+      "doc": "/docs/planned/advanced-analysis#additional-calculation-operators",
+      "scope": "Reserved operator families beyond the documented Calculate menu."
+    },
+    {
+      "id": "retrieval",
+      "title": "Retrieval and question/chunk analysis",
+      "area": "Exploration",
+      "status": "planned",
+      "doc": "/docs/planned/advanced-analysis#retrieval-and-cross-table-analysis",
+      "scope": "Semantic links, before/after retrieval and general foreign-table operations are not yet included."
+    },
+    {
+      "id": "review",
+      "title": "Human review and comments",
+      "area": "Review and curation",
+      "status": "available",
+      "doc": "/docs/guides/review",
+      "scope": "Verify, request rework and retain review decisions."
+    },
+    {
+      "id": "annotation-edit",
+      "title": "Annotation correction and classes",
+      "area": "Review and curation",
+      "status": "available",
+      "doc": "/docs/guides/edit",
+      "scope": "Task-aware editing, typed properties and new revisions."
+    },
+    {
+      "id": "draft-recovery",
+      "title": "Browser edit recovery",
+      "area": "Review and curation",
+      "status": "available",
+      "doc": "/docs/guides/operations#browser-recovery-and-stale-saves",
+      "scope": "Acknowledged local drafts, stale-base detection and explicit reconciliation."
+    },
+    {
+      "id": "curation",
+      "title": "Isolation removal and restoration",
+      "area": "Review and curation",
+      "status": "available",
+      "doc": "/docs/guides/isolate-remove",
+      "scope": "Recoverable decisions with original revisions retained."
+    },
+    {
+      "id": "duplicates",
+      "title": "Duplicates and split leakage",
+      "area": "Review and curation",
+      "status": "available",
+      "doc": "/docs/explore/duplicates",
+      "scope": "Neighbour evidence plus available augmentation/source provenance."
+    },
+    {
+      "id": "similarity",
+      "title": "Similar-image search and uniqueness",
+      "area": "Review and curation",
+      "status": "available",
+      "doc": "/docs/explore/duplicates#find-neighbours-of-one-image",
+      "scope": "Find neighbours, filter the result and rank unusual images."
+    },
+    {
+      "id": "health",
+      "title": "Dataset health checks",
+      "area": "Review and curation",
+      "status": "available",
+      "doc": "/docs/explore/health",
+      "scope": "Readiness summary with links to underlying evidence."
+    },
+    {
+      "id": "prelabel",
+      "title": "Model pre-labelling",
+      "area": "Review and curation",
+      "status": "available",
+      "doc": "/docs/improve/prelabel",
+      "scope": "Draft compatible annotations in new versions for human review."
+    },
+    {
+      "id": "sam",
+      "title": "Interactive SAM mask proposals",
+      "area": "Review and curation",
+      "status": "partial",
+      "doc": "/docs/improve/sam",
+      "scope": "Prompted image-level proposals; larger model/device qualification remains open."
+    },
+    {
+      "id": "weights",
+      "title": "Sample weights and samplers",
+      "area": "Review and curation",
+      "status": "available",
+      "doc": "/docs/improve/weights",
+      "scope": "Weighted, random, sequential and repeat sampling with explicit zero-weight handling."
+    },
+    {
+      "id": "coresets",
+      "title": "Optimised weighted coreset selection",
+      "area": "Review and curation",
+      "status": "planned",
+      "doc": "/docs/planned/advanced-analysis#sampling-and-selection",
+      "scope": "Weight-aware sampling exists; optimised coreset tooling is not yet included."
+    },
+    {
+      "id": "augmentation",
+      "title": "Versioned augmentation",
+      "area": "Review and curation",
+      "status": "available",
+      "doc": "/docs/guides/augmentation",
+      "scope": "Geometry-aware dataset recipes with explicit split and pose constraints."
+    },
+    {
+      "id": "export",
+      "title": "Dataset export and media strategies",
+      "area": "Review and curation",
+      "status": "available",
+      "doc": "/docs/improve/export",
+      "scope": "Supported task/layout export with copied, linked or labels-only media choices."
+    },
+    {
+      "id": "runs",
+      "title": "Run creation parameters and constants",
+      "area": "Training and metrics",
+      "status": "available",
+      "doc": "/docs/python/runs",
+      "scope": "Experiment identity, lifecycle, aggregate history and input versions."
+    },
+    {
+      "id": "sample-metrics",
+      "title": "Per-sample metric collection",
+      "area": "Training and metrics",
+      "status": "available",
+      "doc": "/docs/measure/metrics",
+      "scope": "Canonical joins, split/epoch context and typed collector output."
+    },
+    {
+      "id": "custom-metrics",
+      "title": "Custom predictors and collectors",
+      "area": "Training and metrics",
+      "status": "available",
+      "doc": "/docs/python/custom-metrics",
+      "scope": "Functional or subclass collectors with one output per sample."
+    },
+    {
+      "id": "metric-aggregation",
+      "title": "Metric aggregators",
+      "area": "Training and metrics",
+      "status": "available",
+      "doc": "/docs/python/custom-metrics#aggregate-without-losing-meaning",
+      "scope": "Mean, sum, minimum, maximum and explicit aggregation semantics."
+    },
+    {
+      "id": "detection-training",
+      "title": "Dashboard detection training",
+      "area": "Training and metrics",
+      "status": "available",
+      "doc": "/docs/guides/train",
+      "scope": "YOLO, RT-DETR and RF-DETR using named dataset versions."
+    },
+    {
+      "id": "vision-training",
+      "title": "Mask pose and OBB training",
+      "area": "Training and metrics",
+      "status": "available",
+      "doc": "/docs/measure/tasks",
+      "scope": "Compatible YOLO task variants with task-aware metrics."
+    },
+    {
+      "id": "classification-training",
+      "title": "Dashboard classification training",
+      "area": "Training and metrics",
+      "status": "partial",
+      "doc": "/docs/measure/tasks",
+      "scope": "New ResNet-18 development path; broader workflow qualification remains open."
+    },
+    {
+      "id": "semantic-training",
+      "title": "Dashboard semantic training",
+      "area": "Training and metrics",
+      "status": "partial",
+      "doc": "/docs/measure/tasks",
+      "scope": "New LR-ASPP development path; broader workflow qualification remains open."
+    },
+    {
+      "id": "evaluation",
+      "title": "Confusion class metrics and thresholds",
+      "area": "Training and metrics",
+      "status": "partial",
+      "doc": "/docs/explore/evaluation",
+      "scope": "Detection-focused views plus task-specific stored metrics; view coverage varies by task."
+    },
+    {
+      "id": "findings",
+      "title": "Model-assisted label findings",
+      "area": "Training and metrics",
+      "status": "available",
+      "doc": "/docs/guides/findings",
+      "scope": "Evidence-ranked review from supported checks or repeated predictions."
+    },
+    {
+      "id": "learning",
+      "title": "Learning dynamics and forgetting",
+      "area": "Training and metrics",
+      "status": "available",
+      "doc": "/docs/guides/learning",
+      "scope": "Inspect recorded sample observations across epochs."
+    },
+    {
+      "id": "compare",
+      "title": "Run comparison and reports",
+      "area": "Training and metrics",
+      "status": "available",
+      "doc": "/docs/guides/compare",
+      "scope": "Compatibility checks, sample differences, slices and exported evidence."
+    },
+    {
+      "id": "checkpoint",
+      "title": "Checkpoint and model results",
+      "area": "Training and metrics",
+      "status": "available",
+      "doc": "/docs/guides/runs",
+      "scope": "Inspect run outputs with their exact recipe and data context."
+    },
+    {
+      "id": "recipes",
+      "title": "End-to-end examples",
+      "area": "Training and metrics",
+      "status": "partial",
+      "doc": "/docs/measure/recipes",
+      "scope": "Existing Python examples and aerial course; specialised recipes have explicit reserved entries."
+    },
+    {
+      "id": "sweeps",
+      "title": "Managed hyperparameter sweeps",
+      "area": "Training and metrics",
+      "status": "planned",
+      "doc": "/docs/planned/compute#hyperparameter-jobs",
+      "scope": "Parameters can be logged; scheduling/search is not yet included."
+    },
+    {
+      "id": "active-label",
+      "title": "Automated active labelling",
+      "area": "Training and metrics",
+      "status": "planned",
+      "doc": "/docs/planned/compute#automatic-labelling-pipelines",
+      "scope": "Manual pre-label/review/retrain loop exists; unattended orchestration does not."
+    },
+    {
+      "id": "batch-sam",
+      "title": "Batch SAM and instance-embedding pipelines",
+      "area": "Training and metrics",
+      "status": "planned",
+      "doc": "/docs/planned/compute#automatic-labelling-pipelines",
+      "scope": "Interactive proposals and generic embedding collectors are the current paths."
+    },
+    {
+      "id": "pytorch",
+      "title": "PyTorch",
+      "area": "Framework integrations",
+      "status": "available",
+      "doc": "/docs/integrations/pytorch",
+      "scope": "Table views, samplers, predictors and explicit metric passes."
+    },
+    {
+      "id": "yolo",
+      "title": "Ultralytics YOLO",
+      "area": "Framework integrations",
+      "status": "partial",
+      "doc": "/docs/integrations/ultralytics",
+      "scope": "Detection/mask/pose/OBB callbacks; dedicated YOLO classification is not yet included."
+    },
+    {
+      "id": "yolov5",
+      "title": "Legacy standalone YOLOv5 adapter",
+      "area": "Framework integrations",
+      "status": "planned",
+      "doc": "/docs/integrations/ultralytics#current-boundary",
+      "scope": "The independent legacy repository adapter is not yet included."
+    },
+    {
+      "id": "huggingface",
+      "title": "Hugging Face Trainer and Datasets",
+      "area": "Framework integrations",
+      "status": "available",
+      "doc": "/docs/integrations/hugging-face",
+      "scope": "Indexed predictions, callbacks and configurable embeddings/output adaptation."
+    },
+    {
+      "id": "lightning",
+      "title": "Lightning",
+      "area": "Framework integrations",
+      "status": "available",
+      "doc": "/docs/integrations/lightning",
+      "scope": "Indexed validation/test collection including tested CPU/Gloo behaviour."
+    },
+    {
+      "id": "detectron",
+      "title": "Detectron2",
+      "area": "Framework integrations",
+      "status": "partial",
+      "doc": "/docs/integrations/detectron2",
+      "scope": "Detection/mask/keypoint integration; rotated and specialised semantic/panoptic paths remain reserved."
+    },
+    {
+      "id": "supergradients",
+      "title": "SuperGradients and YOLO-NAS",
+      "area": "Framework integrations",
+      "status": "partial",
+      "doc": "/docs/integrations/supergradients",
+      "scope": "Indexed callbacks and canonical predictors; full native recipes and wider qualification remain open."
+    },
+    {
+      "id": "rfdetr",
+      "title": "RF-DETR",
+      "area": "Framework integrations",
+      "status": "available",
+      "doc": "/docs/reference/models",
+      "scope": "Built-in detector family and integration used by the supervised trainer."
+    },
+    {
+      "id": "service",
+      "title": "Object service and jobs",
+      "area": "Operations and extensions",
+      "status": "available",
+      "doc": "/docs/operate/service",
+      "scope": "Local dashboard/API service with supervised job status and recovery."
+    },
+    {
+      "id": "indexing",
+      "title": "Discovery and indexing",
+      "area": "Operations and extensions",
+      "status": "available",
+      "doc": "/docs/operate/service#discover-projects",
+      "scope": "Watch/scan controls and explicit reindexing of configured records."
+    },
+    {
+      "id": "rest",
+      "title": "REST API and live OpenAPI schema",
+      "area": "Operations and extensions",
+      "status": "available",
+      "doc": "/docs/reference/rest",
+      "scope": "Current endpoint families and installed-build request schemas."
+    },
+    {
+      "id": "cli",
+      "title": "CLI",
+      "area": "Operations and extensions",
+      "status": "available",
+      "doc": "/docs/reference/cli",
+      "scope": "Launch, config, import, thumbnails, access, integrity and backup commands."
+    },
+    {
+      "id": "urls",
+      "title": "URLs and aliases",
+      "area": "Operations and extensions",
+      "status": "available",
+      "doc": "/docs/python/storage#urls-and-aliases",
+      "scope": "Logical roots and fsspec-backed locations with per-process resolution."
+    },
+    {
+      "id": "cloud",
+      "title": "S3 Google Cloud Storage and Azure",
+      "area": "Operations and extensions",
+      "status": "partial",
+      "doc": "/docs/operate/cloud",
+      "scope": "Optional storage backends; distributed writer coordination remains unsupported."
+    },
+    {
+      "id": "signed-media",
+      "title": "Signed browser-direct media URLs",
+      "area": "Operations and extensions",
+      "status": "planned",
+      "doc": "/docs/planned/enterprise#signed-media-delivery",
+      "scope": "Provider-direct delivery with scoped URLs is not yet included."
+    },
+    {
+      "id": "remote",
+      "title": "Remote environments",
+      "area": "Operations and extensions",
+      "status": "partial",
+      "doc": "/docs/operate/remote",
+      "scope": "Manual service/SDK building blocks; turnkey remote lifecycle is not yet included."
+    },
+    {
+      "id": "containers",
+      "title": "Docker and Kubernetes deployment",
+      "area": "Operations and extensions",
+      "status": "planned",
+      "doc": "/docs/operate/remote#docker-and-kubernetes",
+      "scope": "Qualified images, Compose/Helm/operator workflows are not yet included."
+    },
+    {
+      "id": "notebooks",
+      "title": "Colab and SageMaker setup",
+      "area": "Operations and extensions",
+      "status": "planned",
+      "doc": "/docs/operate/remote#hosted-notebooks",
+      "scope": "Turnkey notebook connection and persistence guides are not yet included."
+    },
+    {
+      "id": "backup",
+      "title": "Integrity backup and restore",
+      "area": "Operations and extensions",
+      "status": "available",
+      "doc": "/docs/guides/operations#media-integrity-and-portable-backup",
+      "scope": "Checksummed supported local resources with explicit relocation/restore limits."
+    },
+    {
+      "id": "audit",
+      "title": "Shared mutation audit and recovery",
+      "area": "Operations and extensions",
+      "status": "available",
+      "doc": "/docs/guides/operations#handle-an-audit-failure-without-duplicating-work",
+      "scope": "Request/completion records and handling of committed writes with logging failures."
+    },
+    {
+      "id": "upgrade",
+      "title": "Upgrade and migration",
+      "area": "Operations and extensions",
+      "status": "partial",
+      "doc": "/docs/operate/upgrades",
+      "scope": "Restore rehearsal; universal schema and other-product migration are not yet included."
+    },
+    {
+      "id": "release-notes",
+      "title": "Release notes and compatibility archive",
+      "area": "Operations and extensions",
+      "status": "partial",
+      "doc": "/docs/reference/releases",
+      "scope": "Build provenance guidance; curated historical release archive is not yet included."
+    },
+    {
+      "id": "compute",
+      "title": "Managed compute service",
+      "area": "Operations and extensions",
+      "status": "planned",
+      "doc": "/docs/planned/compute#compute-service",
+      "scope": "Worker fleets, scheduling and managed resource assignment are not yet included."
+    },
+    {
+      "id": "plugins",
+      "title": "Plugin SDK catalogue and lifecycle",
+      "area": "Operations and extensions",
+      "status": "planned",
+      "doc": "/docs/planned/compute#plugin-sdk-and-catalogue",
+      "scope": "Public authoring, catalogues, install/update/remove and plugin health are not yet included."
+    },
+    {
+      "id": "url-adapters",
+      "title": "Custom URL adapters and discovery hooks",
+      "area": "Operations and extensions",
+      "status": "planned",
+      "doc": "/docs/planned/extensions#url-adapters-and-discovery",
+      "scope": "Public adapter capabilities, precedence and scan-root hooks are not yet included."
+    },
+    {
+      "id": "export-registry",
+      "title": "Import/export plugin registry",
+      "area": "Operations and extensions",
+      "status": "planned",
+      "doc": "/docs/planned/extensions#import-and-export-plugins",
+      "scope": "Known formats are supported; a public third-party registry is not yet included."
+    },
+    {
+      "id": "shortcuts",
+      "title": "Keyboard shortcuts and preferences",
+      "area": "Operations and extensions",
+      "status": "available",
+      "doc": "/docs/reference/shortcuts",
+      "scope": "Editor, review, viewer and documentation controls."
+    },
+    {
+      "id": "help",
+      "title": "Troubleshooting FAQ and glossary",
+      "area": "Operations and extensions",
+      "status": "available",
+      "doc": "/docs/help/troubleshooting",
+      "scope": "Diagnosis, recovery and terminology for the supported workflows."
+    },
+    {
+      "id": "python-api",
+      "title": "Python API reference",
+      "area": "Operations and extensions",
+      "status": "available",
+      "doc": "/docs/python/api",
+      "scope": "Public Granum objects, table/run methods, collectors, configuration and integration entry points."
+    }
+  ]
+}

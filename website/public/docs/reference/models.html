@@ -3,11 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Models you can train · Granum documentation</title>
-  <meta name="description" content="YOLO, RT-DETR and RF-DETR — sizes, hardware and when each is the right choice.">
+  <title>Models and task support · Granum documentation</title>
+  <meta name="description" content="Choose among the model families exposed by the current training catalogue and check their task requirements.">
   <meta name="theme-color" content="#ffffff">
-  <meta property="og:title" content="Models you can train · Granum documentation">
-  <meta property="og:description" content="YOLO, RT-DETR and RF-DETR — sizes, hardware and when each is the right choice.">
+  <meta property="og:title" content="Models and task support · Granum documentation">
+  <meta property="og:description" content="Choose among the model families exposed by the current training catalogue and check their task requirements.">
   <meta property="og:type" content="article">
   <meta property="og:image" content="/assets/og.jpg">
   <link rel="canonical" href="https://granum.app/docs/reference/models">
@@ -47,7 +47,15 @@
     <div class="doc-sidebar" id="doc-sidebar">
       <nav class="doc-nav" aria-label="Documentation">
 <a class="doc-nav-home" href="/docs">Start here</a>
-<div class="doc-nav-group"><p class="doc-nav-title">Guided aerial-data course</p><ul>
+<details class="doc-nav-group"><summary class="doc-nav-title">Start with Granum</summary><ul>
+<li><a href="/docs/reference/features">Feature availability</a></li>
+<li><a href="/docs/start/install">Install Granum</a></li>
+<li><a href="/docs/start/activate">Alpha access and licences</a></li>
+<li><a href="/docs/start/first-project">Your first project</a></li>
+<li><a href="/docs/start/the-loop">Run the loop once</a></li>
+<li><a href="/docs/start/source">Run from source</a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Guided aerial-data course</summary><ul>
 <li><a href="/docs/course/start">Start the guided course</a></li>
 <li><a href="/docs/course/setup">1. Prepare the workspace</a></li>
 <li><a href="/docs/course/data">2. Understand the sample</a></li>
@@ -61,14 +69,8 @@
 <li><a href="/docs/course/handoff">10. Approve and export an excerpt</a></li>
 <li><a href="/docs/course/backup">11. Back up, restore and share safely</a></li>
 <li><a href="/docs/course/next">12. Move to your own project</a></li>
-</ul></div>
-<div class="doc-nav-group"><p class="doc-nav-title">Getting started</p><ul>
-<li><a href="/docs/start/install">Install Granum</a></li>
-<li><a href="/docs/start/activate">Alpha access and licences</a></li>
-<li><a href="/docs/start/first-project">Your first project</a></li>
-<li><a href="/docs/start/the-loop">Run the loop once</a></li>
-</ul></div>
-<div class="doc-nav-group"><p class="doc-nav-title">Concepts</p><ul>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Concepts</summary><ul>
 <li><a href="/docs/concepts/model">How Granum is organised</a></li>
 <li><a href="/docs/concepts/projects">Projects and project types</a></li>
 <li><a href="/docs/concepts/versions">Versions and lineage</a></li>
@@ -77,186 +79,183 @@
 <li><a href="/docs/concepts/identity">Image identity</a></li>
 <li><a href="/docs/concepts/runs">Runs and metrics</a></li>
 <li><a href="/docs/concepts/evidence">What the evidence is worth</a></li>
-</ul></div>
-<div class="doc-nav-group"><p class="doc-nav-title">Guides</p><ul>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Bring data in</summary><ul>
 <li><a href="/docs/guides/import">Import data</a></li>
 <li><a href="/docs/guides/pull-from-projects">Build from existing projects</a></li>
+<li><a href="/docs/guides/projects">Manage projects</a></li>
+<li><a href="/docs/data/formats">Choose an import format</a></li>
+<li><a href="/docs/data/tabular">Numbers labels and text</a></li>
+<li><a href="/docs/data/images">Images and thumbnails</a></li>
+<li><a href="/docs/data/video">Video frames and sequences<span class="doc-status planned">Not yet included</span></a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Explore and diagnose</summary><ul>
 <li><a href="/docs/guides/browse">Browse images</a></li>
+<li><a href="/docs/explore/workspace">Inspect tables and runs</a></li>
+<li><a href="/docs/explore/charts">Build linked charts</a></li>
+<li><a href="/docs/explore/calculations">Calculate derived columns</a></li>
+<li><a href="/docs/explore/workflows">Save an analysis workflow</a></li>
+<li><a href="/docs/explore/embeddings">Explore embedding space</a></li>
+<li><a href="/docs/explore/trajectories">Follow samples across epochs</a></li>
+<li><a href="/docs/explore/duplicates">Find duplicates leakage and outliers</a></li>
+<li><a href="/docs/explore/health">Check dataset health</a></li>
+<li><a href="/docs/explore/evaluation">Inspect model errors</a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Review and improve</summary><ul>
 <li><a href="/docs/guides/review">Review and verify</a></li>
 <li><a href="/docs/guides/edit">Edit annotations</a></li>
+<li><a href="/docs/data/boxes">Bounding boxes and rotated boxes</a></li>
+<li><a href="/docs/data/masks">Instance and semantic masks</a></li>
+<li><a href="/docs/data/keypoints">Keypoints and pose</a></li>
+<li><a href="/docs/improve/prelabel">Draft labels with a model</a></li>
+<li><a href="/docs/improve/sam">Propose masks with SAM</a></li>
+<li><a href="/docs/improve/weights">Control sample weights</a></li>
 <li><a href="/docs/guides/isolate-remove">Isolate, remove and restore</a></li>
 <li><a href="/docs/guides/dataset-versions">Create a dataset version</a></li>
 <li><a href="/docs/guides/augmentation">Augmentation</a></li>
+<li><a href="/docs/improve/export">Export a dataset version</a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Train and measure</summary><ul>
 <li><a href="/docs/guides/train">Train a model</a></li>
+<li><a href="/docs/measure/tasks">Choose a training task</a></li>
 <li><a href="/docs/guides/runs">Read a run</a></li>
 <li><a href="/docs/guides/learning">Per-image learning</a></li>
 <li><a href="/docs/guides/findings">Work the Findings queue</a></li>
 <li><a href="/docs/guides/compare">Compare two runs</a></li>
-<li><a href="/docs/guides/projects">Manage projects</a></li>
+<li><a href="/docs/measure/metrics">Record per sample metrics</a></li>
+<li><a href="/docs/measure/recipes">Examples and complete workflows</a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Connect your training code</summary><ul>
+<li><a href="/docs/integrations/pytorch">Connect a PyTorch loop</a></li>
+<li><a href="/docs/integrations/ultralytics">Connect YOLO training</a></li>
+<li><a href="/docs/integrations/hugging-face">Connect Hugging Face</a></li>
+<li><a href="/docs/integrations/lightning">Connect Lightning</a></li>
+<li><a href="/docs/integrations/detectron2">Connect Detectron2</a></li>
+<li><a href="/docs/integrations/supergradients">Connect SuperGradients</a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Build with Python</summary><ul>
 <li><a href="/docs/guides/python">Use Granum from Python</a></li>
+<li><a href="/docs/python/tables">Create and revise tables</a></li>
+<li><a href="/docs/python/schemas">Define column schemas</a></li>
+<li><a href="/docs/python/transforms">Transform samples on read</a></li>
+<li><a href="/docs/python/runs">Manage runs in Python</a></li>
+<li><a href="/docs/python/custom-metrics">Write custom collectors</a></li>
+<li><a href="/docs/python/storage">Storage paths and caches</a></li>
+<li><a href="/docs/python/api">Python API reference</a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Run your workspace</summary><ul>
+<li><a href="/docs/operate/service">Run the Granum service</a></li>
+<li><a href="/docs/operate/configuration">Configure a workspace</a></li>
+<li><a href="/docs/operate/shared">Share a workspace with a team</a></li>
+<li><a href="/docs/operate/cloud">Use cloud storage</a></li>
+<li><a href="/docs/operate/remote">Remote and container environments</a></li>
 <li><a href="/docs/guides/operations">Operate a pilot workspace</a></li>
-</ul></div>
-<div class="doc-nav-group"><p class="doc-nav-title">Reference</p><ul>
+<li><a href="/docs/operate/upgrades">Upgrade and migrate safely</a></li>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Not yet included</summary><ul>
+<li><a href="/docs/planned/advanced-analysis">Advanced analysis extensions<span class="doc-status planned">Not yet included</span></a></li>
+<li><a href="/docs/planned/compute">Managed compute and plugins<span class="doc-status planned">Not yet included</span></a></li>
+<li><a href="/docs/planned/enterprise">Enterprise identity and delivery<span class="doc-status planned">Not yet included</span></a></li>
+<li><a href="/docs/planned/spatial">Point clouds and 3D annotations<span class="doc-status planned">Not yet included</span></a></li>
+<li><a href="/docs/planned/extensions">Custom data and storage extensions<span class="doc-status planned">Not yet included</span></a></li>
+</ul></details>
+<details class="doc-nav-group" open><summary class="doc-nav-title">Reference</summary><ul>
 <li><a href="/docs/reference/screens">Map of the app</a></li>
 <li><a href="/docs/reference/shortcuts">Keyboard shortcuts</a></li>
 <li><a href="/docs/reference/preflight">Import checks</a></li>
-<li><a href="/docs/reference/models" class="on" aria-current="page">Models you can train</a></li>
+<li><a href="/docs/reference/models" class="on" aria-current="page">Models and task support</a></li>
+<li><a href="/docs/reference/cli">Command line reference</a></li>
+<li><a href="/docs/reference/rest">Service API reference</a></li>
+<li><a href="/docs/reference/requirements">Environment and capacity requirements</a></li>
 <li><a href="/docs/reference/files">Files and settings</a></li>
 <li><a href="/docs/reference/limits">Scale and limits</a></li>
+<li><a href="/docs/reference/releases">Builds and release information</a></li>
 <li><a href="/docs/reference/glossary">Glossary</a></li>
-</ul></div>
-<div class="doc-nav-group"><p class="doc-nav-title">Help</p><ul>
+</ul></details>
+<details class="doc-nav-group"><summary class="doc-nav-title">Help</summary><ul>
 <li><a href="/docs/help/troubleshooting">Troubleshooting</a></li>
 <li><a href="/docs/help/faq">Frequently asked questions</a></li>
 <li><a href="/docs/help/privacy">Your data and privacy</a></li>
-</ul></div>
+</ul></details>
 </nav>
     </div>
     <main class="doc-main" id="main">
       <article class="doc-article">
         <nav class="doc-crumb" aria-label="Breadcrumb"><a href="/docs">Documentation</a><span aria-hidden="true">/</span><a href="/docs#reference">Reference</a></nav>
-        <h1>Models you can train</h1>
-        <p class="doc-summary">YOLO, RT-DETR and RF-DETR — sizes, hardware and when each is the right choice.</p>
-        <p>All three families are trained from the same dialog, recorded the same way, and scored by the same
-framework-neutral scorer, so their numbers compare.</p>
-<h2 id="yolo-ultralytics">YOLO — Ultralytics</h2>
-<p>Fast, reliable and the most widely used detector. The right first choice in almost every case.</p>
+<span class="doc-status partial">Partially included</span>
+        <h1>Models and task support</h1>
+        <p class="doc-summary">Choose among the model families exposed by the current training catalogue and check their task requirements.</p>
+        <p>The Training dialog reads the model catalogue from the running service. Available choices depend on
+the installed build and model packages. Use the catalogue shown in your workspace as the final source
+for which variants you can start there.</p>
+<h2 id="included-families">Included families</h2>
 <table>
 <thead>
 <tr>
-<th>Weights</th>
-<th>Size</th>
-<th>Note</th>
+<th>Family</th>
+<th>Catalogue choices</th>
+<th>Tasks</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>yolo26n.pt</code></td>
-<td>nano</td>
-<td>Fastest. Good for trying things out</td>
+<td>Ultralytics YOLO</td>
+<td>YOLO26 nano/small/medium; YOLO11 nano/small; YOLOv8 nano</td>
+<td>Detection</td>
 </tr>
 <tr>
-<td><code>yolo26s.pt</code></td>
-<td>small</td>
-<td>A good balance of speed and accuracy</td>
+<td>Ultralytics YOLO task variants</td>
+<td>Nano/small YOLO26 and YOLO11 variants</td>
+<td>Instance masks, pose, OBB</td>
 </tr>
 <tr>
-<td><code>yolo26m.pt</code></td>
-<td>medium</td>
-<td>More accurate, about three times slower</td>
+<td>RT-DETR through Ultralytics</td>
+<td><code>rtdetr-l.pt</code>, <code>rtdetr-x.pt</code></td>
+<td>Detection</td>
 </tr>
 <tr>
-<td><code>yolo11n.pt</code>, <code>yolo11s.pt</code></td>
-<td>nano, small</td>
-<td>Previous generation, very well tested</td>
+<td>RF-DETR</td>
+<td>nano, small, medium, base, large</td>
+<td>Detection</td>
 </tr>
 <tr>
-<td><code>yolov8n.pt</code></td>
-<td>nano</td>
-<td>Older; use it to match an existing YOLOv8 setup</td>
+<td>Torchvision</td>
+<td><code>resnet18</code></td>
+<td>Whole-image classification</td>
+</tr>
+<tr>
+<td>Torchvision</td>
+<td><code>lraspp-mobilenet-v3</code></td>
+<td>Semantic segmentation</td>
 </tr>
 </tbody>
 </table>
-<h2 id="rt-detr-baidu-through-ultralytics">RT-DETR — Baidu, through Ultralytics</h2>
-<p>A transformer detector that sees the whole image at once, which helps when many objects overlap. Slower
-to train and hungrier for graphics memory.</p>
-<table>
-<thead>
-<tr>
-<th>Weights</th>
-<th>Size</th>
-<th>Note</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>rtdetr-l.pt</code></td>
-<td>large</td>
-<td>About 8 GB of graphics memory at batch 8</td>
-</tr>
-<tr>
-<td><code>rtdetr-x.pt</code></td>
-<td>extra large</td>
-<td>Most accurate, slowest</td>
-</tr>
-</tbody>
-</table>
-<h2 id="rf-detr-roboflow">RF-DETR — Roboflow</h2>
-<p>A modern transformer on a large pretrained backbone, so it often learns from fewer images. It uses its
-own input size, so the image-size setting does not apply.</p>
-<table>
-<thead>
-<tr>
-<th>Weights</th>
-<th>Size</th>
-<th>Note</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>nano</code></td>
-<td>nano</td>
-<td>Fastest RF-DETR</td>
-</tr>
-<tr>
-<td><code>small</code></td>
-<td>small</td>
-<td>A good balance</td>
-</tr>
-<tr>
-<td><code>medium</code></td>
-<td>medium</td>
-<td>More accurate, slower</td>
-</tr>
-</tbody>
-</table>
-<h2 id="choosing">Choosing</h2>
-<table>
-<thead>
-<tr>
-<th>Situation</th>
-<th>Try</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>First run on a new dataset</td>
-<td>YOLO nano, few rounds — confirm the pipeline before spending hours</td>
-</tr>
-<tr>
-<td>Normal production run</td>
-<td>YOLO small or medium at 640 px</td>
-</tr>
-<tr>
-<td>Small objects, aerial or satellite</td>
-<td>YOLO medium at 1024 px or more</td>
-</tr>
-<tr>
-<td>Dense, overlapping objects</td>
-<td>RT-DETR large, if you have the memory</td>
-</tr>
-<tr>
-<td>Few hundred images total</td>
-<td>RF-DETR small</td>
-</tr>
-<tr>
-<td>Matching an existing deployment</td>
-<td>The family and version already in production</td>
-</tr>
-</tbody>
-</table>
-<h2 id="hardware">Hardware</h2>
-<p>Training needs the PyTorch add-on (about 3 GB with CUDA) and, realistically, an NVIDIA GPU. Without one
-training still runs, on the CPU, slowly enough that nano models and small datasets are the only sensible
-combination.</p>
-<p>Rules of thumb on one modern laptop GPU: a nano model on a few thousand images at 640 px is minutes per
-round; a medium model on 11,000 images at 640 px is a few minutes per round; doubling the image size
-roughly quadruples both memory and time.</p>
-<p>If a run stops with an out-of-memory error, reduce the image size first, then the model size. The batch
-size is chosen per family and is usually not the thing to change first.</p>
-        <div class="doc-steps"><a class="doc-step prev" href="/docs/reference/preflight"><span>Previous</span>Import checks</a><a class="doc-step next" href="/docs/reference/files"><span>Next</span>Files and settings</a></div>
+<p>The new classification and semantic paths are development implementations with broader qualification
+still in progress. See <a href="/docs/measure/tasks">training tasks</a> for input requirements and current limits.
+A model name in the catalogue is not a benchmark result for your data.</p>
+<h2 id="select-a-baseline">Select a baseline</h2>
+<p>Begin with a small compatible model and a short run to confirm loading, task geometry, metrics and
+checkpoint persistence. Then choose a model size and input resolution based on measured memory use,
+throughput and your validation results. Preserve the seed and recipe with each run.</p>
+<p>RF-DETR uses its own input-size behaviour; the same image-size control does not apply to every family.
+A larger model or image does not guarantee a useful improvement. Compare compatible experiments and
+inspect the <a href="/docs/explore/evaluation">per-class errors</a> behind their headline scores.</p>
+<h2 id="dependencies-and-weights">Dependencies and weights</h2>
+<p>Install training support where prompted and inspect its environment report. Model weights may download
+on first use. A successful package installation does not guarantee CUDA availability or a completed
+model run. If resources are insufficient, adjust the supported batch, image size or model choice and
+record the changed recipe.</p>
+<p>Framework integrations for Hugging Face, Lightning, Detectron2 and SuperGradients are available
+through <a href="/docs#integrations">Python guides</a>; they are not all one-click training-catalogue entries.
+SAM supplies interactive mask proposals rather than this training loop.</p>
+<h2 id="current-boundaries">Current boundaries</h2>
+<p>A universal model marketplace, automatic model recommendation system, qualified hardware matrix and
+complete panoptic training path are <strong>Not yet included</strong>. Avoid comparing detection mAP directly with
+classification accuracy or semantic IoU. Use <a href="/docs/guides/compare">Compare runs</a> only with compatible
+tasks and evaluation context.</p>
+        <div class="doc-steps"><a class="doc-step prev" href="/docs/reference/preflight"><span>Previous</span>Import checks</a><a class="doc-step next" href="/docs/reference/cli"><span>Next</span>Command line reference</a></div>
       </article>
-      <aside class="doc-toc" aria-label="On this page"><p>On this page</p><ul><li><a href="#yolo-ultralytics">YOLO — Ultralytics</a></li><li><a href="#rt-detr-baidu-through-ultralytics">RT-DETR — Baidu, through Ultralytics</a></li><li><a href="#rf-detr-roboflow">RF-DETR — Roboflow</a></li><li><a href="#choosing">Choosing</a></li><li><a href="#hardware">Hardware</a></li></ul></aside>
+      <aside class="doc-toc" aria-label="On this page"><p>On this page</p><ul><li><a href="#included-families">Included families</a></li><li><a href="#select-a-baseline">Select a baseline</a></li><li><a href="#dependencies-and-weights">Dependencies and weights</a></li><li><a href="#current-boundaries">Current boundaries</a></li></ul></aside>
     </main>
   </div>
 

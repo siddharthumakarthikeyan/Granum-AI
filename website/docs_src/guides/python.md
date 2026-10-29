@@ -33,17 +33,18 @@ latest = table.latest()                                             # newest saf
 
 ```python
 run = granum.init("aerial", "baseline", parameters={"framework": "yolo", "epochs": 12})
+from granum.metrics import DetectionMetricsCollector
 
 for epoch in range(12):
     ...  # your training loop
     granum.log({"epoch": epoch, "map50": score}, run=run)
     granum.collect_metrics(
-        valid, [granum.DetectionMetricsCollector("bbs", value_map=valid.schema["bbs"].value_map)],
+        valid, [DetectionMetricsCollector("bbs", value_map=valid.schema["bbs"].value_map)],
         predictor=my_predictor, constants={"epoch": epoch}, split="valid",
     )
 ```
 
-`collect_metrics` writes one metrics table per call, joined to the input table by row position, with the
+`collect_metrics` writes one metrics table per call, joined by the input table reference and sample ID, with the
 predicted boxes and per-image counts the dashboard reads. Anything you collect this way appears in the
 app: the run views, per-image learning and — when the predictions are stored every round — Findings.
 
@@ -64,11 +65,14 @@ python -m granum.training.train --project-root ~/granum --project aerial \
 
 ## The service API
 
-The dashboard talks to a local REST service, and so can you — `/api/projects`, `/api/images`,
-`/api/run/findings`, `/api/runs/compare` and the rest. It listens on `127.0.0.1` only, checks the `Host`
-header, and refuses cross-origin writes; it is for local tooling, not a shared backend.
+The dashboard talks to the REST service, and so can you — `/api/projects`, `/api/images`,
+`/api/run/findings`, `/api/runs/compare` and the rest. Default local mode accepts loopback peers and
+checks Host, Origin and paths. [Shared mode](/docs/operate/shared) adds authenticated HTTPS and
+workspace-wide roles. Inspect the live request schema at `/docs` on your running service.
 
-!!! note "Where the full API reference lives"
-    This page is an orientation, not a reference. The complete Python and service documentation ships
-    with the source — `docs/python-sdk.md`, `docs/service.md` and `docs/architecture.md` — and every
-    public function carries a docstring that explains why it behaves as it does.
+## Continue with the SDK
+
+Use [tables](/docs/python/tables), [schemas](/docs/python/schemas), [transforms](/docs/python/transforms),
+[runs](/docs/python/runs) and [custom collectors](/docs/python/custom-metrics) for complete examples.
+The [Python API reference](/docs/python/api) and [service API map](/docs/reference/rest) are available
+on this site. Framework-specific guides are in [Connect your training code](/docs#integrations).

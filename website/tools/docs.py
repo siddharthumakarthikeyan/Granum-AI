@@ -38,6 +38,7 @@ SOURCE = ROOT / "docs_src"
 OUTPUT = ROOT / "public" / "docs"
 
 SITE_TITLE = "Granum documentation"
+STATUS_LABELS = {"available": "Available", "partial": "Partially included", "planned": "Not yet included"}
 
 
 @dataclass
@@ -47,6 +48,7 @@ class Page:
     summary: str = ""
     body: str = ""
     headings: list[tuple[int, str, str]] = field(default_factory=list)  # level, id, text
+    status: str = ""
 
     @property
     def url(self) -> str:
@@ -68,28 +70,50 @@ class Section:
 #: The book's order. Everything in the sidebar, the section pages, the previous/next
 #: links and the search index comes from here.
 NAV: list[Section] = [
+    Section("start", "Start with Granum",
+            "Install, understand the workflow, and check which capabilities are included in your build.",
+            ["reference/features", "start/install", "start/activate", "start/first-project", "start/the-loop", "start/source"]),
     Section("course", "Guided aerial-data course",
             "Start with a real sample. Every lesson explains the action, its evidence and its limits, with actual screenshots and captioned recordings.",
             ["course/start", "course/setup", "course/data", "course/import", "course/explore",
              "course/baseline", "course/review", "course/train", "course/results", "course/compare",
              "course/handoff", "course/backup", "course/next"]),
-    Section("start", "Getting started",
-            "Check alpha access, install a qualified build, and run the loop on a small dataset.",
-            ["start/install", "start/activate", "start/first-project", "start/the-loop"]),
     Section("concepts", "Concepts",
             "The ideas the product is built on. Read these once and the rest of the app explains itself.",
             ["concepts/model", "concepts/projects", "concepts/versions", "concepts/dataset-versions",
              "concepts/verification", "concepts/identity", "concepts/runs", "concepts/evidence"]),
-    Section("guides", "Guides",
-            "Step-by-step for each job: bring data in, make it right, freeze it, train on it, judge the result.",
-            ["guides/import", "guides/pull-from-projects", "guides/browse", "guides/review", "guides/edit",
-             "guides/isolate-remove", "guides/dataset-versions", "guides/augmentation", "guides/train",
-             "guides/runs", "guides/learning", "guides/findings", "guides/compare", "guides/projects",
-             "guides/python", "guides/operations"]),
+    Section("guides", "Bring data in",
+            "Import, check and organise datasets while preserving their identity and history.",
+            ["guides/import", "guides/pull-from-projects", "guides/projects", "data/formats", "data/tabular", "data/images", "data/video"]),
+    Section("explore", "Explore and diagnose",
+            "Move from a distribution or model error to the individual samples behind it.",
+            ["guides/browse", "explore/workspace", "explore/charts", "explore/calculations", "explore/workflows",
+             "explore/embeddings", "explore/trajectories", "explore/duplicates", "explore/health", "explore/evaluation"]),
+    Section("improve", "Review and improve",
+            "Correct labels, review model suggestions, balance samples, and save reproducible dataset versions.",
+            ["guides/review", "guides/edit", "data/boxes", "data/masks", "data/keypoints", "improve/prelabel",
+             "improve/sam", "improve/weights", "guides/isolate-remove", "guides/dataset-versions", "guides/augmentation", "improve/export"]),
+    Section("measure", "Train and measure",
+            "Record experiments, inspect sample behaviour and compare a candidate against a baseline.",
+            ["guides/train", "measure/tasks", "guides/runs", "guides/learning", "guides/findings", "guides/compare", "measure/metrics", "measure/recipes"]),
+    Section("integrations", "Connect your training code",
+            "Use Granum with your model framework and keep predictions linked to the correct source samples.",
+            ["integrations/pytorch", "integrations/ultralytics", "integrations/hugging-face", "integrations/lightning",
+             "integrations/detectron2", "integrations/supergradients"]),
+    Section("python", "Build with Python",
+            "Create typed tables, transform samples, collect metrics and extend your own workflow.",
+            ["guides/python", "python/tables", "python/schemas", "python/transforms", "python/runs", "python/custom-metrics", "python/storage", "python/api"]),
+    Section("operate", "Run your workspace",
+            "Configure the service, share access, preserve data and understand deployment boundaries.",
+            ["operate/service", "operate/configuration", "operate/shared", "operate/cloud", "operate/remote",
+             "guides/operations", "operate/upgrades"]),
+    Section("planned", "Not yet included",
+            "Reserved guides for planned capabilities. Each section explains its intended scope and the current alternative.",
+            ["planned/advanced-analysis", "planned/compute", "planned/enterprise", "planned/spatial", "planned/extensions"]),
     Section("reference", "Reference",
             "Look things up: every screen, every key, every check, every file.",
             ["reference/screens", "reference/shortcuts", "reference/preflight", "reference/models",
-             "reference/files", "reference/limits", "reference/glossary"]),
+             "reference/cli", "reference/rest", "reference/requirements", "reference/files", "reference/limits", "reference/releases", "reference/glossary"]),
     Section("help", "Help",
             "When something is wrong, or you want to know how Granum handles your data.",
             ["help/troubleshooting", "help/faq", "help/privacy"]),
@@ -119,8 +143,17 @@ def read_page(slug: str) -> Page:
     )
     body = renderer.convert(text)
     headings = [(int(level), ident, TAGS.sub("", inner).strip()) for level, ident, inner in HEADING.findall(body)]
+    status = meta.get("status", "")
+    if status and status not in STATUS_LABELS:
+        raise SystemExit(f"unknown documentation status {status!r}: {slug}")
     return Page(slug=slug, title=meta.get("title", slug), summary=meta.get("summary", ""),
-                body=body, headings=headings)
+                body=body, headings=headings, status=status)
+
+
+def status_badge(status: str) -> str:
+    if not status:
+        return ""
+    return f'<span class="doc-status {status}">{STATUS_LABELS[status]}</span>'
 
 
 def section_of(slug: str) -> Section | None:
@@ -131,13 +164,16 @@ def sidebar(current: str) -> str:
     out = ['<nav class="doc-nav" aria-label="Documentation">']
     out.append(f'<a class="doc-nav-home{" on" if current == "index" else ""}" href="/docs">Start here</a>')
     for section in NAV:
-        out.append(f'<div class="doc-nav-group"><p class="doc-nav-title">{html.escape(section.title)}</p><ul>')
+        expanded = current in section.slugs or (current == "index" and section.key == "start")
+        out.append(f'<details class="doc-nav-group"{" open" if expanded else ""}>'
+                   f'<summary class="doc-nav-title">{html.escape(section.title)}</summary><ul>')
         for slug in section.slugs:
             page = PAGES[slug]
             on = " class=\"on\"" if slug == current else ""
             aria = ' aria-current="page"' if slug == current else ""
-            out.append(f'<li><a href="{page.url}"{on}{aria}>{html.escape(page.title)}</a></li>')
-        out.append("</ul></div>")
+            badge = status_badge(page.status) if page.status == "planned" else ""
+            out.append(f'<li><a href="{page.url}"{on}{aria}>{html.escape(page.title)}{badge}</a></li>')
+        out.append("</ul></details>")
     out.append("</nav>")
     return "\n".join(out)
 
@@ -184,6 +220,7 @@ def render(page: Page) -> str:
         crumb=breadcrumb(page),
         heading=html.escape(page.title),
         summary=f'<p class="doc-summary">{html.escape(page.summary)}</p>' if page.summary else "",
+        status=status_badge(page.status),
         toc=on_this_page(page),
         body=page.body,
         steps=f'<div class="doc-steps">{"".join(steps)}</div>' if steps else "",
@@ -243,6 +280,7 @@ TEMPLATE = """<!doctype html>
     <main class="doc-main" id="main">
       <article class="doc-article">
         {crumb}
+{status}
         <h1>{heading}</h1>
         {summary}
         {body}
@@ -279,7 +317,7 @@ def front_page() -> Page:
     cards = ['<div class="doc-sections">']
     for section in NAV:
         links = "".join(
-            f'<li><a href="{PAGES[s].url}">{html.escape(PAGES[s].title)}</a>'
+            f'<li><a href="{PAGES[s].url}">{html.escape(PAGES[s].title)}</a>{status_badge(PAGES[s].status) if PAGES[s].status == "planned" else ""}'
             f'<span>{html.escape(PAGES[s].summary)}</span></li>' for s in section.slugs)
         cards.append(
             f'<section class="doc-section">'
@@ -306,6 +344,7 @@ def search_index() -> list[dict[str, object]]:
             "url": page.url,
             "section": section.title if section else "Start here",
             "summary": page.summary,
+            "status": STATUS_LABELS.get(page.status, ""),
             "headings": [h[2] for h in page.headings],
             # Long lessons include troubleshooting and recovery guidance near the end.
             # Index the whole article, not just its introductory paragraphs.
@@ -317,6 +356,25 @@ def search_index() -> list[dict[str, object]]:
 PAGES: dict[str, Page] = {}
 
 
+def feature_inventory() -> list[dict[str, str]]:
+    return json.loads((ROOT / "docs_features.json").read_text(encoding="utf-8"))["features"]
+
+
+def feature_page() -> Page:
+    page = read_page("reference/features")
+    features = feature_inventory()
+    for area in dict.fromkeys(item["area"] for item in features):
+        ident = re.sub(r"[^a-z0-9]+", "-", area.lower()).strip("-")
+        page.body += f'<h2 id="{ident}">{html.escape(area)}</h2>'
+        page.body += '<table><thead><tr><th>Capability</th><th>Status</th><th>Scope</th></tr></thead><tbody>'
+        for item in (f for f in features if f["area"] == area):
+            page.body += (f'<tr><td><a href="{html.escape(item["doc"])}">{html.escape(item["title"])}</a></td>'
+                          f'<td>{status_badge(item["status"])}</td><td>{html.escape(item["scope"])}</td></tr>')
+        page.body += '</tbody></table>'
+        page.headings.append((2, ident, area))
+    return page
+
+
 def build() -> list[tuple[Path, str]]:
     PAGES.clear()
     PAGES["index"] = Page(slug="index", title="Granum documentation",
@@ -324,6 +382,7 @@ def build() -> list[tuple[Path, str]]:
     for section in NAV:
         for slug in section.slugs:
             PAGES[slug] = read_page(slug)
+    PAGES["reference/features"] = feature_page()
     PAGES["index"] = front_page()
 
     written = [(page.out_path, render(page)) for page in PAGES.values()]

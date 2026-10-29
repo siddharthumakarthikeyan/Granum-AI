@@ -27,6 +27,8 @@ from granum.core.objects.table import Table
 from granum.core.schemas.geometry import BoundingBoxes2DSchema
 from granum.core.url import Url
 from granum.errors import GranumError
+from granum.formats._common import root_producer
+from granum.formats.vision import encode_mask
 from granum.metrics import DetectionMetricsCollector, collect_metrics
 
 
@@ -87,6 +89,9 @@ class YOLOPredictor:
         on_unknown: str = "raise",
     ) -> None:
         self.model = _load_yolo(model)
+        self.task = getattr(self.model, "task", "detect")
+        if self.task not in ("detect", "segment", "pose", "obb"):
+            raise IntegrationError(f"use a detection, segmentation, pose or oriented model; got {self.task}")
         by_name = {_match_name(entry.internal_name): key for key, entry in value_map.items()}
         names = dict(self.model.names)
         unknown = sorted(name for name in names.values() if _match_name(name) not in by_name)
@@ -108,22 +113,46 @@ class YOLOPredictor:
             )
         self.image_column = image_column
         self.options = {"conf": conf, "iou": iou, "imgsz": imgsz, "device": device, "verbose": False}
+        if self.task == "segment":
+            self.options["retina_masks"] = True
 
-    def __call__(self, batch: dict[str, list[Any]]) -> list[dict[str, np.ndarray]]:
+    def __call__(self, batch: dict[str, list[Any]]) -> list[dict[str, Any]]:
         paths = [Url(p).resolved for p in batch[self.image_column]]
         outputs = []
         for result in self.model.predict(paths, **self.options):
-            detected = result.boxes
+            detected = result.obb if self.task == "obb" else result.boxes
+            if detected is None:
+                raise IntegrationError(f"model result has no {self.task} predictions")
             classes = detected.cls.cpu().numpy().astype(int)
             # A class this dataset does not have is dropped here rather than mapped to
             # something near it: a prediction nobody asked for is worse than no prediction.
             keep = [i for i, c in enumerate(classes) if int(c) in self.class_map]
-            outputs.append({
+            output = {
                 "boxes": detected.xyxy.cpu().numpy().astype(np.float64)[keep],
                 "scores": detected.conf.cpu().numpy().astype(np.float64)[keep],
                 "labels": np.array([self.class_map[int(classes[i])] for i in keep], dtype=np.int64),
-            })
+            }
+            if self.task == "segment":
+                masks = result.masks.data.cpu().numpy() if result.masks is not None else []
+                if len(masks) != len(classes):
+                    raise IntegrationError("the model returned different numbers of masks and boxes")
+                output["segmentations"] = [encode_mask(masks[i]) for i in keep]
+            elif self.task == "obb":
+                output["obb"] = detected.xyxyxyxy.cpu().numpy()[keep]
+            elif self.task == "pose":
+                if result.keypoints is None:
+                    raise IntegrationError("the model did not return keypoints")
+                output["keypoints"] = result.keypoints.data.cpu().numpy()[keep]
+            outputs.append(output)
         return outputs
+
+
+def collector_for(predictor: Any, table: Table, column: str, **kwargs: Any) -> DetectionMetricsCollector:
+    origin = root_producer(table, "from_coco")
+    pose = origin.get("yolo") or (origin.get("top_level") or {}).get("granum_yolo") or {}
+    return DetectionMetricsCollector(column, task=getattr(predictor, "task", "detect"),
+                                     keypoint_sigmas=pose.get("kpt_oks_sigmas"),
+                                     keypoint_count=(pose.get("kpt_shape") or [None])[0], **kwargs)
 
 
 def collect_detection_metrics(
@@ -158,7 +187,7 @@ def collect_detection_metrics(
         constants["summary_only"] = 1  # constants are stored as columns; an int keeps the type simple
     return collect_metrics(
         table,
-        [DetectionMetricsCollector(column, value_map=value_map, iou_threshold=iou_threshold, store_boxes=store_boxes)],
+        [collector_for(predictor, table, column, value_map=value_map, iou_threshold=iou_threshold, store_boxes=store_boxes)],
         predictor=predictor,
         run=run,
         split=split,

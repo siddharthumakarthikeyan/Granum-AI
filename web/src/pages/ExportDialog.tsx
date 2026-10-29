@@ -41,6 +41,7 @@ const IMAGE_CHOICES: { id: string; label: string; detail: string }[] = [
 export function ExportDialog({ project, dataset, releaseId, releaseName, images, onClose }: Props) {
   const [formats, setFormats] = useState<FormatOption[] | null>(null);
   const [format, setFormat] = useState("coco");
+  const [yoloTask, setYoloTask] = useState<"detect" | "segment" | "pose" | "obb">("detect");
   const [handling, setHandling] = useState("symlink");
   const [job, setJob] = useState<Job<ExportResult> | null>(null);
   const [result, setResult] = useState<ExportResult | null>(null);
@@ -69,7 +70,7 @@ export function ExportDialog({ project, dataset, releaseId, releaseName, images,
     setError(null);
     try {
       let current = await api.startExport({
-        project, dataset, release_id: releaseId, format, images: handling,
+        project, dataset, release_id: releaseId, format, images: handling, yolo_task: yoloTask,
       });
       setJob(current);
       while (current.status === "running") {
@@ -175,6 +176,12 @@ export function ExportDialog({ project, dataset, releaseId, releaseName, images,
             {chosen && <span className="faint small">{chosen.detail}</span>}
           </label>
 
+          {format === "yolo" && <label className="field"><span>YOLO task</span>
+            <select value={yoloTask} onChange={(e) => setYoloTask(e.target.value as typeof yoloTask)}>
+              <option value="detect">Object detection</option><option value="segment">Instance segmentation</option><option value="pose">Keypoints</option><option value="obb">Oriented boxes</option>
+            </select>
+            {yoloTask === "segment" && <span className="faint small">Bitmap masks become pixel contours. Choose COCO to preserve exact mask pixels.</span>}
+          </label>}
           <div className="screen-sets">
             <span className="field-label">Image files</span>
             <div role="radiogroup" aria-label="Image files">

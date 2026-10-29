@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import { api } from "../api/client";
 import type { ImageRounds, LearningReport, LearningSplit, ObjectEntry } from "../api/types";
 import { ROLE_NAMES, ROLE_STYLE, type BoxRole } from "../boxes/model";
+import { ActionMenu } from "../components/ActionMenu";
+import { DashboardMetric } from "../components/DashboardMetric";
 import { EmptyState, Icon, PageHeader, RunStatus, SeverityLabel, formatNumber, formatWhen, plural } from "../components/ui";
 import { navigate, routeHref } from "../router";
 import { useStore } from "../store/store";
@@ -50,18 +52,21 @@ export function ProjectOverview({ project }: { project: string }) {
   // The newest run that recorded per-sample dynamics feeds the hardest-sample and dynamics cards.
   const tracked = [...runs].filter((r) => r.parameters?.tracks_learning === true && r.status !== "running")
     .sort((a, b) => b.created.localeCompare(a.created))[0];
-  const [learning, setLearning] = useState<LearningReport | null>(null);
+  const [learningResult, setLearningResult] = useState<{ url: string; report: LearningReport } | null>(null);
+  const learning = learningResult?.url === tracked?.url ? learningResult?.report : null;
   useEffect(() => {
     if (!tracked) return;
     let alive = true;
-    api.runLearning(tracked.url).then((r) => alive && setLearning(r)).catch(() => undefined);
+    api.runLearning(tracked.url).then((report) => alive && setLearningResult({ url: tracked.url, report })).catch(() => undefined);
     return () => {
       alive = false;
     };
   }, [tracked?.url]);
 
-  if (loadedProject !== project && loading) {
-    return <div className="page"><PageHeader title={project} subtitle="Loading" /></div>;
+  if (loadedProject !== project) {
+    return <div className="page project-dashboard"><PageHeader title={project} subtitle={loading ? "Loading your project…" : "Project data is unavailable."} />
+      <div className="dashboard-loading" role="status">{loading ? <><span className="spinner" />Loading datasets and runs</> :
+        <button className="button" onClick={() => void useStore.getState().openProject(project)}><Icon name="refresh" />Retry loading project</button>}</div></div>;
   }
 
   const datasets = groupDatasets(tables);
@@ -71,8 +76,14 @@ export function ProjectOverview({ project }: { project: string }) {
   const boxes = live.reduce((n, s) => n + (s.split.latest.box_count ?? 0), 0);
   const classes = Math.max(0, ...live.map((s) => s.split.latest.class_count ?? 0));
   const byRecent = [...runs].sort((a, b) => b.created.localeCompare(a.created));
-  const ranked = [...runs].sort((a, b) => (metric(b, "map50") ?? -1) - (metric(a, "map50") ?? -1));
-  const best = ranked[0] && metric(ranked[0], "map50") !== null ? ranked[0] : null;
+  const score = [{ key: "map50", label: "mAP50" }, { key: "mean_iou", label: "Mean IoU" },
+    { key: "accuracy", label: "Accuracy" }, { key: "macro_f1", label: "Macro F1" }]
+    .find((candidate) => runs.some((run) => metric(run, candidate.key) !== null)) ?? { key: "map50", label: "mAP50" };
+  const ranked = [...runs].sort((a, b) => (metric(b, score.key) ?? -1) - (metric(a, score.key) ?? -1));
+  const best = ranked[0] && metric(ranked[0], score.key) !== null ? ranked[0] : null;
+  const hasHistory = runs.some((run) => run.history?.some((epoch) =>
+    ["accuracy", "macro_f1", "mean_iou", "pixel_accuracy", "train_loss", "map50", "map50_95", "recall", "precision", "val_box_loss", "train_box_loss"]
+      .some((key) => typeof epoch[key] === "number")));
 
   const tableByUrl = new Map(tables.map((t) => [t.url, t]));
   const staleBySet = new Map<string, { label: string; latest: ObjectEntry; runs: ObjectEntry[] }>();
@@ -91,46 +102,33 @@ export function ProjectOverview({ project }: { project: string }) {
   const dynamicsSplit = learning?.splits.find((s) => s.split === "train") ?? learning?.splits[0];
 
   return (
-    <div className="overview">
-      <section className="lab-banner">
-        {mosaicSet && <Mosaic url={mosaicSet.split.latest.url} project={project} dataset={mosaicSet.dataset.name} />}
-        <div className="lab-banner-shade" />
-        <div className="lab-banner-content">
-          <div className="lab-banner-title">
-            <span className="page-context">Project</span>
-            <h1 className="project-title">
-              {project}
-              <button className="icon-button title-rename" title="Rename project" aria-label="Rename project" onClick={() => setRenaming(true)}>
-                <Icon name="pencil" size={15} />
-              </button>
-            </h1>
-            <span className="muted">
-              {datasets.map((d) => d.name).join(", ") || "No datasets"}{classes ? `, ${plural(classes, "class", "classes")}` : ""}, {plural(tables.length, "version")}
-            </span>
-          </div>
-          <span className="spacer" />
-          <BigNumber value={formatNumber(images)} label="images" />
-          <BigNumber value={formatNumber(boxes)} label="boxes" />
-          <BigNumber value={best ? (metric(best, "map50") ?? 0).toFixed(3) : "—"} label="best mAP50" accent />
-          <div className="lab-banner-actions">
-            <a className="button" href={routeHref({ name: "import", project })}><Icon name="import" />Add data</a>
-            <button className="button primary" onClick={() => setTrainPreset({})} disabled={job?.status === "running" || live.length === 0}>
-              <Icon name="runs" />Train model
-            </button>
-            <button
-              className="icon-button banner-delete"
-              title="Delete project"
-              aria-label="Delete project"
-              onClick={() => setDeleting(true)}
-              disabled={job?.status === "running"}
-            >
-              <Icon name="trash" size={16} />
-            </button>
-          </div>
-        </div>
-      </section>
+    <div className="overview page project-dashboard">
+      <PageHeader
+        title={<span className="project-title">{project}</span>}
+        subtitle={`${plural(datasets.length, "source dataset")} · ${plural(classes, "class", "classes")} · ${plural(tables.length, "table version")}`}
+        actions={<>
+          <a className="button" href={routeHref({ name: "import", project })}><Icon name="import" />Add data</a>
+          <button className="button primary" onClick={() => setTrainPreset({})} disabled={job?.status === "running" || live.length === 0}><Icon name="runs" />Train model</button>
+          <ActionMenu label="Project actions" actions={[
+            { label: "Rename project", icon: "pencil", onSelect: () => setRenaming(true) },
+            { label: "Delete project", icon: "trash", danger: true, disabled: job?.status === "running", onSelect: () => setDeleting(true) },
+          ]} />
+        </>}
+      />
+      <dl className="dashboard-metrics" aria-label="Project statistics">
+        <DashboardMetric label="Images" value={formatNumber(images)} detail={`Across ${plural(live.length, "active split")}`} icon="images" />
+        <DashboardMetric label="Annotated objects" value={formatNumber(boxes)} detail={plural(classes, "class", "classes")} icon="target" />
+        <DashboardMetric label="Runs" value={formatNumber(runs.length)} detail={training ? "Training in progress" : "Recorded experiments"} icon="runs" />
+        <DashboardMetric label={`Best ${score.label}`} value={best ? metric(best, score.key)!.toFixed(3) : "—"}
+          detail={best ? best.name : "Available after evaluation"} icon="target" accent />
+      </dl>
+      {datasets.length > 0 && <nav className="project-workflow" aria-label="Project workflow">
+        <a href={routeHref({ name: "images", project, review: true })}><span className="workflow-icon"><Icon name="review" size={19} /></span><span><strong>Review images</strong><span>Inspect and refine labels</span></span><Icon name="chevron" size={15} /></a>
+        <a href={routeHref({ name: "datasets", project })}><span className="workflow-icon"><Icon name="datasets" size={19} /></span><span><strong>Dataset versions</strong><span>Prepare your training data</span></span><Icon name="chevron" size={15} /></a>
+        <a href={routeHref({ name: "runs", project })}><span className="workflow-icon"><Icon name="runs" size={19} /></span><span><strong>Explore runs</strong><span>Follow model performance</span></span><Icon name="chevron" size={15} /></a>
+      </nav>}
 
-      <div className="page">
+      <div className="overview-content">
         {datasets.length === 0 && runs.length === 0 && !loading && (
           <EmptyState
             title="No data yet"
@@ -147,21 +145,29 @@ export function ProjectOverview({ project }: { project: string }) {
           <DeleteProjectDialog project={{ name: project, tables: tables.length, runs: runs.length }} onClose={() => setDeleting(false)} />
         )}
 
-        {(tracked || runs.length > 0) && (
-          <div className="lab-grid-3">
-            {tracked && dynamicsSplit ? (
-              <HardestSample project={project} run={tracked} split={dynamicsSplit} />
-            ) : (
-              <div className="lab-card"><div className="lab-card-head"><h3>Hardest sample</h3></div><p className="faint small">Train with per-sample metrics to surface hard samples.</p></div>
-            )}
-            {runs.some((r) => (r.history?.length ?? 0) > 1) ? <TrainingChart runs={runs} compact metricKey="map50" /> : <div className="lab-card"><div className="lab-card-head"><h3>mAP50</h3></div><p className="faint small">{runs.some((r) => r.status === "running") ? "Training is in its first round. Scores are plotted when each round finishes." : "No epochs logged yet."}</p></div>}
-            <DynamicsCard project={project} run={tracked} split={dynamicsSplit} />
+        {(datasets.length > 0 || runs.length > 0) && (
+          <div className="overview-insights">
+            <section className="performance-panel">
+              <div className="performance-heading"><div><h2>Model performance</h2><p>Follow your experiments, epoch by epoch.</p></div><a className="section-link" href={routeHref({ name: "runs", project })}>All runs<Icon name="chevron" size={14} /></a></div>
+              {hasHistory ? <TrainingChart runs={runs} metricKey={score.key} /> :
+                <div className="insight-empty-body"><span className="empty-state-icon"><Icon name="runs" size={25} /></span><strong>{training ? "Your model is learning" : "See your progress take shape"}</strong><p>{training ? "Scores appear as training rounds finish." : "Train a model or record metrics from your pipeline to compare performance here."}</p>
+                  {!training && <button className="button" disabled={live.length === 0} onClick={() => setTrainPreset({})}>Train a model<Icon name="chevron" size={14} /></button>}
+                </div>}
+              <div className="performance-foot"><span className={`status-dot${training ? " ok" : ""}`} />{training ? "Training in progress · updates automatically" : `${plural(runs.length, "recorded experiment")} in this project`}</div>
+            </section>
+            {tracked && dynamicsSplit ? <HardestSample key={`${tracked.url}/${dynamicsSplit.table}`} project={project} run={tracked} split={dynamicsSplit} /> :
+              <a className="lab-card dataset-preview" href={routeHref({ name: "images", project })}>
+                <div className="lab-card-head"><h3>Dataset preview</h3><Icon name="chevron" size={14} /></div>
+                <div className="dataset-preview-frame">{mosaicSet ? <Mosaic url={mosaicSet.split.latest.url} project={project} dataset={mosaicSet.dataset.name} /> : <Icon name="images" size={28} />}</div>
+                <p className="dataset-preview-foot"><span>{plural(images, "image")} to explore</span><span>View images<Icon name="chevron" size={13} /></span></p>
+              </a>}
           </div>
         )}
+        {tracked && dynamicsSplit && <DynamicsCard project={project} run={tracked} split={dynamicsSplit} />}
 
         {(staleBySet.size > 0 || warnings.length > 0) && (
           <section className="section">
-            <div className="section-head"><h2 className="section-title">Attention</h2></div>
+            <div className="section-head"><h2 className="section-title"><Icon name="warn" size={17} />Needs attention <span className="dashboard-count">{staleBySet.size + warnings.length}</span></h2></div>
             <div className="data-table-wrap">
               <table className="data-table">
                 <tbody>
@@ -224,7 +230,7 @@ export function ProjectOverview({ project }: { project: string }) {
                       const newest = dataset.revisions.map((r) => r.entry.created).sort().at(-1);
                       return (
                         <tr key={dataset.name} className="clickable" onClick={() => navigate({ name: "images", project, dataset: dataset.name })}>
-                          <td><span className="cell-title">{dataset.name}</span></td>
+                          <td><a className="cell-title" href={routeHref({ name: "images", project, dataset: dataset.name })}>{dataset.name}</a></td>
                           <td>
                             <span className="set-pills">
                               {liveSets.map((s) => (
@@ -257,7 +263,7 @@ export function ProjectOverview({ project }: { project: string }) {
             <section className="section">
               <div className="section-head">
                 <h2 className="section-title">Runs</h2>
-                <span className="faint small">ranked by mAP50</span>
+                <span className="faint small">ranked by {score.label}</span>
                 <a href={routeHref({ name: "runs", project })} className="section-link">All runs</a>
               </div>
               <div className="data-table-wrap">
@@ -266,17 +272,17 @@ export function ProjectOverview({ project }: { project: string }) {
                     <tr>
                       <th>Run</th>
                       <th>Status</th>
-                      <th className="num">mAP50</th>
+                      <th className="num">{score.label}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {(ranked.length ? ranked : byRecent).slice(0, 6).map((run) => {
-                      const map50 = metric(run, "map50");
+                      const map50 = metric(run, score.key);
                       return (
                         <tr key={run.url} className="clickable" onClick={() => navigate({ name: "run", project, url: run.url })}>
                           <td>
-                            <span className="cell-title">{run.name}</span>
-                            <span className="cell-sub">{String(run.parameters?.model ?? run.parameters?.framework ?? "")}, {formatWhen(run.created)}</span>
+                            <a className="cell-title" href={routeHref({ name: "run", project, url: run.url })}>{run.name}</a>
+                            <span className="cell-sub">{[String(run.parameters?.model ?? run.parameters?.framework ?? ""), formatWhen(run.created)].filter(Boolean).join(" · ")}</span>
                           </td>
                           <td><RunStatus status={run.status} epochs={run.epochs} total={run.parameters?.epochs} /></td>
                           <td className={`num strong${run === best ? " value-best" : ""}`}>{map50 !== null ? map50.toFixed(3) : "—"}</td>
@@ -294,25 +300,18 @@ export function ProjectOverview({ project }: { project: string }) {
   );
 }
 
-function BigNumber({ value, label, accent = false }: { value: string; label: string; accent?: boolean }) {
-  return (
-    <div className="big-number">
-      <span className={`big-number-value${accent ? " accent" : ""}`}>{value}</span>
-      <span className="big-number-label">{label}</span>
-    </div>
-  );
-}
-
 /** Two rows of thumbnails spread through the newest training version. */
 function Mosaic({ url, project, dataset }: { url: string; project: string; dataset: string }) {
-  const [images, setImages] = useState<string[]>([]);
+  const [images, setImages] = useState<string[] | null>(null);
   useEffect(() => {
     let alive = true;
-    api.tableSample(url, 20).then((r) => alive && setImages(r.images.map((i) => i.image))).catch(() => undefined);
+    setImages(null);
+    api.tableSample(url, 6).then((r) => alive && setImages(r.images.map((i) => i.image).filter(Boolean))).catch(() => alive && setImages([]));
     return () => {
       alive = false;
     };
   }, [url]);
+  if (!images?.length) return <div className="preview-placeholder"><Icon name="images" size={27} /><span>{images === null ? "Loading image previews…" : "No image previews in this dataset"}</span></div>;
   return (
     <div className="lab-mosaic" aria-hidden="true">
       {images.map((image) => <img key={image} src={api.mediaUrl(image, 256, project, dataset)} alt="" loading="lazy" />)}
@@ -323,20 +322,28 @@ function Mosaic({ url, project, dataset }: { url: string; project: string; datas
 /** The labelled sample the tracked run did worst on, with its last-epoch boxes drawn. */
 function HardestSample({ project, run, split }: { project: string; run: ObjectEntry; split: LearningSplit }) {
   const [data, setData] = useState<ImageRounds | null>(null);
-  // Worst final F1 among images the model partly got: an image with nothing found shows
-  // nothing, while a partial miss shows found, missed and false boxes side by side.
-  const labelled = split.images.filter((i) => i.objects >= 15 && i.objects <= 90 && i.image);
-  const candidate = [...labelled].filter((i) => i.final_score >= 0.15).sort((a, b) => a.final_score - b.final_score)[0]
-    ?? [...labelled].sort((a, b) => a.final_score - b.final_score)[0];
+  const [failed, setFailed] = useState(false);
+  // Include sparse images and complete misses: they can be the most useful examples.
+  const candidate = split.images.filter((image) => image.image && Number.isFinite(image.final_score))
+    .sort((a, b) => a.final_score - b.final_score)[0];
 
   useEffect(() => {
     if (!candidate) return;
     let alive = true;
-    api.imageRounds(run.url, split.table, candidate.example_id).then((r) => alive && setData(r)).catch(() => undefined);
+    setData(null);
+    setFailed(false);
+    api.imageRounds(run.url, split.table, candidate.example_id).then((r) => alive && setData(r)).catch(() => alive && setFailed(true));
     return () => {
       alive = false;
     };
   }, [run.url, split.table, candidate?.example_id]);
+
+  if (!candidate) {
+    return <a className="lab-card insight-empty" href={routeHref({ name: "learning", project, url: run.url })}>
+      <div className="lab-card-head"><h3>Hardest sample</h3><Icon name="chevron" size={14} /></div>
+      <div className="insight-empty-body"><span className="insight-empty-icon"><Icon name="images" size={26} /></span><strong>No scored images yet</strong><p>Samples with image references and recorded scores will appear here.</p></div>
+    </a>;
+  }
 
   const last = data?.rounds[data.rounds.length - 1];
   const counts: Partial<Record<BoxRole, number>> = {};
@@ -348,8 +355,11 @@ function HardestSample({ project, run, split }: { project: string; run: ObjectEn
       shapes.push({ role, v: t.vertices });
       counts[role] = (counts[role] ?? 0) + 1;
     });
-    (last.boxes ?? []).forEach((b) => {
-      if (b.matched || b.ignored) return;
+    const matchedPredictions = new Set(last.gt_match?.filter((index) => index >= 0));
+    (last.boxes ?? []).forEach((b, index) => {
+      // Some collectors store the ground-truth mapping without per-prediction flags.
+      const matched = b.matched ?? (last.gt_match ? matchedPredictions.has(index) : undefined);
+      if (matched !== false || b.ignored) return;
       shapes.push({ role: "unmatched", v: b.vertices });
       counts.unmatched = (counts.unmatched ?? 0) + 1;
     });
@@ -359,10 +369,10 @@ function HardestSample({ project, run, split }: { project: string; run: ObjectEn
     <a className="lab-card hardest" href={routeHref({ name: "learning", project, url: run.url })}>
       <div className="lab-card-head">
         <h3>Hardest sample</h3>
-        <span>{candidate ? `F1 ${candidate.final_score.toFixed(2)}, ${plural(candidate.objects, "object")}, ${run.name}` : "none"}</span>
+        <span title={run.name}>F1 {candidate.final_score.toFixed(2)} · {plural(candidate.objects, "object")}</span>
       </div>
-      <div className="hardest-frame" style={{ aspectRatio: data ? `${data.width} / ${data.height}` : "16 / 9" }}>
-        {candidate?.image && <img src={api.mediaUrl(candidate.image, 640, project, split.dataset ?? undefined)} alt="" />}
+      <div className="hardest-frame" style={{ aspectRatio: data ? `${data.width} / ${data.height}` : "16 / 9", maxWidth: data ? `${280 * data.width / data.height}px` : undefined }}>
+        {candidate.image && <img src={api.mediaUrl(candidate.image, 640, project, split.dataset ?? undefined)} alt={`Lowest-scoring sample in ${split.split}, final F1 ${candidate.final_score.toFixed(2)}`} />}
         {data && (
           <svg viewBox={`0 0 ${data.width} ${data.height}`} preserveAspectRatio="none" aria-hidden="true">
             {shapes.map((s, i) => {
@@ -376,45 +386,26 @@ function HardestSample({ project, run, split }: { project: string; run: ObjectEn
           </svg>
         )}
       </div>
-      <div className="box-legend">
-        {(["truth", "missed", "unmatched"] as BoxRole[]).map((role) => (
+      {last ? <div className="box-legend">
+        {((last.gt_match ? ["truth", "missed", "unmatched"] : ["truth"]) as BoxRole[]).map((role) => (
           <span key={role}>
             <i style={{ borderColor: ROLE_STYLE[role].color, borderStyle: role === "unmatched" ? "dashed" : "solid" }} />
-            {role === "truth" ? "Found" : ROLE_NAMES[role]} {counts[role] ?? 0}
+            {role === "truth" ? last.gt_match ? "Found" : "Ground truth" : ROLE_NAMES[role]} {counts[role] ?? 0}
           </span>
         ))}
-      </div>
+      </div> : <p className="muted small sample-detail-status">{failed ? "Annotation details unavailable. Open the run to inspect." : data ? "No annotation rounds recorded." : "Loading annotation details…"}</p>}
     </a>
   );
 }
 
-function DynamicsCard({ project, run, split }: { project: string; run?: ObjectEntry; split?: LearningSplit }) {
-  if (!run || !split) {
-    return <div className="lab-card"><div className="lab-card-head"><h3>Sample dynamics</h3></div><p className="faint small">No run with per-sample metrics yet.</p></div>;
-  }
+function DynamicsCard({ project, run, split }: { project: string; run: ObjectEntry; split: LearningSplit }) {
   const total = split.images.length || 1;
   const never = split.counts.never ?? 0;
-  return (
-    <a className="lab-card" href={routeHref({ name: "learning", project, url: run.url })}>
-      <div className="lab-card-head">
-        <h3>Sample dynamics</h3>
-        <span>{split.split}, {run.name}</span>
-      </div>
-      <div className="dyn-headline">{Math.round((never / total) * 100)}%</div>
-      <div className="muted small dyn-sub">never learned, {plural(never, "sample")}</div>
-      <div className="dyn-bars">
-        {DYNAMICS.map((c) => {
-          const n = split.counts[c.id] ?? 0;
-          if (c.id === "insufficient" && !n) return null;
-          return (
-            <div key={c.id} className="dyn-row">
-              <span>{c.label}</span>
-              <span className="dyn-track"><span style={{ width: `${(n / total) * 100}%`, background: c.color }} /></span>
-              <span className="num">{formatNumber(n)}</span>
-            </div>
-          );
-        })}
-      </div>
-    </a>
-  );
+  return <a className="dynamics-summary" href={routeHref({ name: "learning", project, url: run.url })}>
+    <div className="dynamics-heading"><span className="dynamics-symbol"><Icon name="target" size={21} /></span><div><h3>Learning dynamics</h3><p>{split.split} · {run.name}</p></div></div>
+    <div className="dynamics-distribution"><div className="dynamics-track" aria-hidden="true">{DYNAMICS.map((category) => <span key={category.id} style={{ width: `${((split.counts[category.id] ?? 0) / total) * 100}%`, background: category.color }} />)}</div>
+      <div className="dynamics-legend">{DYNAMICS.map((category) => { const n = split.counts[category.id] ?? 0; return n > 0 ? <span key={category.id}><i style={{ background: category.color }} />{category.label}<strong>{formatNumber(n)}</strong></span> : null; })}</div>
+    </div>
+    <div className="dynamics-score"><strong>{Math.round((never / total) * 100)}%</strong><span>not learned</span></div><Icon name="chevron" size={17} />
+  </a>;
 }

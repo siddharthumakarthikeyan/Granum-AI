@@ -22,6 +22,7 @@ A predictor returns, per image, ``{"boxes": (N, 4) xyxy pixels, "scores": (N,),
 
 from __future__ import annotations
 
+import json
 from typing import Any
 
 import numpy as np
@@ -29,6 +30,7 @@ import numpy as np
 from granum.core.datatypes.bounding_boxes import match_boxes
 from granum.core.schemas import FractionSchema, Int32ListSchema, Int32Schema, Schema
 from granum.core.schemas.geometry import BoundingBoxes2DSchema
+from granum.formats.vision import extra_of
 from granum.metrics.collectors import CollectorError, MetricsCollector
 from granum.metrics.predictor import Prediction
 
@@ -59,7 +61,17 @@ class DetectionMetricsCollector(MetricsCollector):
         class_aware: bool = True,
         predicted_column: str = "bbs_predicted",
         store_boxes: bool = True,
+        task: str = "detect",
+        keypoint_sigmas: Any = None,
+        keypoint_count: int | None = None,
     ) -> None:
+        if task not in ("detect", "segment", "pose", "obb"):
+            raise CollectorError(f"unsupported vision task {task!r}")
+        self.task = task
+        self.keypoint_sigmas = keypoint_sigmas
+        if keypoint_count is not None and (type(keypoint_count) is not int or not 1 <= keypoint_count <= 4096):
+            raise CollectorError("keypoint_count must be between 1 and 4096")
+        self.keypoint_count = keypoint_count
         #: False records only the per-image counts and scores: cheap enough to collect
         #: every epoch for learning dynamics, while predicted boxes are kept for fewer epochs.
         self.store_boxes = store_boxes
@@ -80,9 +92,13 @@ class DetectionMetricsCollector(MetricsCollector):
         return {
             self.predicted_column: BoundingBoxes2DSchema(
                 value_map=self.value_map,
-                instance_properties=PREDICTED_PROPERTIES,
+                instance_properties={**PREDICTED_PROPERTIES, **({"segmentation": "string"} if self.task == "segment" else {}),
+                                     **({"coco_extra": "string"} if self.task in ("pose", "obb") else {}),
+                                     **({"oks": "float32"} if self.task == "pose" else {}),
+                                     **({f"keypoint_{i}_{metric}": "float32" for i in range(self.keypoint_count or 0)
+                                         for metric in ("oks", "confidence")} if self.task == "pose" else {})},
                 writable=False,
-                description=f"Model predictions matched at IoU {self.iou_threshold}",
+                description=f"{self.task} predictions matched at {'OKS' if self.task == 'pose' else 'IoU'} {self.iou_threshold}",
             ),
             "gt_match": Int32ListSchema(description="Per ground-truth box: matching prediction index, or -1"),
             "tp": Int32Schema(description="True positives"),
@@ -103,12 +119,29 @@ class DetectionMetricsCollector(MetricsCollector):
         if len(outputs) != len(batch[self.gt_column]):
             raise CollectorError(f"predictor returned {len(outputs)} results for {len(batch[self.gt_column])} images")
 
+        if self.task == "pose":
+            counts = {len(extra_of(instance).get("keypoints", [])) // 3
+                      for truth in batch[self.gt_column] if truth
+                      for instance in truth["instances"] if extra_of(instance).get("keypoints")}
+            for output in outputs:
+                points = np.asarray(output.get("keypoints", []))
+                if points.ndim == 3:
+                    counts.add(points.shape[1])
+            if self.keypoint_count is not None:
+                counts.add(self.keypoint_count)
+            if len(counts) > 1 or any(not 1 <= count <= 4096 for count in counts):
+                raise CollectorError("pose samples must use the same keypoint layout throughout collection")
+            if counts:
+                self.keypoint_count = counts.pop()
+
         out: dict[str, list[Any]] = {name: [] for name in self.column_schemas()}
         for truth, predicted in zip(batch[self.gt_column], outputs):
             truth = truth or {"width": 0.0, "height": 0.0, "instances": []}
             all_boxes = np.array([i["vertices"] for i in truth["instances"]], dtype=np.float64).reshape(-1, 4)
             all_labels = np.array([i["label"] for i in truth["instances"]], dtype=np.int64)
             skip = np.array([bool(i.get("iscrowd")) for i in truth["instances"]], dtype=bool)
+            if self.task == "pose":
+                skip |= np.array([not any(v > 0 for v in extra_of(i).get("keypoints", [])[2::3]) for i in truth["instances"]], dtype=bool)
             kept = np.flatnonzero(~skip)
             gt_boxes, gt_labels = all_boxes[kept], all_labels[kept]
             boxes = np.asarray(predicted.get("boxes", []), dtype=np.float64).reshape(-1, 4)
@@ -120,11 +153,19 @@ class DetectionMetricsCollector(MetricsCollector):
             if not (len(boxes) == len(scores) == len(labels)):
                 raise CollectorError("prediction boxes, scores and labels differ in length")
 
+            similarity = None
+            overlap = _overlap_of_first(boxes, all_boxes[skip])
+            if self.task != "detect":
+                from granum.metrics.vision import similarities
+
+                all_similarity, crowd = similarities(self.task, truth, predicted, sigmas=self.keypoint_sigmas)
+                similarity = all_similarity[:, kept]
+                if self.task != "pose":
+                    overlap = crowd[:, skip]
             result = match_boxes(
                 gt_boxes, gt_labels, boxes, labels, scores,
-                iou_threshold=self.iou_threshold, class_aware=self.class_aware,
+                iou_threshold=self.iou_threshold, class_aware=self.class_aware, similarity=similarity,
             )
-            overlap = _overlap_of_first(boxes, all_boxes[skip])
             ignored = (result.pred_match < 0) & (overlap.max(axis=1) >= IGNORE_OVERLAP if overlap.size else np.zeros(len(boxes), dtype=bool))
             tp = int((result.pred_match >= 0).sum())
             fp = int(((result.pred_match < 0) & ~ignored).sum())
@@ -138,7 +179,8 @@ class DetectionMetricsCollector(MetricsCollector):
                             "vertices": [float(v) for v in boxes[i]],
                             "label": int(labels[i]),
                             "confidence": float(scores[i]),
-                            "iou": float(result.pred_iou[i]),
+                            "iou": float(result.pred_iou[i]) if self.task != "pose" else None,
+                            **self._extra_prediction(predicted, int(i), truth, int(kept[result.pred_match[i]]) if result.pred_match[i] >= 0 else -1, float(result.pred_iou[i])),
                             "matched": bool(result.pred_match[i] >= 0),
                             "ignored": bool(ignored[i]),
                         }
@@ -161,3 +203,25 @@ class DetectionMetricsCollector(MetricsCollector):
             out["recall"].append(recall)
             out["f1"].append(2 * precision * recall / (precision + recall) if precision + recall else 0.0)
         return out
+
+    def _extra_prediction(self, predicted: dict[str, Any], i: int, truth: dict[str, Any], match: int, similarity: float) -> dict[str, Any]:
+        if self.task == "segment":
+            return {"segmentation": json.dumps(predicted["segmentations"][i])}
+        if self.task == "obb":
+            return {"coco_extra": json.dumps({"obb": np.asarray(predicted["obb"][i]).reshape(-1).tolist()})}
+        if self.task == "pose":
+            points = np.asarray(predicted["keypoints"][i], dtype=float)
+            confidence = points[:, 2].tolist() if points.shape[1] == 3 else [1.0] * len(points)
+            extra: dict[str, Any] = {"keypoints": np.column_stack((points[:, :2], np.where(np.asarray(confidence) > 0.5, 2, 1))).reshape(-1).tolist(), "keypoint_confidence": confidence}
+            if match >= 0:
+                from granum.metrics.vision import keypoint_oks
+
+                instance = truth["instances"][match]
+                x0, y0, x1, y1 = instance["vertices"]
+                extra["keypoint_oks"] = keypoint_oks(points, extra_of(instance)["keypoints"], instance.get("area") or (x1 - x0) * (y1 - y0), self.keypoint_sigmas)[1]
+            properties = {f"keypoint_{point}_{metric}": value
+                          for metric, values in (("oks", extra.get("keypoint_oks", [None] * len(points))),
+                                                 ("confidence", confidence))
+                          for point, value in enumerate(values)}
+            return {"coco_extra": json.dumps(extra), "oks": similarity, **properties}
+        return {}

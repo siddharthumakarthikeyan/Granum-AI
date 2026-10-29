@@ -84,7 +84,11 @@ export function TrainDialog({ project, preset, onClose, onStarted }: {
 
   const families = status?.families ?? [];
   const family = families.find((f) => f.id === familyId);
+  const modelTask = family?.versions.find((v) => v.id === versionId)?.task ?? "detect";
+  const comparable = finished.filter(r => (r.parameters?.task ?? "detect") === modelTask);
+  const compatibleComparison = comparable.some(r => r.name === compareWith) ? compareWith : "";
   const chooseFamily = (next: ModelFamily) => {
+    setImageSize(next.default_image_size ?? 640);
     setFamilyId(next.id);
     setVersionId(next.versions[0]?.id ?? "");
   };
@@ -108,7 +112,7 @@ export function TrainDialog({ project, preset, onClose, onStarted }: {
         family: familyId, version: versionId,
         image_size: family?.supports_closer ? imageSize : 640,
         track_learning: trackLearning,
-        compare_with: compareWith || null,
+        compare_with: compatibleComparison || null,
         release_id: release?.id,
         require_approved: release?.approval === "approved",
       });
@@ -210,9 +214,9 @@ export function TrainDialog({ project, preset, onClose, onStarted }: {
         ) : (
           problem && release && <p className="form-error">{problem}</p>
         )}
-        {release && !trainsOnBoxes(release.tasks) && (
+        {release && modelTask === "detect" && !trainsOnBoxes(release.tasks) && (
           <p className="small warn-text">
-            {release.name} is labelled for {tasksLabel(release.tasks).toLowerCase()}. These models are box detectors and train on its boxes only.
+            {release.name} is labelled for {tasksLabel(release.tasks).toLowerCase()}. The selected model trains on boxes. Choose a matching task below to train on its other annotations.
           </p>
         )}
         {release?.mode === "all" && Object.values(release.sets).some((s) => (s.verified ?? s.images) < s.images) && (
@@ -234,11 +238,16 @@ export function TrainDialog({ project, preset, onClose, onStarted }: {
         </div>
         {family && (
           <div className="field-pair">
+            {family.id === "yolo" && <label className="field"><span>Prediction task</span>
+              <select value={modelTask} onChange={(e) => setVersionId(family.versions.find((v) => (v.task ?? "detect") === e.target.value)?.id ?? "")}>
+                <option value="detect">Object detection</option><option value="segment">Instance segmentation</option><option value="pose">Keypoints</option><option value="obb">Oriented boxes</option>
+              </select>
+            </label>}
             <label className="field">
               <span>Weights</span>
               <div className="select-wrap">
                 <select value={versionId} onChange={(e) => setVersionId(e.target.value)} disabled={!family.installed}>
-                  {family.versions.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
+                  {family.versions.filter((v) => (v.task ?? "detect") === modelTask).map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
                 </select>
               </div>
             </label>
@@ -246,7 +255,7 @@ export function TrainDialog({ project, preset, onClose, onStarted }: {
               <span>Image size</span>
               <div className="select-wrap">
                 <select value={family.supports_closer ? imageSize : 640} onChange={(e) => setImageSize(Number(e.target.value))} disabled={!family.supports_closer}>
-                  {IMAGE_SIZES.map((size) => <option key={size} value={size}>{size} px</option>)}
+                  {(family.image_sizes ?? IMAGE_SIZES).map((size) => <option key={size} value={size}>{size} px</option>)}
                 </select>
               </div>
             </label>
@@ -271,9 +280,9 @@ export function TrainDialog({ project, preset, onClose, onStarted }: {
           <label className="field">
             <span>Compare with</span>
             <div className="select-wrap">
-              <select value={compareWith} onChange={(e) => setCompareWith(e.target.value)}>
+              <select value={compatibleComparison} onChange={(e) => setCompareWith(e.target.value)}>
                 <option value="">None</option>
-                {finished.map((run) => <option key={run.url} value={run.name}>{run.name}</option>)}
+                {comparable.map((run) => <option key={run.url} value={run.name}>{run.name}</option>)}
               </select>
             </div>
           </label>
@@ -469,9 +478,11 @@ export function TrainingProgressCard({ project, job, onCancel, onDismiss }: {
 /** A run scored against an earlier one on the same validation labels. */
 export function Comparison({ run, project }: { run: ObjectEntry; project: string }) {
   const p = run.parameters ?? {};
-  const mine = Number(p.compare_map50_this);
-  const theirs = Number(p.compare_map50_earlier);
-  if (!Number.isFinite(mine) || !Number.isFinite(theirs) || p.compare_map50_this === undefined) return null;
+  const metric = p.task === "classify" ? "accuracy" : p.task === "semantic" ? "mean_iou" : "map50";
+  const title = metric === "accuracy" ? "Accuracy" : metric === "mean_iou" ? "Mean IoU" : "mAP50";
+  const mine = Number(p[`compare_${metric}_this`]);
+  const theirs = Number(p[`compare_${metric}_earlier`]);
+  if (!Number.isFinite(mine) || !Number.isFinite(theirs) || p[`compare_${metric}_this`] === undefined) return null;
   const difference = mine - theirs;
   const noise = Math.abs(difference) < 0.02;
   const earlier = useStore.getState().runs.find((r) => r.name === p.compared_with);
@@ -487,10 +498,10 @@ export function Comparison({ run, project }: { run: ObjectEntry; project: string
         <span className="muted">vs</span>
         {earlier ? <a href={routeHref({ name: "run", project, url: earlier.url })}>{String(p.compared_with)}</a> : <span>{String(p.compared_with)}</span>}
         <span className="comparison-value">{theirs.toFixed(3)}</span>
-        <span className="muted">mAP50</span>
+        <span className="muted">{title}</span>
       </span>
       <span className={`comparison-delta${noise ? "" : difference > 0 ? " up" : " down"}`}>
-        {difference >= 0 ? "+" : ""}{difference.toFixed(3)}{noise ? ", within run-to-run noise" : ""}
+        {difference >= 0 ? "+" : ""}{difference.toFixed(3)}{noise ? ", small change" : ""}
       </span>
       {Number.isFinite(recallMine) && Number.isFinite(recallTheirs) && (
         <span className="muted small">Recall {recallMine.toFixed(3)} vs {recallTheirs.toFixed(3)}</span>

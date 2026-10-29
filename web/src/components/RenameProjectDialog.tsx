@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { api } from "../api/client";
 import { navigate } from "../router";
+import { renameProjectPreferences } from "../shell/preferences";
 import { useStore } from "../store/store";
 import { Modal } from "./Modal";
 
@@ -36,6 +37,7 @@ export function RenameProjectDialog({ project, onClose }: { project: string; onC
     setError(null);
     try {
       const done = await api.renameProject(project, name.trim());
+      renameProjectPreferences(project, done.name);
       const wasOpen = useStore.getState().project === project;
       await refreshProjects();
       onClose();

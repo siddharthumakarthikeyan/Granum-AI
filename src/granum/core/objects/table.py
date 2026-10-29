@@ -67,6 +67,7 @@ _IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".bmp", ".gif", ".webp", ".tif", ".t
 ROW_PRESERVING_OPS = frozenset({
     "edit", "set_values", "add_column", "delete_columns",
     "set_value_map", "add_value_map_item", "set_value_map_item", "delete_value_map_item",
+    "compute_plugin",
 })
 
 
@@ -964,12 +965,19 @@ class Table(GranumObject):
 
     @classmethod
     def from_yolo_url(
-        cls, data_yaml: Url | str, split: str = "train", *, task: str = "detect", **kwargs: Any
+        cls, data_yaml: Url | str, split: str = "train", *, task: str | None = None, **kwargs: Any
     ) -> Table:
         """A detection Table from one split of a YOLO dataset YAML. See ``granum.formats.yolo``."""
         from granum.formats.yolo import table_from_yolo
 
         return table_from_yolo(data_yaml, split, task=task, **kwargs)
+
+    @classmethod
+    def from_semantic_masks(cls, manifest: str, **kwargs: Any) -> Table:
+        """Read a semantic.json manifest with lossless PNG masks and an ignore class."""
+        from granum.formats.semantic import table_from_semantic_masks
+
+        return table_from_semantic_masks(manifest, **kwargs)
 
     @classmethod
     def from_image_folder(

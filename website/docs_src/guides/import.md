@@ -12,11 +12,13 @@ each finding; only then is a project created.
 | Source | Dashboard | Command line | Python |
 |---|---|---|---|
 | COCO JSON, one file per set | Yes | `granum import coco` | `Table.from_coco` |
-| YOLO (`data.yaml`) | No | No | `Table.from_yolo_url` |
-| Image folder, one folder per class | No | No | `Table.from_image_folder` |
+| YOLO (`data.yaml`) | Yes, with the matching task | No dedicated import command | `Table.from_yolo_url` |
+| Image folder, one folder per class | Recognised classification layout | No dedicated import command | `Table.from_image_folder` |
+| Semantic PNG masks (`semantic.json`) | Yes | No dedicated import command | `Table.from_semantic_masks` |
+| VOC, KITTI, detection CSV, CVAT, Label Studio | Recognised exchange layouts | No dedicated import command | Format adapters or explicit typed tables |
 
-The dashboard path is COCO, which is what Roboflow, CVAT, Label Studio and most other tools export. The
-layout it expects:
+Recognised exchange sources are prepared for the common preflight. Check the source task and supported
+fields in [Choose an import format](/docs/data/formats). One common COCO layout is:
 
 ```
 human_aerial/
@@ -90,7 +92,8 @@ read-only.
 - The option chosen for each finding and how many images or boxes it affected: in the producer record of
   every version the import wrote.
 - COCO fields as they were — category ids, annotation ids, `iscrowd`, `area`, segmentation and any extra
-  fields — so an unedited export reproduces the file.
+  supported fields — so later exports can retain their annotation meaning. Conversion does not promise
+  byte-for-byte reproduction of an original file.
 
 ## From the command line
 
